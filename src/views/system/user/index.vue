@@ -1,32 +1,19 @@
 <template>
   <div class="p-2">
-    <el-row :gutter="20">
-      <!-- 部门树 -->
-      <el-col :lg="4" :xs="24" style="">
-        <el-card shadow="hover">
-          <el-input v-model="deptName" placeholder="请输入部门名称" prefix-icon="Search" clearable />
-          <el-tree
-            class="mt-2"
-            ref="deptTreeRef"
-            :data="deptOptions"
-            :props="{ label: 'label', children: 'children' }"
-            :expand-on-click-node="false"
-            :filter-node-method="filterNode"
-            highlight-current
-            default-expand-all
-            @node-click="handleNodeClick"
-          ></el-tree>
-        </el-card>
-      </el-col>
-      <el-col :lg="20" :xs="24">
+    <el-row :gutter="10">
+          <el-col :span="1.5">
         <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
           <div class="search" v-show="showSearch">
             <el-form ref="queryFormRef" :model="queryParams" :inline="true" label-width="68px">
               <el-form-item label="用户名称" prop="userName">
                 <el-input v-model="queryParams.userName" placeholder="请输入用户名称" clearable style="width: 240px" @keyup.enter="handleQuery" />
               </el-form-item>
-              <el-form-item label="手机号码" prop="phonenumber">
-                <el-input v-model="queryParams.phonenumber" placeholder="请输入手机号码" clearable style="width: 240px" @keyup.enter="handleQuery" />
+
+
+              <el-form-item label="用户等级" prop="userGrade">
+                <el-select v-model="queryParams.userGrade" placeholder="用户等级" clearable>
+                  <el-option v-for="dict in sys_user_grade" :key="dict.value" :label="dict.label" :value="dict.value" />
+                </el-select>
               </el-form-item>
 
               <el-form-item label="状态" prop="status">
@@ -91,23 +78,22 @@
             <el-table-column type="selection" width="50" align="center" />
             <el-table-column label="用户编号" align="center" key="userId" prop="userId" v-if="columns[0].visible" />
             <el-table-column label="用户名称" align="center" key="userName" prop="userName" v-if="columns[1].visible" :show-overflow-tooltip="true" />
-            <el-table-column label="用户昵称" align="center" key="nickName" prop="nickName" v-if="columns[2].visible" :show-overflow-tooltip="true" />
-            <el-table-column
-              label="部门"
-              align="center"
-              key="deptName"
-              prop="dept.deptName"
-              v-if="columns[3].visible"
-              :show-overflow-tooltip="true"
-            />
-            <el-table-column label="手机号码" align="center" key="phonenumber" prop="phonenumber" v-if="columns[4].visible" width="120" />
+            <el-table-column label="用户余额" align="center" key="userBalance" prop="userBalance" v-if="columns[2].visible" :show-overflow-tooltip="true" />
+           
+            <el-table-column prop="status" align="center" label="用户等级" width="100">
+              <template #default="scope">
+                <dict-tag :options="sys_user_grade" :value="scope.row.userGrade" />
+              </template>
+            </el-table-column>
+           
+           
             <el-table-column label="状态" align="center" key="status" v-if="columns[5].visible">
               <template #default="scope">
                 <el-switch v-model="scope.row.status" active-value="0" inactive-value="1" @change="handleStatusChange(scope.row)"></el-switch>
               </template>
             </el-table-column>
 
-            <el-table-column label="创建时间" align="center" prop="createTime" v-if="columns[6].visible" width="160">
+            <el-table-column label="注册时间" align="center" prop="createTime" v-if="columns[6].visible" width="160">
               <template #default="scope">
                 <span>{{ scope.row.createTime }}</span>
               </template>
@@ -126,9 +112,9 @@
                   <el-button link type="primary" icon="Key" @click="handleResetPwd(scope.row)" v-hasPermi="['system:user:resetPwd']"></el-button>
                 </el-tooltip>
 
-                <el-tooltip content="分配角色" placement="top" v-if="scope.row.userId !== 1">
+                <!-- <el-tooltip content="分配角色" placement="top" v-if="scope.row.userId !== 1">
                   <el-button link type="primary" icon="CircleCheck" @click="handleAuthRole(scope.row)" v-hasPermi="['system:user:edit']"></el-button>
-                </el-tooltip>
+                </el-tooltip> -->
               </template>
             </el-table-column>
           </el-table>
@@ -148,100 +134,28 @@
     <el-dialog :title="dialog.title" v-model="dialog.visible" width="600px" append-to-body @close="closeDialog">
       <el-form :model="form" :rules="rules" ref="userFormRef" label-width="80px">
         <el-row>
-          <el-col :span="12">
-            <el-form-item label="用户昵称" prop="nickName">
-              <el-input v-model="form.nickName" placeholder="请输入用户昵称" maxlength="30" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="归属部门" prop="deptId">
-              <el-tree-select
-                v-model="form.deptId"
-                :data="deptOptions"
-                :props="{ value: 'id', label: 'label', children: 'children' }"
-                value-key="id"
-                placeholder="请选择归属部门"
-                check-strictly
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="手机号码" prop="phonenumber">
-              <el-input v-model="form.phonenumber" placeholder="请输入手机号码" maxlength="11" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="邮箱" prop="email">
-              <el-input v-model="form.email" placeholder="请输入邮箱" maxlength="50" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item v-if="form.userId == undefined" label="用户名称" prop="userName">
-              <el-input v-model="form.userName" placeholder="请输入用户名称" maxlength="30" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item v-if="form.userId == undefined" label="用户密码" prop="password">
-              <el-input v-model="form.password" placeholder="请输入用户密码" type="password" maxlength="20" show-password />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="用户性别">
-              <el-select v-model="form.sex" placeholder="请选择">
-                <el-option v-for="dict in sys_user_sex" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="状态">
-              <el-radio-group v-model="form.status">
-                <el-radio v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.value">{{
-                    dict.label }}</el-radio>
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="12">
-            <el-form-item label="岗位">
-              <el-select v-model="form.postIds" multiple placeholder="请选择">
-                <el-option
-                  v-for="item in postOptions"
-                  :key="item.postId"
-                  :label="item.postName"
-                  :value="item.postId"
-                  :disabled="item.status == '1'"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="角色">
-              <el-select v-model="form.roleIds" multiple placeholder="请选择">
-                <el-option
-                  v-for="item in roleOptions"
-                  :key="item.roleId"
-                  :label="item.roleName"
-                  :value="item.roleId"
-                  :disabled="item.status == '1'"
-                ></el-option>
-              </el-select>
+          <el-col :span="24">
+            <el-form-item label="名称" prop="nickName">
+              <el-input v-model="form.nickName" placeholder="请输入名称" maxlength="30" />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row>
           <el-col :span="24">
-            <el-form-item label="备注">
-              <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"></el-input>
+            <el-form-item label="余额" prop="userBalance">
+              <el-input v-model="form.userBalance" placeholder="请输入余额" maxlength="11" />
             </el-form-item>
           </el-col>
+
+        <el-form-item label="等级" prop="userGrade">
+          <el-radio-group v-model="form.userGrade">
+            <el-radio v-for="dict in sys_user_grade" :key="dict.value" :label="dict.value">{{ dict.label }}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
         </el-row>
+
+
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -309,7 +223,7 @@ import { DateModelType, ElTree, ElUpload, UploadFile, ElForm } from 'element-plu
 import { to } from "await-to-js";
 const router = useRouter();
 const { proxy } = getCurrentInstance() as ComponentInternalInstance
-const { sys_normal_disable, sys_user_sex } = toRefs<any>(proxy?.useDict('sys_normal_disable', 'sys_user_sex'));
+const { sys_normal_disable, sys_user_grade } = toRefs<any>(proxy?.useDict('sys_normal_disable', 'sys_user_grade'));
 
 
 const userList = ref<UserVO[]>();
@@ -352,7 +266,7 @@ const columns = ref<FieldOption[]>([
 ])
 
 
-const deptTreeRef = ref(ElTree);
+// const deptTreeRef = ref(ElTree);
 const queryFormRef = ref(ElForm);
 const userFormRef = ref(ElForm);
 const uploadRef = ref(ElUpload);
@@ -403,17 +317,17 @@ const filterNode = (value: string, data: any) => {
     return data.label.indexOf(value) !== -1
 }
 /** 根据名称筛选部门树 */
-watchEffect(
-    () => {deptTreeRef.value.filter(deptName.value);},
-    {
-        flush: 'post' // watchEffect会在DOM挂载或者更新之前就会触发，此属性控制在DOM元素更新后运行
-    }
-);
+// watchEffect(
+//     () => {deptTreeRef.value.filter(deptName.value);},
+//     {
+//         flush: 'post' // watchEffect会在DOM挂载或者更新之前就会触发，此属性控制在DOM元素更新后运行
+//     }
+// );
 
 /** 查询部门下拉树结构 */
 const getTreeSelect = async () => {
-    const res = await deptTreeSelect();
-    deptOptions.value = res.data;
+    // const res = await deptTreeSelect();
+    // deptOptions.value = res.data;
 };
 
 /** 查询用户列表 */
@@ -422,6 +336,7 @@ const getList = async () => {
     const res = await listUser(proxy?.addDateRange(queryParams.value, dateRange.value));
     loading.value = false;
     userList.value = res.rows;
+    console.log("userList.value",userList.value)
     total.value = res.total;
 }
 
@@ -533,10 +448,10 @@ function submitFileForm() {
 /** 初始化部门数据 */
 const initTreeData = async () => {
     // 判断部门的数据是否存在，存在不获取，不存在则获取
-    if (deptOptions.value === undefined) {
-        const { data } = await treeselect();
-        deptOptions.value = data;
-    }
+    // if (deptOptions.value === undefined) {
+    //     const { data } = await treeselect();
+    //     deptOptions.value = data;
+    // }
 }
 
 

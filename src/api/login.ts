@@ -79,3 +79,14 @@ export function getTenantList(): AxiosPromise<TenantInfo> {
     method: 'get'
   });
 }
+
+/**
+ * 获取机器人登录二维码
+ * @returns 
+ */
+export function getQr() {
+  return request({
+    url: '/getQr',
+    method: 'get'
+  });
+}

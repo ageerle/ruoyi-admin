@@ -15,6 +15,7 @@ export interface UserInfo {
  * 用户查询对象类型
  */
 export interface UserQuery extends PageQuery {
+  userGrade: any;
   userName?: string;
   phonenumber?: string;
   status?: string;
@@ -52,6 +53,8 @@ export interface UserVO extends BaseEntity {
  * 用户表单类型
  */
 export interface UserForm {
+userBalance: any;
+userGrade: any;
   id?: string;
   userId?: string;
   deptId?: number;

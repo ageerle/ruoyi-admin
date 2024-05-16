@@ -35,7 +35,7 @@ defineProps({
     }
 })
 
-const title = ref('RuoYi-Vue-Plus');
+const title = ref('熊猫后台管理系统');
 const settingsStore = useSettingsStore();
 const sideTheme = computed(() => settingsStore.sideTheme);
 </script>

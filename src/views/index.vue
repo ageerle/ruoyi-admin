@@ -1,167 +1,164 @@
 <template>
-  <div class="app-container home">
+  <div>
     <el-row :gutter="20">
-      <el-col :sm="24" :lg="12" style="padding-left: 20px">
-        <h2>RuoYi-Vue-Plus多租户管理系统</h2>
-        <p>
-          RuoYi-Vue-Plus 是基于 RuoYi-Vue 针对 分布式集群 场景升级(不兼容原框架)
-          <br />
-          * 前端开发框架 Vue3、TS、Element Plus<br />
-          * 后端开发框架 Spring Boot<br />
-          * 容器框架 Undertow 基于 Netty 的高性能容器<br />
-          * 权限认证框架 Sa-Token 支持多终端认证系统<br />
-          * 关系数据库 MySQL 适配 8.X 最低 5.7<br />
-          * 缓存数据库 Redis 适配 6.X 最低 4.X<br />
-          * 数据库框架 Mybatis-Plus 快速 CRUD 增加开发效率<br />
-          * 数据库框架 p6spy 更强劲的 SQL 分析<br />
-          * 多数据源框架 dynamic-datasource 支持主从与多种类数据库异构<br />
-          * 序列化框架 Jackson 统一使用 jackson 高效可靠<br />
-          * Redis客户端 Redisson 性能强劲、API丰富<br />
-          * 分布式限流 Redisson 全局、请求IP、集群ID 多种限流<br />
-          * 分布式锁 Lock4j 注解锁、工具锁 多种多样<br />
-          * 分布式幂等 Lock4j 基于分布式锁实现<br />
-          * 分布式链路追踪 SkyWalking 支持链路追踪、网格分析、度量聚合、可视化<br />
-          * 分布式任务调度 Xxl-Job 高性能 高可靠 易扩展<br />
-          * 文件存储 Minio 本地存储<br />
-          * 文件存储 七牛、阿里、腾讯 云存储<br />
-          * 监控框架 SpringBoot-Admin 全方位服务监控<br />
-          * 校验框架 Validation 增强接口安全性 严谨性<br />
-          * Excel框架 Alibaba EasyExcel 性能优异 扩展性强<br />
-          * 文档框架 SpringDoc、javadoc 无注解零入侵基于java注释<br />
-          * 工具类框架 Hutool、Lombok 减少代码冗余 增加安全性<br />
-          * 代码生成器 适配MP、SpringDoc规范化代码 一键生成前后端代码<br />
-          * 部署方式 Docker 容器编排 一键部署业务集群<br />
-          * 国际化 SpringMessage Spring标准国际化方案<br />
-        </p>
-        <p><b>当前版本:</b> <span>v5.0.0</span></p>
-        <p>
-          <el-tag type="danger">&yen;免费开源</el-tag>
-        </p>
-        <p>
-          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://gitee.com/dromara/RuoYi-Vue-Plus')">访问码云</el-button>
-          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://github.com/dromara/RuoYi-Vue-Plus')">访问GitHub</el-button>
-          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://javalionli.gitee.io/plus-doc/#/ruoyi-vue-plus/changlog')"
-            >更新日志</el-button
-          >
-        </p>
-      </el-col>
-
-      <el-col :sm="24" :lg="12" style="padding-left: 20px">
-        <h2>RuoYi-Cloud-Plus多租户微服务管理系统</h2>
-        <p>
-          RuoYi-Cloud-Plus 微服务通用权限管理系统 重写 RuoYi-Cloud 全方位升级(不兼容原框架)
-          <br />
-          * 前端开发框架 Vue3、TS、Element UI<br />
-          * 后端开发框架 Spring Boot<br />
-          * 微服务开发框架 Spring Cloud、Spring Cloud Alibaba<br />
-          * 容器框架 Undertow 基于 XNIO 的高性能容器<br />
-          * 权限认证框架 Sa-Token、Jwt 支持多终端认证系统<br />
-          * 关系数据库 MySQL 适配 8.X 最低 5.7<br />
-          * 关系数据库 Oracle 适配 11g 12c<br />
-          * 关系数据库 PostgreSQL 适配 13 14<br />
-          * 关系数据库 SQLServer 适配 2017 2019<br />
-          * 缓存数据库 Redis 适配 6.X 最低 5.X<br />
-          * 分布式注册中心 Alibaba Nacos 采用2.X 基于GRPC通信高性能<br />
-          * 分布式配置中心 Alibaba Nacos 采用2.X 基于GRPC通信高性能<br />
-          * 服务网关 Spring Cloud Gateway 响应式高性能网关<br />
-          * 负载均衡 Spring Cloud Loadbalancer 负载均衡处理<br />
-          * RPC远程调用 Apache Dubbo 原生态使用体验、高性能<br />
-          * 分布式限流熔断 Alibaba Sentinel 无侵入、高扩展<br />
-          * 分布式事务 Alibaba Seata 无侵入、高扩展 支持 四种模式<br />
-          * 分布式消息队列 Spring Cloud Stream 门面框架兼容各种MQ集成<br />
-          * 分布式消息队列 Apache Kafka 高性能高速度<br />
-          * 分布式消息队列 Apache RocketMQ 高可用功能多样<br />
-          * 分布式消息队列 RabbitMQ 支持各种扩展插件功能多样性<br />
-          * 分布式搜索引擎 ElasticSearch 业界知名<br />
-          * 分布式链路追踪 Apache SkyWalking 链路追踪、网格分析、度量聚合、可视化<br />
-          * 分布式日志中心 ELK 业界成熟解决方案<br />
-          * 分布式监控 Prometheus、Grafana 全方位性能监控<br />
-          * 其余与 Vue 版本一致<br />
-        </p>
-        <p><b>当前版本:</b> <span>v2.0.0</span></p>
-        <p>
-          <el-tag type="danger">&yen;免费开源</el-tag>
-        </p>
-        <p>
-          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://gitee.com/dromara/RuoYi-Cloud-Plus')">访问码云</el-button>
-          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://github.com/dromara/RuoYi-Cloud-Plus')">访问GitHub</el-button>
-          <el-button type="primary" icon="Cloudy" plain @click="goTarget('https://javalionli.gitee.io/plus-doc/#/ruoyi-cloud-plus/changlog')"
-            >更新日志</el-button
-          >
-        </p>
+      <el-col :span="6" v-for="item in cards" :key="item.title">
+        <el-card :body-style="{ padding: '20px' }">
+          <h3>{{ item.title }}</h3>
+          <div>{{ item.content }}</div>
+        </el-card>
       </el-col>
     </el-row>
-    <el-divider />
+
+    <el-row :gutter="20" style="margin-top: 20px;">
+      <el-col :span="12">
+        <div ref="chart1" style="height: 400px;"></div>
+      </el-col>
+      <el-col :span="12">
+        <div ref="chart2" style="height: 400px;"></div>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="20" style="margin-top: 20px;">
+      <el-col :span="12">
+        <div ref="chart3" style="height: 400px;"></div>
+      </el-col>
+      <el-col :span="12">
+        <div ref="chart4" style="height: 400px;"></div>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
-<script setup name="Index" lang="ts">
+<script>
+import * as echarts from 'echarts';
 
-const goTarget = (url:string) => {
-  window.open(url, '__blank')
-}
+export default {
+  name: 'Dashboard',
+  data() {
+    return {
+      cards: [
+        { title: '总对话数', content: '1,234,567' },
+        { title: '满意度评分', content: '4.5/5' },
+        { title: '日活跃用户数', content: '12,345' },
+        { title: '平均响应时间', content: '1.2秒' },
+      ],
+    };
+  },
+  mounted() {
+    this.initChart(this.$refs.chart1, 'bar');
+    this.initChart(this.$refs.chart2, 'line');
+    this.initChart(this.$refs.chart3, 'pie');
+    this.initChart(this.$refs.chart4, 'scatter');
+  },
+  methods: {
+    initChart(chartDom, type) {
+      var myChart = echarts.init(chartDom);
+      var option = {};
+
+      switch (type) {
+        case 'bar':
+          option = {
+            title: { text: '总对话数（按月）' },
+            tooltip: {},
+            xAxis: { data: ["1月", "2月", "3月", "4月", "5月", "6月"] },
+            yAxis: {},
+            series: [{ name: '对话数', type: 'bar', data: [1200, 2000, 1500, 800, 700, 1100] }]
+          };
+          break;
+        case 'line':
+          option = {
+            title: { text: '满意度评分（按月）' },
+            tooltip: {},
+            xAxis: { type: 'category', data: ["1月", "2月", "3月", "4月", "5月", "6月"] },
+            yAxis: { type: 'value' },
+            series: [{ name: '评分', type: 'line', data: [4.2, 4.5, 4.3, 4.4, 4.6, 4.5] }]
+          };
+          break;
+        case 'pie':
+          option = {
+            title: { text: '用户反馈类别分布' },
+            tooltip: {},
+            series: [{
+              name: '访问来源',
+              type: 'pie',
+              radius: '55%',
+              data: [
+                {value: 235, name: '功能建议'},
+                {value: 274, name: '报告错误'},
+                {value: 310, name: '其他'},
+                {value: 335, name: '用户体验'},
+                {value: 400, name: '性能问题'}
+              ]
+            }]
+          };
+          break;
+        case 'scatter':
+          option = {
+            title: { text: '日活跃用户数与平均响应时间关系' },
+            xAxis: {},
+            yAxis: {},
+            series: [{
+              symbolSize: 20,
+              data: [
+                [10, 1.2],
+                [20, 1.0],
+                [30, 1.5],
+                [40, 1.1],
+                [50, 1.6],
+                [60, 1.8]
+              ],
+              type: 'scatter'
+            }]
+          };
+          break;
+      }
+
+      myChart.setOption(option);
+    },
+  },
+};
 </script>
 
-<style scoped lang="scss">
-.home {
-  blockquote {
-    padding: 10px 20px;
-    margin: 0 0 20px;
-    font-size: 17.5px;
-    border-left: 5px solid #eee;
-  }
-  hr {
-    margin-top: 20px;
-    margin-bottom: 20px;
-    border: 0;
-    border-top: 1px solid #eee;
-  }
-  .col-item {
-    margin-bottom: 20px;
-  }
-
-  ul {
-    padding: 0;
-    margin: 0;
-  }
-
-  font-family: "open sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 13px;
-  color: #676a6c;
-  overflow-x: hidden;
-
-  ul {
-    list-style-type: none;
-  }
-
-  h4 {
-    margin-top: 0px;
-  }
-
-  h2 {
-    margin-top: 10px;
-    font-size: 26px;
-    font-weight: 100;
-  }
-
-  p {
-    margin-top: 10px;
-
-    b {
-      font-weight: 700;
-    }
-  }
-
-  .update-log {
-    ol {
-      display: block;
-      list-style-type: decimal;
-      margin-block-start: 1em;
-      margin-block-end: 1em;
-      margin-inline-start: 0;
-      margin-inline-end: 0;
-      padding-inline-start: 40px;
-    }
-  }
+<style scoped>
+/* 卡片样式 */
+.el-card {
+  margin-top: 10px;
+  transition: transform .3s, box-shadow .3s;
+  cursor: pointer;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fff;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
 }
+
+.el-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+}
+
+.el-card .el-card__body {
+  padding: 20px;
+  color: #333;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.el-card h3 {
+  margin-top: 0;
+  color: #333;
+  font-weight: 600;
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+/* 调整卡片间距 */
+.el-row {
+  margin-bottom: 20px;
+}
+
+.el-row:last-child {
+  margin-bottom: 0;
+}
+
 </style>

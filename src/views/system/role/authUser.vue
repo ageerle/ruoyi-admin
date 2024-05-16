@@ -1,6 +1,5 @@
 <template>
   <div class="p-2">
-    <transition :enter-active-class="proxy?.animate.searchAnimate.enter" :leave-active-class="proxy?.animate.searchAnimate.leave">
       <div class="search" v-show="showSearch">
         <el-form :model="queryParams" ref="queryFormRef" :inline="true">
           <el-form-item label="用户名称" prop="userName">
@@ -15,7 +14,7 @@
           </el-form-item>
         </el-form>
       </div>
-    </transition>
+
     <el-card shadow="never">
       <template #header>
         <el-row :gutter="10">

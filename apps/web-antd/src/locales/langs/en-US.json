@@ -1,0 +1,57 @@
+{
+  "page": {
+    "demos": {
+      "title": "Demos",
+      "antd": "Ant Design Vue"
+    }
+  },
+  "component": {
+    "cropper": {
+      "selectImage": "Select Image",
+      "uploadSuccess": "Uploaded success!",
+      "imageTooBig": "Image too big",
+      "modalTitle": "Avatar upload",
+      "okText": "Confirm and upload",
+      "btn_reset": "Reset",
+      "btn_rotate_left": "Counterclockwise rotation",
+      "btn_rotate_right": "Clockwise rotation",
+      "btn_scale_x": "Flip horizontal",
+      "btn_scale_y": "Flip vertical",
+      "btn_zoom_in": "Zoom in",
+      "btn_zoom_out": "Zoom out",
+      "preview": "Preview"
+    },
+    "tenantToggle": {
+      "placeholder": "Please select a tenant",
+      "switch": "Switch to tenant: ",
+      "reset": "Reset to default tenant"
+    },
+    "notice": {
+      "title": "Notice",
+      "received": "You have received a new message"
+    }
+  },
+  "pages": {
+    "common": {
+      "add": "Add",
+      "edit": "Edit",
+      "delete": "Delete",
+      "more": "More",
+      "search": "Search",
+      "reset": "Reset",
+      "import": "Import",
+      "export": "Export",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "info": "Info",
+      "clear": "Clear",
+      "unlock": "Unlock",
+      "download": "Download",
+      "sync": "Sync",
+      "refresh": "Refresh",
+      "generate": "Generate",
+      "downloadLoading": "Downloading... Please wait.",
+      "preview": "Preview"
+    }
+  }
+}

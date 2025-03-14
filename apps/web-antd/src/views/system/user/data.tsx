@@ -97,16 +97,8 @@ export const drawerSchema: FormSchemaGetter = () => [
     rules: 'required',
   },
   {
-    component: 'TreeSelect',
-    // 在drawer里更新 这里不需要默认的componentProps
-    defaultValue: undefined,
-    fieldName: 'deptId',
-    label: '所属部门',
-    rules: 'selectRequired',
-  },
-  {
     component: 'Input',
-    fieldName: 'phone',
+    fieldName: 'phonenumber',
     label: '手机号码',
     defaultValue: undefined,
     rules: z
@@ -145,30 +137,6 @@ export const drawerSchema: FormSchemaGetter = () => [
     fieldName: 'status',
     formItemClass: 'col-span-2 lg:col-span-1',
     label: '状态',
-  },
-  {
-    component: 'Select',
-    componentProps: {
-      getPopupContainer,
-      mode: 'multiple',
-      optionFilterProp: 'label',
-      optionLabelProp: 'label',
-      placeholder: '请先选择部门',
-    },
-    fieldName: 'postIds',
-    help: '选择部门后, 将自动加载该部门下所有的岗位',
-    label: '岗位',
-  },
-  {
-    component: 'Select',
-    componentProps: {
-      getPopupContainer,
-      mode: 'multiple',
-      optionFilterProp: 'label',
-      optionLabelProp: 'label',
-    },
-    fieldName: 'roleIds',
-    label: '角色',
   },
   {
     component: 'Textarea',

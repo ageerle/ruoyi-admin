@@ -107,13 +107,13 @@ async function handleEdit(record: Recordable<any>) {
 }
 
 async function handleDelete(row: Recordable<any>) {
-  await modelRemove(row.dictCode);
+  await modelRemove(row.id);
   await tableApi.query();
 }
 
 function handleMultiDelete() {
   const rows = tableApi.grid.getCheckboxRecords();
-  const ids = rows.map((row: any) => row.dictCode);
+  const ids = rows.map((row: any) => row.id);
   Modal.confirm({
     title: '提示',
     okType: 'danger',

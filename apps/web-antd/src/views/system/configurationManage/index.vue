@@ -172,6 +172,17 @@ const handleChange = (key: string) => {
     });
   }
 };
+
+const inputStatus = ref('success');
+const inputCheck = (configName: string, val: string) => {
+  if (configName === 'apiHost') {
+    if (URL.canParse(val)) {
+      inputStatus.value = val.endsWith('/') ? 'success' : 'error';
+    } else {
+      inputStatus.value = 'error';
+    }
+  }
+};
 </script>
 
 <template>
@@ -195,7 +206,15 @@ const handleChange = (key: string) => {
                 <Switch v-model:checked="formData[items.configName]" />
               </template>
               <template v-else>
-                <Input v-model:value="formData[items.configName]" />
+                <Input
+                  v-model:value="formData[items.configName]"
+                  :status="
+                    items.configName === 'apiHost' ? inputStatus : 'success'
+                  "
+                  @change="
+                    inputCheck(items.configName, formData[items.configName])
+                  "
+                />
               </template>
             </FormItem>
           </div>

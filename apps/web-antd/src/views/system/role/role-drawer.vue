@@ -43,7 +43,7 @@ async function setupMenuTree(id?: number | string) {
     const resp = await menuTreeSelect();
     formApi.setFieldValue('menuIds', []);
     // 设置菜单信息
-    menuTree.value = resp;
+    menuTree.value = resp.menus;
   }
 }
 

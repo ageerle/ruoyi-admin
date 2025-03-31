@@ -1,21 +1,22 @@
 <script setup lang="ts">
-import type { Recordable } from '@vben/types';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import { ref } from 'vue';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { SysConfig } from '#/api/system/config/model';
 
-import { Page, useVbenModal, type VbenFormProps } from '@vben/common-ui';
+import { Page, useVbenModal } from '@vben/common-ui';
+import { getVxePopupContainer } from '@vben/utils';
 
 import { Modal, Popconfirm, Space } from 'ant-design-vue';
-import dayjs from 'dayjs';
 
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter';
+import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
 import {
   configExport,
   configList,
   configRefreshCache,
   configRemove,
 } from '#/api/system/config';
-import { downloadExcel } from '#/utils/file/download';
+import { commonDownloadExcel } from '#/utils/file/download';
 
 import configModal from './config-modal.vue';
 import { columns, querySchema } from './data';
@@ -23,9 +24,20 @@ import { columns, querySchema } from './data';
 const formOptions: VbenFormProps = {
   commonConfig: {
     labelWidth: 80,
+    componentProps: {
+      allowClear: true,
+    },
   },
   schema: querySchema(),
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+  // 日期选择格式化
+  fieldMappingTime: [
+    [
+      'createTime',
+      ['params[beginTime]', 'params[endTime]'],
+      ['YYYY-MM-DD 00:00:00', 'YYYY-MM-DD 23:59:59'],
+    ],
+  ],
 };
 
 const gridOptions: VxeGridProps = {
@@ -34,8 +46,6 @@ const gridOptions: VxeGridProps = {
     highlight: true,
     // 翻页时保留选中状态
     reserve: true,
-    // 点击行选中
-    trigger: 'row',
   },
   columns,
   height: 'auto',
@@ -43,22 +53,7 @@ const gridOptions: VxeGridProps = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, formValues) => {
-        // 区间选择器处理
-        if (formValues?.createTime) {
-          formValues.params = {
-            beginTime: dayjs(formValues.createTime[0]).format(
-              'YYYY-MM-DD 00:00:00',
-            ),
-            endTime: dayjs(formValues.createTime[1]).format(
-              'YYYY-MM-DD 23:59:59',
-            ),
-          };
-          Reflect.deleteProperty(formValues, 'createTime');
-        } else {
-          Reflect.deleteProperty(formValues, 'params');
-        }
-
+      query: async ({ page }, formValues = {}) => {
         return await configList({
           pageNum: page.currentPage,
           pageSize: page.pageSize,
@@ -68,26 +63,14 @@ const gridOptions: VxeGridProps = {
     },
   },
   rowConfig: {
-    isHover: true,
     keyField: 'configId',
   },
-  round: true,
-  align: 'center',
-  showOverflow: true,
+  id: 'system-config-index',
 };
 
-const checked = ref(false);
 const [BasicTable, tableApi] = useVbenVxeGrid({
   formOptions,
   gridOptions,
-  gridEvents: {
-    checkboxChange: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-    checkboxAll: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-  },
 });
 const [ConfigModal, modalApi] = useVbenModal({
   connectedComponent: configModal,
@@ -98,53 +81,56 @@ function handleAdd() {
   modalApi.open();
 }
 
-async function handleEdit(record: Recordable<any>) {
+async function handleEdit(record: SysConfig) {
   modalApi.setData({ id: record.configId });
   modalApi.open();
 }
 
-async function handleDelete(row: Recordable<any>) {
-  await configRemove(row.configId);
-  await tableApi.reload();
+async function handleDelete(row: SysConfig) {
+  await configRemove([row.configId]);
+  await tableApi.query();
 }
 
 function handleMultiDelete() {
   const rows = tableApi.grid.getCheckboxRecords();
-  const ids = rows.map((row: any) => row.configId);
+  const ids = rows.map((row: SysConfig) => row.configId);
   Modal.confirm({
     title: '提示',
     okType: 'danger',
     content: `确认删除选中的${ids.length}条记录吗？`,
     onOk: async () => {
       await configRemove(ids);
-      await tableApi.reload();
+      await tableApi.query();
     },
+  });
+}
+
+function handleDownloadExcel() {
+  commonDownloadExcel(configExport, '参数配置', tableApi.formApi.form.values, {
+    fieldMappingTime: formOptions.fieldMappingTime,
   });
 }
 
 async function handleRefreshCache() {
   await configRefreshCache();
-  await tableApi.reload();
+  await tableApi.query();
 }
 </script>
 
 <template>
   <Page :auto-content-height="true">
-    <BasicTable>
-      <template #toolbar-actions>
-        <span class="pl-[7px] text-[16px]">参数列表</span>
-      </template>
+    <BasicTable table-title="参数列表">
       <template #toolbar-tools>
         <Space>
           <a-button @click="handleRefreshCache"> 刷新缓存 </a-button>
           <a-button
             v-access:code="['system:config:export']"
-            @click="downloadExcel(configExport, '参数配置', {})"
+            @click="handleDownloadExcel"
           >
             {{ $t('pages.common.export') }}
           </a-button>
           <a-button
-            :disabled="!checked"
+            :disabled="!vxeCheckboxChecked(tableApi)"
             danger
             type="primary"
             v-access:code="['system:config:remove']"
@@ -162,31 +148,30 @@ async function handleRefreshCache() {
         </Space>
       </template>
       <template #action="{ row }">
-        <a-button
-          size="small"
-          type="link"
-          v-access:code="['system:config:edit']"
-          @click="handleEdit(row)"
-        >
-          {{ $t('pages.common.edit') }}
-        </a-button>
-        <Popconfirm
-          placement="left"
-          title="确认删除？"
-          @confirm="handleDelete(row)"
-        >
-          <a-button
-            danger
-            size="small"
-            type="link"
-            v-access:code="['system:config:remove']"
-            @click.stop=""
+        <Space>
+          <ghost-button
+            v-access:code="['system:config:edit']"
+            @click.stop="handleEdit(row)"
           >
-            {{ $t('pages.common.delete') }}
-          </a-button>
-        </Popconfirm>
+            {{ $t('pages.common.edit') }}
+          </ghost-button>
+          <Popconfirm
+            :get-popup-container="getVxePopupContainer"
+            placement="left"
+            title="确认删除？"
+            @confirm="handleDelete(row)"
+          >
+            <ghost-button
+              danger
+              v-access:code="['system:config:remove']"
+              @click.stop=""
+            >
+              {{ $t('pages.common.delete') }}
+            </ghost-button>
+          </Popconfirm>
+        </Space>
       </template>
     </BasicTable>
-    <ConfigModal @reload="tableApi.reload()" />
+    <ConfigModal @reload="tableApi.query()" />
   </Page>
 </template>

@@ -3,17 +3,21 @@ import type { SetupVxeTable } from './types';
 import { defineComponent, watch } from 'vue';
 
 import { usePreferences } from '@vben/preferences';
+
 import { useVbenForm } from '@vben-core/form-ui';
 
 import {
   VxeButton,
-  VxeButtonGroup,
+  VxeCheckbox,
+
   // VxeFormGather,
   // VxeForm,
   // VxeFormItem,
   VxeIcon,
   VxeInput,
   VxeLoading,
+  VxeModal,
+  VxeNumberInput,
   VxePager,
   // VxeList,
   // VxeModal,
@@ -22,15 +26,15 @@ import {
   // VxePulldown,
   // VxeRadio,
   // VxeRadioButton,
-  // VxeRadioGroup,
+  VxeRadioGroup,
   VxeSelect,
   VxeTooltip,
   VxeUI,
+  VxeUpload,
   // VxeSwitch,
   // VxeTextarea,
 } from 'vxe-pc-ui';
 import enUS from 'vxe-pc-ui/lib/language/en-US';
-
 // 导入默认的语言
 import zhCN from 'vxe-pc-ui/lib/language/zh-CN';
 import {
@@ -40,6 +44,8 @@ import {
   VxeTable,
   VxeToolbar,
 } from 'vxe-table';
+
+import { extendsDefaultFormatter } from './extends';
 
 // 是否加载过
 let isInit = false;
@@ -62,13 +68,12 @@ export function initVxeTable() {
   VxeUI.component(VxeTable);
   VxeUI.component(VxeColumn);
   VxeUI.component(VxeColgroup);
-  VxeUI.component(VxeLoading);
   VxeUI.component(VxeGrid);
   VxeUI.component(VxeToolbar);
 
   VxeUI.component(VxeButton);
-  VxeUI.component(VxeButtonGroup);
-  // VxeUI.component(VxeCheckbox);
+  // VxeUI.component(VxeButtonGroup);
+  VxeUI.component(VxeCheckbox);
   // VxeUI.component(VxeCheckboxGroup);
   VxeUI.component(createVirtualComponent('VxeForm'));
   // VxeUI.component(VxeFormGather);
@@ -77,18 +82,20 @@ export function initVxeTable() {
   VxeUI.component(VxeInput);
   // VxeUI.component(VxeList);
   VxeUI.component(VxeLoading);
-  // VxeUI.component(VxeModal);
+  VxeUI.component(VxeModal);
+  VxeUI.component(VxeNumberInput);
   // VxeUI.component(VxeOptgroup);
   // VxeUI.component(VxeOption);
   VxeUI.component(VxePager);
   // VxeUI.component(VxePulldown);
   // VxeUI.component(VxeRadio);
   // VxeUI.component(VxeRadioButton);
-  // VxeUI.component(VxeRadioGroup);
+  VxeUI.component(VxeRadioGroup);
   VxeUI.component(VxeSelect);
   // VxeUI.component(VxeSwitch);
   // VxeUI.component(VxeTextarea);
   VxeUI.component(VxeTooltip);
+  VxeUI.component(VxeUpload);
 
   isInit = true;
 }
@@ -117,6 +124,8 @@ export function setupVbenVxeTable(setupOptions: SetupVxeTable) {
       immediate: true,
     },
   );
+
+  extendsDefaultFormatter(VxeUI);
 
   configVxeTable(VxeUI);
 }

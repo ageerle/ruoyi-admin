@@ -75,7 +75,6 @@ const onSelected: SelectHandler = async (tenantId: string, option: any) => {
 
 async function onDeselect() {
   await tenantDynamicClear();
-  dictStore.resetCache();
   message.success($t('component.tenantToggle.reset'));
   lastSelected.value = '';
   close(false);
@@ -106,11 +105,7 @@ function filterOption(input: string, option: TenantOption) {
       show-search
       @deselect="onDeselect"
       @select="onSelected"
-    >
-      <template #suffixIcon>
-        <span class="icon-mdi--company"></span>
-      </template>
-    </Select>
+    />
   </div>
 </template>
 

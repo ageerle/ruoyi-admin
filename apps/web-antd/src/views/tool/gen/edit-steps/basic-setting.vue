@@ -1,16 +1,18 @@
 <script setup lang="ts">
+import type { Ref } from 'vue';
+
 import type { Column, GenInfo } from '#/api/tool/gen/model';
 
-import { inject, onMounted, type Ref } from 'vue';
+import { inject, onMounted } from 'vue';
 
 import { useVbenForm } from '@vben/common-ui';
+import { $t } from '@vben/locales';
 import { addFullName, listToTree } from '@vben/utils';
 
 import { Col, Row } from 'ant-design-vue';
 
 import { menuList } from '#/api/system/menu';
 
-import { toCurrentStep } from '../mitt';
 import { formSchema } from './basic';
 
 /**
@@ -66,12 +68,16 @@ async function initTreeSelect(columns: Column[]) {
  */
 async function initMenuSelect() {
   const list = await menuList();
+  // support i18n
+  list.forEach((item) => {
+    item.menuName = $t(item.menuName);
+  });
   const tree = listToTree(list, { id: 'menuId', pid: 'parentId' });
   const treeData = [
     {
-      fullName: '根目录',
+      fullName: $t('menu.root'),
       menuId: 0,
-      menuName: '根目录',
+      menuName: $t('menu.root'),
       children: tree,
     },
   ];
@@ -103,36 +109,45 @@ onMounted(async () => {
   await formApi.setValues(info);
   // 弹出框类型需要手动赋值
   if (info.options) {
-    const popupComponent = JSON.parse(info.options)?.popupComponent;
+    const { popupComponent, formComponent } = JSON.parse(info.options);
     if (popupComponent) {
-      await formApi.setFieldValue('popupComponent', popupComponent);
+      formApi.setFieldValue('popupComponent', popupComponent);
+    }
+    if (formComponent) {
+      formApi.setFieldValue('formComponent', formComponent);
     }
   }
   await Promise.all([initTreeSelect(info.columns), initMenuSelect()]);
 });
 
-async function handleNext() {
-  try {
-    const { valid } = await formApi.validate();
-    if (!valid) {
-      return null;
-    }
-    const data = await formApi.getValues();
-    Object.assign(genInfoData.value, data);
-    toCurrentStep(1);
-  } catch (error) {
-    console.error(error);
+/**
+ * 校验表单
+ */
+async function validateForm() {
+  const { valid } = await formApi.validate();
+  if (!valid) {
+    return false;
   }
+  return true;
 }
+
+/**
+ * 获取表单值
+ */
+async function getFormValues() {
+  return await formApi.getValues();
+}
+
+defineExpose({
+  validateForm,
+  getFormValues,
+});
 </script>
 
 <template>
   <Row justify="center">
     <Col v-bind="{ xs: 24, sm: 24, md: 20, lg: 16, xl: 16 }">
       <BasicForm />
-      <div class="flex justify-center">
-        <a-button type="primary" @click="handleNext">下一步</a-button>
-      </div>
     </Col>
   </Row>
 </template>

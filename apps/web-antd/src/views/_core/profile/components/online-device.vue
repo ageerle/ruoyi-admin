@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import type { Recordable } from '@vben/types';
 
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+
+import { Popconfirm } from 'ant-design-vue';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { forceLogout2, onlineDeviceList } from '#/api/monitor/online';
 import { columns } from '#/views/monitor/online/data';
 
 const gridOptions: VxeGridProps = {
   columns,
   keepSource: true,
-  pagerConfig: {},
+  pagerConfig: {
+    enabled: false,
+  },
   proxyConfig: {
     ajax: {
       query: async () => {
@@ -17,12 +23,8 @@ const gridOptions: VxeGridProps = {
     },
   },
   rowConfig: {
-    isHover: true,
     keyField: 'tokenId',
   },
-  round: true,
-  align: 'center',
-  showOverflow: true,
 };
 
 const [BasicTable, tableApi] = useVbenVxeGrid({ gridOptions });
@@ -35,10 +37,7 @@ async function handleForceOffline(row: Recordable<any>) {
 
 <template>
   <div>
-    <BasicTable>
-      <template #toolbar-actions>
-        <span class="pl-[7px] text-[16px]">我的在线设备</span>
-      </template>
+    <BasicTable table-title="我的在线设备">
       <template #action="{ row }">
         <Popconfirm
           :title="`确认强制下线[${row.userName}]?`"

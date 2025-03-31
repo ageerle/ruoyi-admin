@@ -38,7 +38,7 @@ export function userList(params?: PageQuery) {
  * @param data data
  * @returns blob
  */
-export function userExport(data: any) {
+export function userExport(data: Partial<User>) {
   return commonExport(Api.userExport, data);
 }
 
@@ -91,7 +91,7 @@ export function findUserInfo(userId?: ID) {
  * @param data data
  * @returns void
  */
-export function userAdd(data: any) {
+export function userAdd(data: Partial<User>) {
   return requestClient.postWithMsg<void>(Api.root, data);
 }
 
@@ -100,7 +100,7 @@ export function userAdd(data: any) {
  * @param data data
  * @returns void
  */
-export function userUpdate(data: any) {
+export function userUpdate(data: Partial<User>) {
   return requestClient.putWithMsg<void>(Api.root, data);
 }
 
@@ -109,7 +109,7 @@ export function userUpdate(data: any) {
  * @param data data
  * @returns void
  */
-export function userStatusChange(data: any) {
+export function userStatusChange(data: Partial<User>) {
   return requestClient.putWithMsg<void>(Api.userStatusChange, data);
 }
 

@@ -12,6 +12,7 @@ import {
 } from '@vben/icons';
 import { $t } from '@vben/locales';
 import { isWindowsOs } from '@vben/utils';
+
 import { useVbenModal } from '@vben-core/popup-ui';
 
 import { useMagicKeys, whenever } from '@vueuse/core';
@@ -95,14 +96,18 @@ onMounted(() => {
 
 <template>
   <div>
-    <Modal :fullscreen-button="false" class="w-[600px]" header-class="py-2">
+    <Modal
+      :fullscreen-button="false"
+      class="w-[600px]"
+      header-class="py-2 border-b"
+    >
       <template #title>
         <div class="flex items-center">
           <Search class="text-muted-foreground mr-2 size-4" />
           <input
             ref="searchInputRef"
             v-model="keyword"
-            :placeholder="$t('widgets.search.searchNavigate')"
+            :placeholder="$t('ui.widgets.search.searchNavigate')"
             class="ring-none placeholder:text-muted-foreground w-[80%] rounded-md border border-none bg-transparent p-2 pl-0 text-sm font-normal outline-none ring-0 ring-offset-transparent focus-visible:ring-transparent"
           />
         </div>
@@ -113,16 +118,16 @@ onMounted(() => {
         <div class="flex w-full justify-start text-xs">
           <div class="mr-2 flex items-center">
             <CornerDownLeft class="mr-1 size-3" />
-            {{ $t('widgets.search.select') }}
+            {{ $t('ui.widgets.search.select') }}
           </div>
           <div class="mr-2 flex items-center">
             <ArrowUp class="mr-1 size-3" />
             <ArrowDown class="mr-1 size-3" />
-            {{ $t('widgets.search.navigate') }}
+            {{ $t('ui.widgets.search.navigate') }}
           </div>
           <div class="flex items-center">
             <MdiKeyboardEsc class="mr-1 size-3" />
-            {{ $t('widgets.search.close') }}
+            {{ $t('ui.widgets.search.close') }}
           </div>
         </div>
       </template>
@@ -137,7 +142,7 @@ onMounted(() => {
       <span
         class="text-muted-foreground group-hover:text-foreground hidden text-xs duration-300 md:block"
       >
-        {{ $t('widgets.search.title') }}
+        {{ $t('ui.widgets.search.title') }}
       </span>
       <span
         v-if="enableShortcutKey"

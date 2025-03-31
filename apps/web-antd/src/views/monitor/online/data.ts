@@ -1,6 +1,7 @@
-import type { FormSchemaGetter, VxeGridProps } from '#/adapter';
-
 import type { VNode } from 'vue';
+
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
 
 import dayjs from 'dayjs';
 

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { CSSProperties, PropType } from 'vue';
+
 import { computed, onMounted, onUnmounted, ref, unref, useAttrs } from 'vue';
 
 import { useDebounceFn } from '@vueuse/core';

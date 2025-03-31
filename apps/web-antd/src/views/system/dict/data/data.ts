@@ -1,19 +1,10 @@
-import type { FormSchemaGetter, VxeGridProps } from '#/adapter';
-
-import { getPopupContainer } from '@vben/utils';
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { DictData } from '#/api/system/dict/dict-data-model';
 
 import { renderDictTag } from '#/utils/render';
 
 export const querySchema: FormSchemaGetter = () => [
-  {
-    component: 'Select',
-    componentProps: {
-      placeholder: 'TODO: 字典类型',
-      getPopupContainer,
-    },
-    fieldName: 'dictType',
-    label: '字典类型',
-  },
   {
     component: 'Input',
     fieldName: 'dictLabel',
@@ -28,8 +19,8 @@ export const columns: VxeGridProps['columns'] = [
     field: 'cssClass',
     slots: {
       default: ({ row }) => {
-        const { dictValue } = row;
-        return renderDictTag(dictValue, [row as any]);
+        const { dictValue } = row as DictData;
+        return renderDictTag(dictValue, [row]);
       },
     },
   },
@@ -98,7 +89,7 @@ export const drawerSchema: FormSchemaGetter = () => [
       placeholder: '可使用tailwind类名 如bg-blue w-full h-full等',
     },
     fieldName: 'cssClass',
-    formItemClass: 'items-baseline',
+    formItemClass: 'items-start',
     help: '标签的css样式, 可添加已经编译的css类名',
     label: 'css类名',
   },
@@ -111,7 +102,7 @@ export const drawerSchema: FormSchemaGetter = () => [
   {
     component: 'Textarea',
     fieldName: 'remark',
-    formItemClass: 'items-baseline',
+    formItemClass: 'items-start',
     label: '备注',
   },
 ];

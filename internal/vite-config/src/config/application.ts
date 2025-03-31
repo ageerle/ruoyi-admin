@@ -1,4 +1,4 @@
-import type { UserConfig } from 'vite';
+import type { CSSOptions, UserConfig } from 'vite';
 
 import type { DefineApplicationOptions } from '../typing';
 
@@ -6,6 +6,7 @@ import path, { relative } from 'node:path';
 
 import { findMonorepoRoot } from '@vben/node-utils';
 
+import { NodePackageImporter } from 'sass';
 import { defineConfig, loadEnv, mergeConfig } from 'vite';
 
 import { defaultImportmapOptions, getDefaultPwaOptions } from '../options';
@@ -43,7 +44,7 @@ function defineApplicationConfig(userConfigPromise?: DefineApplicationOptions) {
       nitroMockOptions: {},
       print: !isBuild,
       printInfoMap: {
-        'RuoYi Admin Docs': 'https://doc.pandarobot.chat/',
+        'Vben Admin Docs': 'https://doc.vben.pro',
       },
       pwa: true,
       pwaOptions: getDefaultPwaOptions(appTitle),
@@ -60,8 +61,8 @@ function defineApplicationConfig(userConfigPromise?: DefineApplicationOptions) {
         rollupOptions: {
           output: {
             assetFileNames: '[ext]/[name]-[hash].[ext]',
-            chunkFileNames: 'js/[name]-[hash].mjs',
-            entryFileNames: 'jse/index-[name]-[hash].mjs',
+            chunkFileNames: 'js/[name]-[hash].js',
+            entryFileNames: 'jse/index-[name]-[hash].js',
           },
         },
         target: 'es2015',
@@ -84,8 +85,8 @@ function defineApplicationConfig(userConfigPromise?: DefineApplicationOptions) {
           // 预热文件
           clientFiles: [
             './index.html',
-            './bootstrap.ts',
-            './src/{views,layouts,router,store,api}/*',
+            './src/bootstrap.ts',
+            './src/{views,layouts,router,store,api,adapter}/*',
           ],
         },
       },
@@ -99,7 +100,7 @@ function defineApplicationConfig(userConfigPromise?: DefineApplicationOptions) {
   });
 }
 
-function createCssOptions(injectGlobalScss = true) {
+function createCssOptions(injectGlobalScss = true): CSSOptions {
   const root = findMonorepoRoot();
   return {
     preprocessorOptions: injectGlobalScss
@@ -109,11 +110,12 @@ function createCssOptions(injectGlobalScss = true) {
               const relativePath = relative(root, filepath);
               // apps下的包注入全局样式
               if (relativePath.startsWith(`apps${path.sep}`)) {
-                return `@import "@vben/styles/global";\n${content}`;
+                return `@use "@vben/styles/global" as *;\n${content}`;
               }
               return content;
             },
-            api: 'modern-compiler',
+            api: 'modern',
+            importers: [new NodePackageImporter()],
           },
         }
       : {},

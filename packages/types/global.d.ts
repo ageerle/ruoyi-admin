@@ -18,8 +18,8 @@ export interface VbenAdminProAppConfigRaw {
   VITE_GLOB_RSA_PRIVATE_KEY: string;
   // RSA请求加密公钥
   VITE_GLOB_RSA_PUBLIC_KEY: string;
-  // 是否开启websocket  注意从配置文件获取的类型为string
-  VITE_GLOB_WEBSOCKET_ENABLE: string;
+  // 是否开启sse  注意从配置文件获取的类型为string
+  VITE_GLOB_SSE_ENABLE: string;
 }
 
 export interface ApplicationConfig {
@@ -33,8 +33,8 @@ export interface ApplicationConfig {
   rsaPrivateKey: string;
   // RSA请求加密公钥
   rsaPublicKey: string;
-  // 是否开启websocket
-  websocketEnable: boolean;
+  // 是否开启sse
+  sseEnable: boolean;
 }
 
 declare global {

@@ -2,19 +2,11 @@
 import type { CardSize } from 'ant-design-vue/es/card/Card';
 import type { DescriptionsProps } from 'ant-design-vue/es/descriptions';
 
+import type { CSSProperties, PropType, Slots } from 'vue';
+
 import type { DescInstance, DescItem, DescriptionProps } from './typing';
 
-import {
-  computed,
-  type CSSProperties,
-  defineComponent,
-  type PropType,
-  ref,
-  type Slots,
-  toRefs,
-  unref,
-  useAttrs,
-} from 'vue';
+import { computed, defineComponent, ref, toRefs, unref, useAttrs } from 'vue';
 
 import { Card, Descriptions } from 'ant-design-vue';
 import { get, isFunction } from 'lodash-es';

@@ -1,4 +1,4 @@
-export interface Config {
+export interface SysConfig {
   configId: number;
   configName: string;
   configKey: string;

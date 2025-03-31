@@ -5,10 +5,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select';
+} from '../../ui';
 
 interface Props {
   class?: any;
+  // 弹出层的类名
+  contentClass?: any;
   options?: Array<{ label: string; value: string }>;
   placeholder?: string;
 }
@@ -20,10 +22,20 @@ const props = defineProps<Props>();
     <SelectTrigger :class="props.class">
       <SelectValue :placeholder="placeholder" />
     </SelectTrigger>
-    <SelectContent>
+    <SelectContent :class="props.contentClass">
       <template v-for="item in options" :key="item.value">
         <SelectItem :value="item.value"> {{ item.label }} </SelectItem>
       </template>
     </SelectContent>
   </Select>
 </template>
+
+<style lang="scss" scoped>
+button[role='combobox'][data-placeholder] {
+  color: hsl(var(--muted-foreground));
+}
+
+button {
+  --ring: var(--primary);
+}
+</style>

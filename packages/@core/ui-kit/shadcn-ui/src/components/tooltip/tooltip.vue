@@ -3,15 +3,17 @@ import type { TooltipContentProps } from 'radix-vue';
 
 import type { StyleValue } from 'vue';
 
+import type { ClassType } from '@vben-core/typings';
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '../ui/tooltip';
+} from '../../ui';
 
 interface Props {
-  contentClass?: any;
+  contentClass?: ClassType;
   contentStyle?: StyleValue;
   delayDuration?: number;
   side?: TooltipContentProps['side'];

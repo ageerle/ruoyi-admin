@@ -2,6 +2,10 @@
 import type { IPropTypes } from '@tinymce/tinymce-vue/lib/cjs/main/ts/components/EditorPropTypes';
 import type { Editor as EditorType } from 'tinymce/tinymce';
 
+import type { PropType } from 'vue';
+
+import type { UploadResult } from '#/api/core/upload';
+
 import {
   computed,
   nextTick,
@@ -9,7 +13,6 @@ import {
   onBeforeUnmount,
   onDeactivated,
   onMounted,
-  type PropType,
   ref,
   unref,
   useAttrs,
@@ -22,7 +25,7 @@ import { buildShortUUID } from '@vben/utils';
 import Editor from '@tinymce/tinymce-vue';
 import { isNumber } from 'lodash-es';
 
-import { uploadApi, type UploadResult } from '#/api/core/upload';
+import { uploadApi } from '#/api/core/upload';
 
 import { bindHandlers } from './helper';
 import ImgUpload from './img-upload.vue';
@@ -152,7 +155,6 @@ const initOptions = computed((): InitOptions => {
     image_caption: true,
     importcss_append: true,
     language: langName.value,
-    license_key: 'gpl',
     link_title: false,
     menubar: 'file edit view insert format tools table help',
     noneditable_class: 'mceNonEditable',
@@ -343,12 +345,24 @@ function handleDone(name: string, url: string) {
       v-if="!initOptions.inline && init"
       v-model="modelValue"
       :init="initOptions"
-      :style="{ visibility: 'hidden' }"
+      :style="{ visibility: 'hidden', zIndex: 3000 }"
       :tinymce-script-src="tinymceScriptSrc"
+      license-key="gpl"
     />
     <slot v-else></slot>
   </div>
 </template>
+
+<style lang="scss">
+/***
+由于modal/drawer的zIndex升级后为2000
+这里会造成遮挡 修改为更高的zIndex
+*/
+.tox.tox-silver-sink.tox-tinymce-aux {
+  /** 该样式默认为1300的zIndex  */
+  z-index: 2025;
+}
+</style>
 
 <style lang="scss" scoped>
 /**

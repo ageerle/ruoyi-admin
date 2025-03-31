@@ -1,6 +1,6 @@
 import type { GenInfo } from './model';
 
-import type { ID, IDS } from '#/api/common';
+import type { ID, IDS, PageQuery } from '#/api/common';
 
 import { ContentTypeEnum } from '#/api/helper';
 import { requestClient } from '#/api/request';
@@ -19,7 +19,7 @@ enum Api {
   syncDb = '/tool/gen/synchDb',
 }
 // 查询代码生成列表
-export function generatedList(params: any) {
+export function generatedList(params?: PageQuery) {
   return requestClient.get(Api.generatedList, { params });
 }
 
@@ -29,7 +29,7 @@ export function genInfo(tableId: ID) {
 }
 
 // 查询数据库列表
-export function readyToGenList(params: any) {
+export function readyToGenList(params?: PageQuery) {
   return requestClient.get(Api.readyToGenList, { params });
 }
 
@@ -63,6 +63,7 @@ export function editSave(data: any) {
 export function genRemove(tableIds: IDS) {
   return requestClient.deleteWithMsg(`${Api.root}/${tableIds}`);
 }
+
 // 预览代码
 export function previewCode(tableId: ID) {
   return requestClient.get<{ [key: string]: string }>(
@@ -76,8 +77,8 @@ export function genDownload(tableId: ID) {
 }
 
 // 生成代码（自定义路径）
-export function genDownloadWithPath(tableId: ID) {
-  return requestClient.get(`${Api.download}/${tableId}`);
+export function genWithPath(tableId: ID) {
+  return requestClient.get<void>(`${Api.genCode}/${tableId}`);
 }
 
 // 同步数据库

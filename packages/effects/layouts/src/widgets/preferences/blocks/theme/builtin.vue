@@ -1,14 +1,12 @@
 <script setup lang="ts">
+import type { BuiltinThemePreset } from '@vben/preferences';
 import type { BuiltinThemeType } from '@vben/types';
 
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import { UserRoundPen } from '@vben/icons';
 import { $t } from '@vben/locales';
-import {
-  BUILT_IN_THEME_PRESETS,
-  type BuiltinThemePreset,
-} from '@vben/preferences';
+import { BUILT_IN_THEME_PRESETS } from '@vben/preferences';
 import { convertToHsl, TinyColor } from '@vben/utils';
 
 defineOptions({
@@ -31,11 +29,30 @@ const builtinThemePresets = computed(() => {
 
 function typeView(name: BuiltinThemeType) {
   switch (name) {
+    case 'custom': {
+      return $t('preferences.theme.builtin.custom');
+    }
+    case 'deep-blue': {
+      return $t('preferences.theme.builtin.deepBlue');
+    }
+    case 'deep-green': {
+      return $t('preferences.theme.builtin.deepGreen');
+    }
     case 'default': {
       return $t('preferences.theme.builtin.default');
     }
-    case 'violet': {
-      return $t('preferences.theme.builtin.violet');
+    case 'gray': {
+      return $t('preferences.theme.builtin.gray');
+    }
+    case 'green': {
+      return $t('preferences.theme.builtin.green');
+    }
+
+    case 'neutral': {
+      return $t('preferences.theme.builtin.neutral');
+    }
+    case 'orange': {
+      return $t('preferences.theme.builtin.orange');
     }
     case 'pink': {
       return $t('preferences.theme.builtin.pink');
@@ -46,18 +63,11 @@ function typeView(name: BuiltinThemeType) {
     case 'sky-blue': {
       return $t('preferences.theme.builtin.skyBlue');
     }
-    case 'deep-blue': {
-      return $t('preferences.theme.builtin.deepBlue');
+    case 'slate': {
+      return $t('preferences.theme.builtin.slate');
     }
-
-    case 'green': {
-      return $t('preferences.theme.builtin.green');
-    }
-    case 'deep-green': {
-      return $t('preferences.theme.builtin.deepGreen');
-    }
-    case 'orange': {
-      return $t('preferences.theme.builtin.orange');
+    case 'violet': {
+      return $t('preferences.theme.builtin.violet');
     }
     case 'yellow': {
       return $t('preferences.theme.builtin.yellow');
@@ -65,28 +75,11 @@ function typeView(name: BuiltinThemeType) {
     case 'zinc': {
       return $t('preferences.theme.builtin.zinc');
     }
-    case 'neutral': {
-      return $t('preferences.theme.builtin.neutral');
-    }
-    case 'slate': {
-      return $t('preferences.theme.builtin.slate');
-    }
-    case 'gray': {
-      return $t('preferences.theme.builtin.gray');
-    }
-    case 'custom': {
-      return $t('preferences.theme.builtin.custom');
-    }
   }
 }
 
 function handleSelect(theme: BuiltinThemePreset) {
   modelValue.value = theme.type;
-  const primaryColor = props.isDark
-    ? theme.darkPrimaryColor || theme.primaryColor
-    : theme.primaryColor;
-
-  themeColorPrimary.value = primaryColor || theme.color;
 }
 
 function handleInputChange(e: Event) {
@@ -97,6 +90,22 @@ function handleInputChange(e: Event) {
 function selectColor() {
   colorInput.value?.[0]?.click?.();
 }
+
+watch(
+  () => [modelValue.value, props.isDark] as [BuiltinThemeType, boolean],
+  ([themeType, isDark]) => {
+    const theme = builtinThemePresets.value.find(
+      (item) => item.type === themeType,
+    );
+    if (theme) {
+      const primaryColor = isDark
+        ? theme.darkPrimaryColor || theme.primaryColor
+        : theme.primaryColor;
+
+      themeColorPrimary.value = primaryColor || theme.color;
+    }
+  },
+);
 </script>
 
 <template>

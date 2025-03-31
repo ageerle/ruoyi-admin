@@ -1,11 +1,15 @@
-import type { FormSchemaGetter, VxeGridProps } from '#/adapter';
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
 
 export const querySchema: FormSchemaGetter = () => [
   {
     component: 'Select',
-    defaultValue: '',
     fieldName: 'dataName',
     label: '数据源',
+    defaultValue: '',
+    componentProps: {
+      allowClear: false,
+    },
   },
   {
     component: 'Input',

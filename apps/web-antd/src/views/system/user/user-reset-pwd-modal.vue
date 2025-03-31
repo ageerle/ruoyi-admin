@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Recordable } from '@vben/types';
+import type { ResetPwdParam, User } from '#/api/system/user/model';
 
 import { useVbenModal, z } from '@vben/common-ui';
 
-import { useVbenForm } from '#/adapter';
+import { useVbenForm } from '#/adapter/form';
 import { userResetPassword } from '#/api/system/user';
 import { Description, useDescription } from '#/components/description';
 
@@ -68,7 +68,7 @@ async function handleOpenChange(open: boolean) {
   if (!open) {
     return null;
   }
-  const { record } = modalApi.getData() as { record: Recordable<any> };
+  const { record } = modalApi.getData() as { record: User };
   setDescProps({ data: record }, true);
   await formApi.setValues({ userId: record.userId });
 }
@@ -81,7 +81,7 @@ async function handleSubmit() {
       return;
     }
     const data = await formApi.getValues();
-    await userResetPassword(data as any);
+    await userResetPassword(data as ResetPwdParam);
     emit('reload');
     handleCancel();
   } catch (error) {

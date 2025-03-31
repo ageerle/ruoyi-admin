@@ -9,13 +9,8 @@ import { cloneDeep } from '@vben/utils';
 
 import { Tag } from 'ant-design-vue';
 
-import { useVbenForm } from '#/adapter';
-
-import {
-  findUserInfo,
-  userAdd,
-  userUpdate,
-} from '#/api/system/user';
+import { useVbenForm } from '#/adapter/form';
+import { findUserInfo, userAdd, userUpdate } from '#/api/system/user';
 import { authScopeOptions } from '#/views/system/role/data';
 
 import { drawerSchema } from './data';
@@ -57,7 +52,6 @@ function genRoleOptionlabel(role: Role) {
     h(Tag, { color: found.color }, () => found.label),
   ]);
 }
-
 
 const [BasicDrawer, drawerApi] = useVbenDrawer({
   onCancel: handleCancel,

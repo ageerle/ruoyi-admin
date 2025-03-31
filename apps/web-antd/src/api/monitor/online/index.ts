@@ -17,6 +17,11 @@ export function onlineDeviceList() {
   return requestClient.get<PageResult<OnlineUser>>(Api.root);
 }
 
+/**
+ * 这里的分页参数无效 返回的是全部的分页
+ * @param params 请求参数
+ * @returns 结果
+ */
 export function onlineList(params?: PageQuery) {
   return requestClient.get<PageResult<OnlineUser>>(Api.onlineList, { params });
 }
@@ -36,5 +41,5 @@ export function forceLogout(tokenId: string) {
  * @returns void
  */
 export function forceLogout2(tokenId: string) {
-  return requestClient.postWithMsg<void>(`${Api.root}/${tokenId}`);
+  return requestClient.deleteWithMsg<void>(`${Api.root}/myself/${tokenId}`);
 }

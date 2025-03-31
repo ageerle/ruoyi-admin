@@ -177,6 +177,7 @@ export interface Info {
   // 树表需要添加此属性
   params?: any;
   popupComponent?: string;
+  formComponent?: string;
 }
 
 export interface GenInfo {

@@ -1,4 +1,4 @@
-import { type VNode } from 'vue';
+import type { VNode } from 'vue';
 
 import { Tag } from 'ant-design-vue';
 

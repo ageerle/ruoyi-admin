@@ -7,16 +7,18 @@ import {
   preferences,
   updatePreferences,
 } from '@vben/preferences';
+
 import { VbenIconButton } from '@vben-core/shadcn-ui';
 
 defineOptions({
   name: 'AuthenticationColorToggle',
 });
 
-function handleUpdate(value: BuiltinThemeType) {
+function handleUpdate(colorPrimary: string, type: BuiltinThemeType) {
   updatePreferences({
     theme: {
-      builtinType: value,
+      colorPrimary,
+      builtinType: type,
     },
   });
 }
@@ -30,7 +32,7 @@ function handleUpdate(value: BuiltinThemeType) {
       <template v-for="preset in COLOR_PRESETS" :key="preset.color">
         <VbenIconButton
           class="flex-center flex-shrink-0"
-          @click="handleUpdate(preset.type)"
+          @click="handleUpdate(preset.color, preset.type)"
         >
           <div
             :style="{ backgroundColor: preset.color }"

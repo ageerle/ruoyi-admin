@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { $t } from '@vben/locales';
+
 import { VbenButton } from '@vben-core/shadcn-ui';
 
 import { useQRCode } from '@vueuse/integrations/useQRCode';
@@ -15,7 +16,7 @@ interface Props {
    */
   loading?: boolean;
   /**
-   * @zh_CN 登陆路径
+   * @zh_CN 登录路径
    */
   loginPath?: string;
   /**

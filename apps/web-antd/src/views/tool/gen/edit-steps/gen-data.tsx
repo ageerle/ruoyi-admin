@@ -1,6 +1,6 @@
 import type { Recordable } from '@vben/types';
 
-import type { VxeGridProps } from '#/adapter';
+import type { VxeGridProps } from '#/adapter/vxe-table';
 
 import { reactive } from 'vue';
 
@@ -91,12 +91,12 @@ export const vxeTableColumns: VxeGridProps['columns'] = [
     field: 'columnName',
     showOverflow: 'tooltip',
     fixed: 'left',
-    width: 150,
+    minWidth: 150,
   },
   {
     title: '字段描述',
     field: 'columnComment',
-    width: 150,
+    minWidth: 150,
     slots: {
       edit: ({ row }) => {
         return <Input v-model:value={row.columnComment}></Input>;
@@ -107,13 +107,13 @@ export const vxeTableColumns: VxeGridProps['columns'] = [
   {
     title: 'db类型',
     field: 'columnType',
-    width: 120,
+    minWidth: 120,
     showOverflow: 'tooltip',
   },
   {
     title: 'Java类型',
     field: 'javaType',
-    width: 150,
+    minWidth: 150,
     slots: {
       edit: ({ row }) => {
         const javaTypeOptions = JavaTypes.map((type) => ({
@@ -135,7 +135,7 @@ export const vxeTableColumns: VxeGridProps['columns'] = [
   {
     title: 'Java属性名',
     field: 'javaField',
-    width: 150,
+    minWidth: 150,
     showOverflow: 'tooltip',
     slots: {
       edit: ({ row }) => {
@@ -147,7 +147,7 @@ export const vxeTableColumns: VxeGridProps['columns'] = [
   {
     title: '插入',
     field: 'insert',
-    width: 80,
+    minWidth: 80,
     showOverflow: 'tooltip',
     align: 'center',
     slots: {
@@ -165,7 +165,7 @@ export const vxeTableColumns: VxeGridProps['columns'] = [
     field: 'edit',
     showOverflow: 'tooltip',
     align: 'center',
-    width: 80,
+    minWidth: 80,
     slots: {
       default: ({ row }) => {
         return renderBooleanTag(row, 'edit');
@@ -181,7 +181,7 @@ export const vxeTableColumns: VxeGridProps['columns'] = [
     field: 'list',
     showOverflow: 'tooltip',
     align: 'center',
-    width: 80,
+    minWidth: 80,
     slots: {
       default: ({ row }) => {
         return renderBooleanTag(row, 'list');
@@ -197,7 +197,7 @@ export const vxeTableColumns: VxeGridProps['columns'] = [
     field: 'query',
     showOverflow: 'tooltip',
     align: 'center',
-    width: 80,
+    minWidth: 80,
     slots: {
       default: ({ row }) => {
         return renderBooleanTag(row, 'query');
@@ -213,7 +213,7 @@ export const vxeTableColumns: VxeGridProps['columns'] = [
     field: 'queryType',
     showOverflow: 'tooltip',
     align: 'center',
-    width: 150,
+    minWidth: 150,
     slots: {
       default: ({ row }) => {
         const queryType = row.queryType;
@@ -241,7 +241,7 @@ export const vxeTableColumns: VxeGridProps['columns'] = [
     field: 'required',
     showOverflow: 'tooltip',
     align: 'center',
-    width: 80,
+    minWidth: 80,
     slots: {
       default: ({ row }) => {
         return renderBooleanTag(row, 'required');
@@ -256,7 +256,7 @@ export const vxeTableColumns: VxeGridProps['columns'] = [
     title: '显示类型',
     field: 'htmlType',
     showOverflow: 'tooltip',
-    width: 150,
+    minWidth: 150,
     align: 'center',
     slots: {
       default: ({ row }) => {
@@ -284,7 +284,7 @@ export const vxeTableColumns: VxeGridProps['columns'] = [
     title: '字典类型',
     field: 'dictType',
     showOverflow: 'tooltip',
-    width: 230,
+    minWidth: 230,
     align: 'center',
     titlePrefix: {
       message: `仅'下拉框', '单选框', '复选框'支持字典类型`,

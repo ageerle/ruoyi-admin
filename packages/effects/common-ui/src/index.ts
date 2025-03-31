@@ -1,3 +1,3 @@
 export * from './components';
 export * from './ui';
-export { useToast } from '@vben-core/shadcn-ui';
+export { VbenAvatar } from '@vben-core/shadcn-ui';

@@ -1,8 +1,8 @@
-import type { FormSchemaGetter, VxeGridProps } from '#/adapter';
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
 
 import { DictEnum } from '@vben/constants';
 
-import { getDictOptions } from '#/utils/dict';
 import { renderDict } from '#/utils/render';
 
 export const querySchema: FormSchemaGetter = () => [
@@ -18,8 +18,15 @@ export const querySchema: FormSchemaGetter = () => [
   },
 ];
 
+// 需要使用i18n注意这里要改成getter形式 否则切换语言不会刷新
+// export const columns: () => VxeGridProps['columns'] = () => [
 export const columns: VxeGridProps['columns'] = [
   { type: 'checkbox', width: 60 },
+
+  {
+    title: '模型分类',
+    field: 'category',
+  },
   {
     title: '模型名称',
     field: 'modelName',
@@ -32,15 +39,6 @@ export const columns: VxeGridProps['columns'] = [
     title: '模型价格',
     field: 'modelPrice',
   },
-
-  {
-    title: '请求地址',
-    field: 'apiHost',
-  },
-  {
-    title: '请求密钥',
-    field: 'apiKey',
-  },
   {
     title: '计费类型',
     field: 'modelType',
@@ -51,8 +49,6 @@ export const columns: VxeGridProps['columns'] = [
       },
     },
   },
-
-
   {
     title: '是否显示',
     field: 'modelShow',
@@ -64,92 +60,19 @@ export const columns: VxeGridProps['columns'] = [
     },
   },
   {
-    title: '备注',
-    field: 'remark',
+    title: '请求地址',
+    field: 'apiHost',
   },
-
+  {
+    title: '密钥',
+    field: 'apiKey',
+    width: '300px',
+  },
   {
     field: 'action',
     fixed: 'right',
     slots: { default: 'action' },
     title: '操作',
     width: 180,
-  },
-];
-
-export const drawerSchema: FormSchemaGetter = () => [
-  {
-    component: 'Input',
-    dependencies: {
-      show: () => false,
-      triggerFields: [''],
-    },
-    fieldName: 'id',
-    label: '模型主键',
-  },
-  {
-    component: 'Input',
-    fieldName: 'modelName',
-    label: '模型名称',
-    rules: 'required',
-  },
-  {
-    component: 'Input',
-    fieldName: 'modelDescribe',
-    label: '模型描述',
-    rules: 'required',
-  },
-  {
-    component: 'Input',
-    fieldName: 'modelPrice',
-    label: '模型价格',
-    rules: 'required',
-  },
-
-  {
-    component: 'Input',
-    fieldName: 'apiHost',
-    label: '请求地址',
-    rules: 'required',
-  },
-  {
-    component: 'Input',
-    fieldName: 'apiKey',
-    label: '请求密钥',
-    rules: 'required',
-  },
-  {
-    component: 'RadioGroup',
-    componentProps: {
-      buttonStyle: 'solid',
-      options: getDictOptions(DictEnum.SYS_SHOW_HIDE),
-      optionType: 'button',
-    },
-    defaultValue: '1',
-    fieldName: 'modelShow',
-    label: '是否显示',
-    rules: 'required',
-  },
-
-  {
-    component: 'RadioGroup',
-    componentProps: {
-      buttonStyle: 'solid',
-      options: getDictOptions(DictEnum.SYS_MODEL_BILLING),
-      optionType: 'button',
-    },
-    defaultValue: '1',
-    fieldName: 'modelType',
-    label: '计费类型',
-    rules: 'required',
-  },
-
-
-
-  {
-    component: 'Textarea',
-    fieldName: 'remark',
-    formItemClass: 'items-baseline',
-    label: '备注',
   },
 ];

@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import type { Dept } from '#/api/system/dept/model';
+
 import { computed, ref } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { addFullName, cloneDeep, listToTree } from '@vben/utils';
 
-import { useVbenForm } from '#/adapter';
+import { useVbenForm } from '#/adapter/form';
 import {
   deptAdd,
   deptInfo,
@@ -43,7 +45,7 @@ const [BasicForm, formApi] = useVbenForm({
 });
 
 async function getDeptTree(deptId?: number | string, exclude = false) {
-  let ret: any[] = [];
+  let ret: Dept[] = [];
   ret = await (!deptId || exclude ? deptList({}) : deptNodeList(deptId));
   const treeData = listToTree(ret, { id: 'deptId', pid: 'parentId' });
   // 添加部门名称 如 xx-xx-xx

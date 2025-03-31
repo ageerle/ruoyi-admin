@@ -1,7 +1,10 @@
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+
 import { DictEnum } from '@vben/constants';
 import { getPopupContainer } from '@vben/utils';
 
-import { type FormSchemaGetter, type VxeGridProps, z } from '#/adapter';
+import { z } from '#/adapter/form';
 import { getDictOptions } from '#/utils/dict';
 
 export const querySchema: FormSchemaGetter = () => [
@@ -96,9 +99,10 @@ export const drawerSchema: FormSchemaGetter = () => [
     label: '用户昵称',
     rules: 'required',
   },
+
   {
     component: 'Input',
-    fieldName: 'phonenumber',
+    fieldName: 'phone',
     label: '手机号码',
     defaultValue: undefined,
     rules: z
@@ -137,6 +141,30 @@ export const drawerSchema: FormSchemaGetter = () => [
     fieldName: 'status',
     formItemClass: 'col-span-2 lg:col-span-1',
     label: '状态',
+  },
+  {
+    component: 'Select',
+    componentProps: {
+      getPopupContainer,
+      mode: 'multiple',
+      optionFilterProp: 'label',
+      optionLabelProp: 'label',
+      placeholder: '请先选择部门',
+    },
+    fieldName: 'postIds',
+    help: '选择部门后, 将自动加载该部门下所有的岗位',
+    label: '岗位',
+  },
+  {
+    component: 'Select',
+    componentProps: {
+      getPopupContainer,
+      mode: 'multiple',
+      optionFilterProp: 'label',
+      optionLabelProp: 'label',
+    },
+    fieldName: 'roleIds',
+    label: '角色',
   },
   {
     component: 'Textarea',

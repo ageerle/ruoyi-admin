@@ -1,10 +1,11 @@
+import type { Component } from 'vue';
+
 import type {
   BaseFormComponentType,
   FormCommonConfig,
   VbenFormAdapterOptions,
 } from './types';
 
-import type { Component } from 'vue';
 import { h } from 'vue';
 
 import {
@@ -16,6 +17,7 @@ import {
   VbenPinInput,
   VbenSelect,
 } from '@vben-core/shadcn-ui';
+import { globalShareState } from '@vben-core/shared/global-state';
 
 import { defineRule } from 'vee-validate';
 
@@ -24,8 +26,8 @@ const DEFAULT_MODEL_PROP_NAME = 'modelValue';
 export const DEFAULT_FORM_COMMON_CONFIG: FormCommonConfig = {};
 
 export const COMPONENT_MAP: Record<BaseFormComponentType, Component> = {
-  DefaultResetActionButton: h(VbenButton, { size: 'sm', variant: 'outline' }),
-  DefaultSubmitActionButton: h(VbenButton, { size: 'sm', variant: 'default' }),
+  DefaultButton: h(VbenButton, { size: 'sm', variant: 'outline' }),
+  PrimaryButton: h(VbenButton, { size: 'sm', variant: 'default' }),
   VbenCheckbox,
   VbenInput,
   VbenInputCaptcha,
@@ -43,13 +45,17 @@ export const COMPONENT_BIND_EVENT_MAP: Partial<
 export function setupVbenForm<
   T extends BaseFormComponentType = BaseFormComponentType,
 >(options: VbenFormAdapterOptions<T>) {
-  const { components, config, defineRules } = options;
+  const { config, defineRules } = options;
 
-  const { disabledOnChangeListener = false, emptyStateValue = undefined } =
-    (config || {}) as FormCommonConfig;
+  const {
+    disabledOnChangeListener = true,
+    disabledOnInputListener = true,
+    emptyStateValue = undefined,
+  } = (config || {}) as FormCommonConfig;
 
   Object.assign(DEFAULT_FORM_COMMON_CONFIG, {
     disabledOnChangeListener,
+    disabledOnInputListener,
     emptyStateValue,
   });
 
@@ -64,6 +70,8 @@ export function setupVbenForm<
   const modelPropNameMap = config?.modelPropNameMap as
     | Record<BaseFormComponentType, string>
     | undefined;
+
+  const components = globalShareState.getComponents();
 
   for (const component of Object.keys(components)) {
     const key = component as BaseFormComponentType;

@@ -1,3 +1,4 @@
+<!-- eslint-disable eqeqeq -->
 <script setup lang="ts">
 import type { DictData } from '#/api/system/dict/dict-data-model';
 
@@ -17,7 +18,6 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const color = computed<string>(() => {
-  // eslint-disable-next-line eqeqeq
   const current = props.dicts.find((item) => item.dictValue == props.value);
   const listClass = current?.listClass ?? '';
   // 是否为默认的颜色
@@ -31,21 +31,22 @@ const color = computed<string>(() => {
 });
 
 const cssClass = computed<string>(() => {
-  // eslint-disable-next-line eqeqeq
   const current = props.dicts.find((item) => item.dictValue == props.value);
   return current?.cssClass ?? '';
 });
 
 const label = computed<number | string>(() => {
-  // eslint-disable-next-line eqeqeq
   const current = props.dicts.find((item) => item.dictValue == props.value);
   return current?.dictLabel ?? 'unknown';
 });
+
+const tagComponent = computed(() => (color.value ? Tag : 'div'));
 </script>
 
 <template>
   <div>
-    <Tag v-if="color" :class="cssClass" :color="color">{{ label }}</Tag>
-    <div v-if="!color" :class="cssClass">{{ label }}</div>
+    <component :is="tagComponent" :class="cssClass" :color="color">
+      {{ label }}
+    </component>
   </div>
 </template>

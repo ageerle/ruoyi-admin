@@ -1,32 +1,62 @@
-import type { Model } from './model';
+import type { ModelForm, ModelQuery, ModelVO } from './model';
 
-import type { ID, IDS, PageQuery, PageResult } from '#/api/common';
+import type { ID, IDS, PageResult } from '#/api/common';
 
+import { commonExport } from '#/api/helper';
 import { requestClient } from '#/api/request';
 
-enum Api {
-  configExport = '/system/model/export',
-  configList = '/system/model/list',
-  root = '/system/model',
+/**
+ * 查询聊天模型列表
+ * @param params
+ * @returns 聊天模型列表
+ */
+export function modelList(params?: ModelQuery) {
+  return requestClient.get<PageResult<ModelVO>>('/system/model/list', {
+    params,
+  });
 }
 
-export function modelList(params?: PageQuery) {
-  return requestClient.get<PageResult<Model>>(Api.configList, { params });
+/**
+ * 导出聊天模型列表
+ * @param params
+ * @returns 聊天模型列表
+ */
+export function modelExport(params?: ModelQuery) {
+  return commonExport('/system/model/export', params ?? {});
 }
 
-export function modelInfo(configId: ID) {
-  return requestClient.get<Model>(`${Api.root}/${configId}`);
+/**
+ * 查询聊天模型详情
+ * @param id id
+ * @returns 聊天模型详情
+ */
+export function modelInfo(id: ID) {
+  return requestClient.get<ModelVO>(`/system/model/${id}`);
 }
 
-
-export function modelUpdate(data: any) {
-  return requestClient.putWithMsg<void>(Api.root, data);
+/**
+ * 新增聊天模型
+ * @param data
+ * @returns void
+ */
+export function modelAdd(data: ModelForm) {
+  return requestClient.postWithMsg<void>('/system/model', data);
 }
 
-export function modelAdd(data: any) {
-  return requestClient.postWithMsg<void>(Api.root, data);
+/**
+ * 更新聊天模型
+ * @param data
+ * @returns void
+ */
+export function modelUpdate(data: ModelForm) {
+  return requestClient.putWithMsg<void>('/system/model', data);
 }
 
-export function modelRemove(configIds: IDS) {
-  return requestClient.deleteWithMsg<void>(`${Api.root}/${configIds}`);
+/**
+ * 删除聊天模型
+ * @param id id
+ * @returns void
+ */
+export function modelRemove(id: ID | IDS) {
+  return requestClient.deleteWithMsg<void>(`/system/model/${id}`);
 }

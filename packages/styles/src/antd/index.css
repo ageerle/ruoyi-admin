@@ -11,6 +11,25 @@
   .anticon {
     display: inline-flex;
   }
+
+  /* * 修复按钮添加图标时的位置问题 */
+  > svg {
+    display: inline-block;
+  }
+
+  > svg + span {
+    margin-inline-start: 6px;
+  }
+}
+
+.ant-tag {
+  > svg {
+    display: inline-block;
+  }
+
+  > svg + span {
+    margin-inline-start: 4px;
+  }
 }
 
 .ant-message-notice-content,
@@ -21,7 +40,7 @@
 .form-valid-error {
   /** select 选择器的样式 */
 
-  .ant-select .ant-select-selector {
+  .ant-select:not(.valid-success) .ant-select-selector:not(.valid-success) {
     border-color: hsl(var(--destructive)) !important;
   }
 
@@ -38,6 +57,10 @@
   .ant-input-affix-wrapper:hover {
     border-color: hsl(var(--destructive));
     box-shadow: 0 0 0 2px rgb(255 38 5 / 6%);
+  }
+
+  .ant-input:not(.valid-success) {
+    border-color: hsl(var(--destructive)) !important;
   }
 }
 
@@ -65,15 +88,50 @@
 }
 
 /**
-vxe表格右上角toolbar 间距
+vxe表格右上角toolbar元素之间的间距
 */
 .vxe-button + .vxe-button.type--button {
   margin-left: 8px !important;
 }
 
 /**
-vxe表格右上角toolbar和左边元素的间距
+vxe默认圆角
 */
-.vxe-tools--operate {
-  margin-left: 8px;
+html {
+  --vxe-ui-border-radius: 8px !important;
+}
+
+/**
+vxe表格loading 只加载表格 不加载上面的表单
+*/
+.vxe-grid.is--loading::before {
+  content: none !important;
+}
+
+/**
+自定义success按钮样式
+ghost按钮专用!
+*/
+.btn-success {
+  color: hsl(var(--success)) !important;
+
+  /* border-color: hsl(var(--success)) !important; */
+}
+
+.btn-success:hover {
+  color: hsl(var(--success) / 50%) !important;
+
+  /* border-color: hsl(var(--success) / 50%) !important; */
+}
+
+html.dark button[disabled].btn-success {
+  color: rgb(242 242 242 / 25%) !important;
+
+  /* border-color: hsl(240deg 3.7% 22%) !important; */
+}
+
+button[disabled].btn-success {
+  color: rgb(50 54 57 / 25%) !important;
+
+  /* border-color: hsl(240deg 5.9% 90%) !important; */
 }

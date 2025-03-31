@@ -5,7 +5,7 @@ import { useVbenDrawer } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { cloneDeep } from '@vben/utils';
 
-import { useVbenForm } from '#/adapter';
+import { useVbenForm } from '#/adapter/form';
 import { menuTreeSelect, roleMenuTreeSelect } from '#/api/system/menu';
 import { roleAdd, roleInfo, roleUpdate } from '#/api/system/role';
 import { TreeSelectPanel } from '#/components/tree';

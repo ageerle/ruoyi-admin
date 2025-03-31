@@ -1,20 +1,24 @@
 <script setup lang="ts">
-import type { Recordable } from '@vben/types';
+import type { VbenFormProps } from '@vben/common-ui';
+
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { DictType } from '#/api/system/dict/dict-type-model';
 
 import { ref } from 'vue';
 
-import { Page, useVbenModal, type VbenFormProps } from '@vben/common-ui';
+import { useVbenModal } from '@vben/common-ui';
+import { getVxePopupContainer } from '@vben/utils';
 
 import { Modal, Popconfirm, Space } from 'ant-design-vue';
-import dayjs from 'dayjs';
 
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter';
+import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
 import {
   dictTypeExport,
   dictTypeList,
   dictTypeRemove,
+  refreshDictTypeCache,
 } from '#/api/system/dict/dict-type';
-import { downloadExcel } from '#/utils/file/download';
+import { commonDownloadExcel } from '#/utils/file/download';
 
 import { emitter } from '../mitt';
 import { columns, querySchema } from './data';
@@ -23,6 +27,9 @@ import dictTypeModal from './dict-type-modal.vue';
 const formOptions: VbenFormProps = {
   commonConfig: {
     labelWidth: 70,
+    componentProps: {
+      allowClear: true,
+    },
   },
   schema: querySchema(),
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
@@ -44,21 +51,6 @@ const gridOptions: VxeGridProps = {
   proxyConfig: {
     ajax: {
       query: async ({ page }, formValues = {}) => {
-        // 区间选择器处理
-        if (formValues?.createTime) {
-          formValues.params = {
-            beginTime: dayjs(formValues.createTime[0]).format(
-              'YYYY-MM-DD 00:00:00',
-            ),
-            endTime: dayjs(formValues.createTime[1]).format(
-              'YYYY-MM-DD 23:59:59',
-            ),
-          };
-          Reflect.deleteProperty(formValues, 'createTime');
-        } else {
-          Reflect.deleteProperty(formValues, 'params');
-        }
-
         return await dictTypeList({
           pageNum: page.currentPage,
           pageSize: page.pageSize,
@@ -68,34 +60,24 @@ const gridOptions: VxeGridProps = {
     },
   },
   rowConfig: {
-    isHover: true,
     keyField: 'dictId',
   },
-  round: true,
-  align: 'center',
-  showOverflow: true,
+  id: 'system-dict-type-index',
 };
 
-const checked = ref(false);
 const lastDictType = ref('');
 
 const [BasicTable, tableApi] = useVbenVxeGrid({
   formOptions,
   gridOptions,
   gridEvents: {
-    cellClick: (e: any) => {
+    cellClick: (e) => {
       const { row } = e;
       if (lastDictType.value === row.dictType) {
         return;
       }
       emitter.emit('rowClick', row.dictType);
       lastDictType.value = row.dictType;
-    },
-    checkboxChange: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-    checkboxAll: (e: any) => {
-      checked.value = e.records.length > 0;
     },
   },
 });
@@ -108,19 +90,19 @@ function handleAdd() {
   modalApi.open();
 }
 
-async function handleEdit(record: Recordable<any>) {
+async function handleEdit(record: DictType) {
   modalApi.setData({ id: record.dictId });
   modalApi.open();
 }
 
-async function handleDelete(row: Recordable<any>) {
-  await dictTypeRemove(row.dictId);
+async function handleDelete(row: DictType) {
+  await dictTypeRemove([row.dictId]);
   await tableApi.query();
 }
 
 function handleMultiDelete() {
   const rows = tableApi.grid.getCheckboxRecords();
-  const ids = rows.map((row: any) => row.dictId);
+  const ids = rows.map((row: DictType) => row.dictId);
   Modal.confirm({
     title: '提示',
     okType: 'danger',
@@ -131,25 +113,40 @@ function handleMultiDelete() {
     },
   });
 }
+
+async function handleRefreshCache() {
+  await refreshDictTypeCache();
+  await tableApi.query();
+}
+
+function handleDownloadExcel() {
+  commonDownloadExcel(
+    dictTypeExport,
+    '字典类型数据',
+    tableApi.formApi.form.values,
+  );
+}
 </script>
 
 <template>
-  <Page :auto-content-height="true">
-    <BasicTable>
-      <template #toolbar-actions>
-        <span class="pl-[7px] text-[16px]">字典类型列表</span>
-      </template>
+  <div>
+    <BasicTable id="dict-type" table-title="字典类型列表">
       <template #toolbar-tools>
         <Space>
-          <a-button danger type="primary">缓存(TODO)</a-button>
+          <a-button
+            v-access:code="['system:dict:edit']"
+            @click="handleRefreshCache"
+          >
+            刷新缓存
+          </a-button>
           <a-button
             v-access:code="['system:dict:export']"
-            @click="downloadExcel(dictTypeExport, '字典类型数据', {})"
+            @click="handleDownloadExcel"
           >
             {{ $t('pages.common.export') }}
           </a-button>
           <a-button
-            :disabled="!checked"
+            :disabled="!vxeCheckboxChecked(tableApi)"
             danger
             type="primary"
             v-access:code="['system:dict:remove']"
@@ -167,31 +164,32 @@ function handleMultiDelete() {
         </Space>
       </template>
       <template #action="{ row }">
-        <a-button
-          size="small"
-          type="link"
-          v-access:code="['system:dict:edit']"
-          @click="handleEdit(row)"
-        >
-          {{ $t('pages.common.edit') }}
-        </a-button>
-        <Popconfirm
-          placement="left"
-          title="确认删除？"
-          @confirm="handleDelete(row)"
-        >
-          <a-button
-            danger
-            size="small"
-            type="link"
-            v-access:code="['system:dict:remove']"
-            @click.stop=""
+        <Space>
+          <ghost-button
+            v-access:code="['system:dict:edit']"
+            @click.stop="handleEdit(row)"
           >
-            {{ $t('pages.common.delete') }}
-          </a-button>
-        </Popconfirm>
+            {{ $t('pages.common.edit') }}
+          </ghost-button>
+          <Popconfirm
+            :get-popup-container="
+              (node) => getVxePopupContainer(node, 'dict-type')
+            "
+            placement="left"
+            title="确认删除？"
+            @confirm="handleDelete(row)"
+          >
+            <ghost-button
+              danger
+              v-access:code="['system:dict:remove']"
+              @click.stop=""
+            >
+              {{ $t('pages.common.delete') }}
+            </ghost-button>
+          </Popconfirm>
+        </Space>
       </template>
     </BasicTable>
     <DictTypeModal @reload="tableApi.query()" />
-  </Page>
+  </div>
 </template>

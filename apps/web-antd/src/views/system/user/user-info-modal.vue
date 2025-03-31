@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { User } from '#/api/system/user/model';
+
 import { useVbenModal } from '@vben/common-ui';
 
 import { findUserInfo } from '#/api/system/user';
@@ -39,8 +41,12 @@ async function handleOpenChange(open: boolean) {
     .filter((item) => roleIds.includes(item.roleId))
     .map((item) => item.roleName);
 
-  (user as any).postNames = postNames;
-  (user as any).roleNames = roleNames;
+  interface UserWithNames extends User {
+    postNames: string[];
+    roleNames: string[];
+  }
+  (user as UserWithNames).postNames = postNames;
+  (user as UserWithNames).roleNames = roleNames;
 
   // 赋值
   setDescProps({ data: user });

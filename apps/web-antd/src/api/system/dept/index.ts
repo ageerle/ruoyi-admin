@@ -1,6 +1,6 @@
 import type { Dept } from './model';
 
-import type { ID, PageQuery } from '#/api/common';
+import type { ID } from '#/api/common';
 
 import { requestClient } from '#/api/request';
 
@@ -10,7 +10,11 @@ enum Api {
   root = '/system/dept',
 }
 
-export function deptList(params?: PageQuery) {
+/**
+ * 部门列表
+ * @returns list
+ */
+export function deptList(params?: { deptName?: string; status?: string }) {
   return requestClient.get<Dept[]>(Api.deptList, { params });
 }
 
@@ -23,15 +27,28 @@ export function deptNodeList(deptId: ID) {
   return requestClient.get<Dept[]>(`${Api.deptNodeInfo}/${deptId}`);
 }
 
+/**
+ * 部门详情
+ * @param deptId 部门id
+ * @returns 部门信息
+ */
 export function deptInfo(deptId: ID) {
   return requestClient.get<Dept>(`${Api.root}/${deptId}`);
 }
 
-export function deptAdd(data: any) {
+/**
+ * 部门新增
+ * @param data 参数
+ */
+export function deptAdd(data: Partial<Dept>) {
   return requestClient.postWithMsg<void>(Api.root, data);
 }
 
-export function deptUpdate(data: any) {
+/**
+ * 部门更新
+ * @param data 参数
+ */
+export function deptUpdate(data: Partial<Dept>) {
   return requestClient.putWithMsg<void>(Api.root, data);
 }
 

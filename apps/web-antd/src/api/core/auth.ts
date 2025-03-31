@@ -4,7 +4,10 @@ import { useAppConfig } from '@vben/hooks';
 
 import { requestClient } from '#/api/request';
 
-const { clientId } = useAppConfig(import.meta.env, import.meta.env.PROD);
+const { clientId, sseEnable } = useAppConfig(
+  import.meta.env,
+  import.meta.env.PROD,
+);
 
 export namespace AuthApi {
   /**
@@ -38,17 +41,14 @@ export namespace AuthApi {
    * @param username 用户名
    * @param password 密码
    */
-  /** 登录接口参数 */
-  export interface LoginParams {
-     code?: string;
-     grantType: string;
-     password: string;
-     tenantId: string;
-     username: string;
-     uuid?: string;
+  export interface SimpleLoginParams extends BaseLoginParams {
+    code?: string;
+    uuid?: string;
+    username: string;
+    password: string;
   }
 
-  //export type LoginParams = OAuthLoginParams | SimpleLoginParams;
+  export type LoginParams = OAuthLoginParams | SimpleLoginParams;
 
   // /** 登录接口参数 */
   // export interface LoginParams {
@@ -61,16 +61,11 @@ export namespace AuthApi {
   // }
 
   /** 登录接口返回值 */
-  // export interface LoginResult {
-  //   access_token: string;
-  //   client_id: string;
-  //   expire_in: number;
-  // }
-
   export interface LoginResult {
-    token: string;
+    access_token: string;
+    client_id: string;
+    expire_in: number;
   }
-
 
   export interface RefreshTokenResult {
     data: string;
@@ -81,18 +76,14 @@ export namespace AuthApi {
 /**
  * 登录
  */
-// export async function loginApi(data: AuthApi.LoginParams) {
-//   return requestClient.post<AuthApi.LoginResult>(
-//     '/auth/login',
-//     { ...data, clientId },
-//     {
-//       encrypt: true,
-//     },
-//   );
-// }
-
 export async function loginApi(data: AuthApi.LoginParams) {
-  return requestClient.post<AuthApi.LoginResult>('/auth/login', data);
+  return requestClient.post<AuthApi.LoginResult>(
+    '/auth/login',
+    { ...data, clientId },
+    {
+      encrypt: true,
+    },
+  );
 }
 
 /**
@@ -108,6 +99,12 @@ export function doLogout() {
  * @returns void
  */
 export function seeConnectionClose() {
+  /**
+   * 未开启sse 不需要处理
+   */
+  if (!sseEnable) {
+    return;
+  }
   return requestClient.get<void>('/resource/sse/close');
 }
 

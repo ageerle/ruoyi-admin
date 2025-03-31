@@ -1,25 +1,18 @@
 <script setup lang="ts">
-import { Icon } from '@vben/icons';
+import { IconifyIcon } from '@vben/icons';
 import { buildUUID } from '@vben/utils';
 
 import { Input } from 'ant-design-vue';
 
 defineOptions({ name: 'SecretInput' });
 
-defineProps({
-  disabled: {
-    default: false,
-    type: Boolean,
-  },
-  placeholder: {
-    default: '请输入密钥或随机生成',
-    type: String,
-  },
+withDefaults(defineProps<{ disabled?: boolean; placeholder?: string }>(), {
+  disabled: false,
+  placeholder: '请输入密钥或随机生成',
 });
 
 const value = defineModel<string>('value', {
   required: false,
-  type: String,
 });
 
 function refreshSecret() {
@@ -38,7 +31,7 @@ defineExpose({ refreshSecret });
     <template v-if="!disabled" #addonAfter>
       <a-button type="primary" @click="refreshSecret">
         <div class="flex items-center gap-[4px]">
-          <Icon icon="charm:refresh" />
+          <IconifyIcon icon="charm:refresh" />
           <span>随机生成</span>
         </div>
       </a-button>

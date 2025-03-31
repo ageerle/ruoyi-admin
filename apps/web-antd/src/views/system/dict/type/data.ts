@@ -1,4 +1,7 @@
-import { type FormSchemaGetter, type VxeGridProps, z } from '#/adapter';
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+
+import { z } from '#/adapter/form';
 
 export const querySchema: FormSchemaGetter = () => [
   {
@@ -68,7 +71,7 @@ export const modalSchema: FormSchemaGetter = () => [
   {
     component: 'Textarea',
     fieldName: 'remark',
-    formItemClass: 'items-baseline',
+    formItemClass: 'items-start',
     label: '备注',
   },
 ];

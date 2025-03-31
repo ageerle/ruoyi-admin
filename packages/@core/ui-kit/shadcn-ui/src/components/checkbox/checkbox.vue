@@ -5,9 +5,9 @@ import { useId } from 'vue';
 
 import { useForwardPropsEmits } from 'radix-vue';
 
-import { Checkbox } from '../ui/checkbox';
+import { Checkbox } from '../../ui/checkbox';
 
-const props = defineProps<CheckboxRootProps>();
+const props = defineProps<CheckboxRootProps & { indeterminate?: boolean }>();
 
 const emits = defineEmits<CheckboxRootEmits>();
 

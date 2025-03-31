@@ -3,7 +3,7 @@ import type { UserProfile } from '#/api/system/profile/model';
 
 import { computed } from 'vue';
 
-import { usePreferences } from '@vben/preferences';
+import { preferences, usePreferences } from '@vben/preferences';
 
 import {
   Card,
@@ -24,9 +24,7 @@ defineEmits<{
 }>();
 
 const avatar = computed(
-  () =>
-    props.profile?.user.avatar ??
-    'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
+  () => props.profile?.user.avatar || preferences.app.defaultAvatar,
 );
 
 const { isDark } = usePreferences();

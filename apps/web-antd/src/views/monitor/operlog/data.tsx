@@ -1,4 +1,5 @@
-import type { FormSchemaGetter, VxeGridProps } from '#/adapter';
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
 import type { DescItem } from '#/components/description';
 
 import { DictEnum } from '@vben/constants';
@@ -60,9 +61,10 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '操作类型',
     field: 'businessType',
-    cellRender: {
-      name: 'DictTag',
-      props: { field: 'businessType', dictName: DictEnum.SYS_OPER_TYPE },
+    slots: {
+      default: ({ row }) => {
+        return renderDict(row.businessType, DictEnum.SYS_OPER_TYPE);
+      },
     },
   },
   { field: 'operName', title: '操作人员' },
@@ -71,15 +73,17 @@ export const columns: VxeGridProps['columns'] = [
   {
     field: 'status',
     title: '操作状态',
-    cellRender: {
-      name: 'DictTag',
-      props: { field: 'status', dictName: DictEnum.SYS_COMMON_STATUS },
+    slots: {
+      default: ({ row }) => {
+        return renderDict(row.status, DictEnum.SYS_COMMON_STATUS);
+      },
     },
   },
-  { field: 'operTime', title: '操作日期' },
+  { field: 'operTime', title: '操作日期', sortable: true },
   {
     field: 'costTime',
     title: '操作耗时',
+    sortable: true,
     formatter({ cellValue }) {
       return `${cellValue} ms`;
     },
@@ -153,12 +157,15 @@ export const descSchema: DescItem[] = [
     field: 'method',
     label: '方法',
   },
+  /**
+   * 默认word-break: break-word;会导致json预览样式异常
+   */
   {
     field: 'operParam',
     label: '请求参数',
     render(value) {
       return (
-        <div class="max-h-[300px] overflow-y-auto">
+        <div class="max-h-[300px] w-full overflow-y-auto">
           {renderJsonPreview(value)}
         </div>
       );
@@ -169,7 +176,7 @@ export const descSchema: DescItem[] = [
     label: '响应参数',
     render(value) {
       return (
-        <div class="max-h-[300px] overflow-y-auto">
+        <div class="max-h-[300px] w-full overflow-y-auto">
           {renderJsonPreview(value)}
         </div>
       );

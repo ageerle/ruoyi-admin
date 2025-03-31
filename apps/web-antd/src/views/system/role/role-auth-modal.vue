@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import type { DeptOption } from '#/api/system/role/model';
+
 import { ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 import { cloneDeep } from '@vben/utils';
 
-import { useVbenForm } from '#/adapter';
+import { useVbenForm } from '#/adapter/form';
 import { roleDataScope, roleDeptTree, roleInfo } from '#/api/system/role';
 import { TreeSelectPanel } from '#/components/tree';
 
@@ -23,7 +25,7 @@ const [BasicForm, formApi] = useVbenForm({
   showDefaultActions: false,
 });
 
-const deptTree = ref<any[]>([]);
+const deptTree = ref<DeptOption[]>([]);
 async function setupDeptTree(id: number | string) {
   const resp = await roleDeptTree(id);
   formApi.setFieldValue('deptIds', resp.checkedKeys);

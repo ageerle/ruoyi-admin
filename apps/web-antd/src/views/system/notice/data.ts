@@ -1,4 +1,5 @@
-import type { FormSchemaGetter, VxeGridProps } from '#/adapter';
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
 
 import { DictEnum } from '@vben/constants';
 import { getPopupContainer } from '@vben/utils';
@@ -85,7 +86,6 @@ export const modalSchema: FormSchemaGetter = () => [
   {
     component: 'Input',
     fieldName: 'noticeTitle',
-    formItemClass: 'col-span-2',
     label: '公告标题',
     rules: 'required',
   },
@@ -93,7 +93,6 @@ export const modalSchema: FormSchemaGetter = () => [
     component: 'RadioGroup',
     componentProps: {
       buttonStyle: 'solid',
-      class: 'grid-cols-2',
       options: getDictOptions(DictEnum.SYS_NOTICE_STATUS),
       optionType: 'button',
     },
@@ -101,12 +100,12 @@ export const modalSchema: FormSchemaGetter = () => [
     fieldName: 'status',
     label: '公告状态',
     rules: 'required',
+    formItemClass: 'col-span-1',
   },
   {
     component: 'RadioGroup',
     componentProps: {
       buttonStyle: 'solid',
-      class: 'grid-cols-2',
       options: getDictOptions(DictEnum.SYS_NOTICE_TYPE),
       optionType: 'button',
     },
@@ -114,6 +113,7 @@ export const modalSchema: FormSchemaGetter = () => [
     fieldName: 'noticeType',
     label: '公告类型',
     rules: 'required',
+    formItemClass: 'col-span-1',
   },
   {
     component: 'RichTextarea',
@@ -121,7 +121,6 @@ export const modalSchema: FormSchemaGetter = () => [
       width: '100%',
     },
     fieldName: 'noticeContent',
-    formItemClass: 'col-span-2',
     label: '公告内容',
     rules: 'required',
   },

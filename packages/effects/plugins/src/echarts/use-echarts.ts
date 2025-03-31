@@ -1,8 +1,11 @@
 import type { EChartsOption } from 'echarts';
 
+import type { Ref } from 'vue';
+
+import type { Nullable } from '@vben/types';
+
 import type EchartsUI from './echarts-ui.vue';
 
-import type { Ref } from 'vue';
 import { computed, nextTick, watch } from 'vue';
 
 import { usePreferences } from '@vben/preferences';
@@ -31,12 +34,11 @@ function useEcharts(chartRef: Ref<EchartsUIType>) {
 
   const getOptions = computed((): EChartsOption => {
     if (!isDark.value) {
-      return cacheOptions;
+      return {};
     }
 
     return {
       backgroundColor: 'transparent',
-      ...cacheOptions,
     };
   });
 
@@ -50,13 +52,19 @@ function useEcharts(chartRef: Ref<EchartsUIType>) {
     return chartInstance;
   };
 
-  const renderEcharts = (options: EChartsOption, clear = true) => {
+  const renderEcharts = (
+    options: EChartsOption,
+    clear = true,
+  ): Promise<Nullable<echarts.ECharts>> => {
     cacheOptions = options;
+    const currentOptions = {
+      ...options,
+      ...getOptions.value,
+    };
     return new Promise((resolve) => {
       if (chartRef.value?.offsetHeight === 0) {
-        useTimeoutFn(() => {
-          renderEcharts(getOptions.value);
-          resolve(null);
+        useTimeoutFn(async () => {
+          resolve(await renderEcharts(currentOptions));
         }, 30);
         return;
       }
@@ -67,8 +75,8 @@ function useEcharts(chartRef: Ref<EchartsUIType>) {
             if (!instance) return;
           }
           clear && chartInstance?.clear();
-          chartInstance?.setOption(getOptions.value);
-          resolve(null);
+          chartInstance?.setOption(currentOptions);
+          resolve(chartInstance);
         }, 30);
       });
     });
@@ -107,6 +115,7 @@ function useEcharts(chartRef: Ref<EchartsUIType>) {
   return {
     renderEcharts,
     resize,
+    getChartInstance: () => chartInstance,
   };
 }
 

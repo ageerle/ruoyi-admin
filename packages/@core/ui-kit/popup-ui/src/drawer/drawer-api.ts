@@ -4,44 +4,55 @@ import { Store } from '@vben-core/shared/store';
 import { bindMethods, isFunction } from '@vben-core/shared/utils';
 
 export class DrawerApi {
-  private api: Pick<
-    DrawerApiOptions,
-    'onBeforeClose' | 'onCancel' | 'onConfirm' | 'onOpenChange'
-  >;
-  // private prevState!: DrawerState;
-  private state!: DrawerState;
-
   // 共享数据
   public sharedData: Record<'payload', any> = {
     payload: {},
   };
-
   public store: Store<DrawerState>;
+
+  private api: Pick<
+    DrawerApiOptions,
+    | 'onBeforeClose'
+    | 'onCancel'
+    | 'onClosed'
+    | 'onConfirm'
+    | 'onOpenChange'
+    | 'onOpened'
+  >;
+
+  // private prevState!: DrawerState;
+  private state!: DrawerState;
 
   constructor(options: DrawerApiOptions = {}) {
     const {
       connectedComponent: _,
       onBeforeClose,
       onCancel,
+      onClosed,
       onConfirm,
       onOpenChange,
+      onOpened,
       ...storeState
     } = options;
 
     const defaultState: DrawerState = {
       class: '',
       closable: true,
+      closeIconPlacement: 'right',
       closeOnClickModal: true,
       closeOnPressEscape: true,
       confirmLoading: false,
       contentClass: '',
       footer: true,
+      header: true,
       isOpen: false,
       loading: false,
       modal: true,
       openAutoFocus: false,
+      placement: 'right',
       showCancelButton: true,
       showConfirmButton: true,
+      submitting: false,
       title: '',
     };
 
@@ -66,15 +77,12 @@ export class DrawerApi {
     this.api = {
       onBeforeClose,
       onCancel,
+      onClosed,
       onConfirm,
       onOpenChange,
+      onOpened,
     };
     bindMethods(this);
-  }
-
-  // 如果需要多次更新状态，可以使用 batch 方法
-  batchStore(cb: () => void) {
-    this.store.batch(cb);
   }
 
   /**
@@ -85,7 +93,11 @@ export class DrawerApi {
     // 如果 onBeforeClose 返回 false，则不关闭弹窗
     const allowClose = this.api.onBeforeClose?.() ?? true;
     if (allowClose) {
-      this.store.setState((prev) => ({ ...prev, isOpen: false }));
+      this.store.setState((prev) => ({
+        ...prev,
+        isOpen: false,
+        submitting: false,
+      }));
     }
   }
 
@@ -102,6 +114,15 @@ export class DrawerApi {
   }
 
   /**
+   * 锁定抽屉状态（用于提交过程中的等待状态）
+   * @description 锁定状态将禁用默认的取消按钮，使用spinner覆盖抽屉内容，隐藏关闭按钮，阻止手动关闭弹窗，将默认的提交按钮标记为loading状态
+   * @param isLocked 是否锁定
+   */
+  lock(isLocked: boolean = true) {
+    return this.setState({ submitting: isLocked });
+  }
+
+  /**
    * 取消操作
    */
   onCancel() {
@@ -113,10 +134,28 @@ export class DrawerApi {
   }
 
   /**
+   * 弹窗关闭动画播放完毕后的回调
+   */
+  onClosed() {
+    if (!this.state.isOpen) {
+      this.api.onClosed?.();
+    }
+  }
+
+  /**
    * 确认操作
    */
   onConfirm() {
     this.api.onConfirm?.();
+  }
+
+  /**
+   * 弹窗打开动画播放完毕后的回调
+   */
+  onOpened() {
+    if (this.state.isOpen) {
+      this.api.onOpened?.();
+    }
   }
 
   open() {
@@ -125,6 +164,7 @@ export class DrawerApi {
 
   setData<T>(payload: T) {
     this.sharedData.payload = payload;
+    return this;
   }
 
   setState(
@@ -137,5 +177,14 @@ export class DrawerApi {
     } else {
       this.store.setState((prev) => ({ ...prev, ...stateOrFn }));
     }
+    return this;
+  }
+
+  /**
+   * 解除抽屉的锁定状态
+   * @description 解除由lock方法设置的锁定状态，是lock(false)的别名
+   */
+  unlock() {
+    return this.lock(false);
   }
 }

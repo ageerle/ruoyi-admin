@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { TabsProps } from 'ant-design-vue';
 
+import type { Ref } from 'vue';
+
 import { onMounted, ref } from 'vue';
 
 import {
@@ -8,41 +10,108 @@ import {
   Form,
   FormItem,
   Input,
+  message,
   Switch,
   TabPane,
   Tabs,
 } from 'ant-design-vue';
 
-import { listConfig } from '#/api/system/configurationManage';
+import { addConfig, listConfig } from '#/api/system/configurationManage';
 
-onMounted(() => {
-  getConfig();
-});
-
-async function getConfig() {
-  const res = await listConfig();
-  console.log(res);
+interface ConfigItem {
+  category: string;
+  configName: string;
+  configValue: string;
+  configDict: string;
+  id: string;
 }
 
-const tabsData = ref({
+interface TabsData {
+  chat: ConfigItem[];
+  mj: ConfigItem[];
+  pay: ConfigItem[];
+  review: ConfigItem[];
+  weixin: ConfigItem[];
+  sys: ConfigItem[];
+  stripe: ConfigItem[];
+}
+
+interface ConfigResponseItem {
+  category: keyof TabsData;
+  configName: string;
+  configValue: string;
+  id: string;
+}
+
+const tabsData: Ref<TabsData> = ref({
   chat: [
-    { configName: 'apiKey', configValue: '', configDict: 'API 密钥', id: '' },
-    { configName: 'apiHost', configValue: '', configDict: 'API 地址', id: '' },
+    {
+      category: 'chat',
+      configName: 'apiKey',
+      configValue: '',
+      configDict: 'API 密钥',
+      id: '',
+    },
+    {
+      category: 'chat',
+      configName: 'apiHost',
+      configValue: '',
+      configDict: 'API 地址',
+      id: '',
+    },
   ],
   mj: [
-    { configName: 'imagine', configValue: '', configDict: '文生图', id: '' },
-    { configName: 'blend', configValue: '', configDict: '图生图', id: '' },
-    { configName: 'describe', configValue: '', configDict: '图生文', id: '' },
-    { configName: 'change', configValue: '', configDict: '变化价格', id: '' },
-    { configName: 'upsample', configValue: '', configDict: '放大价格', id: '' },
-    { configName: 'inpaint', configValue: '', configDict: '局部重绘', id: '' },
     {
+      category: 'mj',
+      configName: 'imagine',
+      configValue: '',
+      configDict: '文生图',
+      id: '',
+    },
+    {
+      category: 'mj',
+      configName: 'blend',
+      configValue: '',
+      configDict: '图生图',
+      id: '',
+    },
+    {
+      category: 'mj',
+      configName: 'describe',
+      configValue: '',
+      configDict: '图生文',
+      id: '',
+    },
+    {
+      category: 'mj',
+      configName: 'change',
+      configValue: '',
+      configDict: '变化价格',
+      id: '',
+    },
+    {
+      category: 'mj',
+      configName: 'upsample',
+      configValue: '',
+      configDict: '放大价格',
+      id: '',
+    },
+    {
+      category: 'mj',
+      configName: 'inpaint',
+      configValue: '',
+      configDict: '局部重绘',
+      id: '',
+    },
+    {
+      category: 'mj',
       configName: 'faceSwapping',
       configValue: '',
       configDict: '换脸价格',
       id: '',
     },
     {
+      category: 'mj',
       configName: 'shorten',
       configValue: '',
       configDict: '提示词分析',
@@ -50,10 +119,29 @@ const tabsData = ref({
     },
   ],
   pay: [
-    { configName: 'pid', configValue: '', configDict: '商户PID', id: '' },
-    { configName: 'key', configValue: '', configDict: '商户密钥', id: '' },
-    { configName: 'payUrl', configValue: '', configDict: '支付地址', id: '' },
     {
+      category: 'pay',
+      configName: 'pid',
+      configValue: '',
+      configDict: '商户PID',
+      id: '',
+    },
+    {
+      category: 'pay',
+      configName: 'key',
+      configValue: '',
+      configDict: '商户密钥',
+      id: '',
+    },
+    {
+      category: 'pay',
+      configName: 'payUrl',
+      configValue: '',
+      configDict: '支付地址',
+      id: '',
+    },
+    {
+      category: 'pay',
       configName: 'notify_url',
       configValue: '',
       configDict: '回调地址',
@@ -61,63 +149,171 @@ const tabsData = ref({
     },
   ],
   review: [
-    { configName: 'apiKey', configValue: '', configDict: 'apiKey', id: '' },
     {
+      category: 'review',
+      configName: 'apiKey',
+      configValue: '',
+      configDict: 'apiKey',
+      id: '',
+    },
+    {
+      category: 'review',
       configName: 'secretKey',
       configValue: '',
       configDict: 'secretKey',
       id: '',
     },
-    { configName: 'enabled', configValue: '', configDict: '文本审核', id: '' },
+    {
+      category: 'review',
+      configName: 'enabled',
+      configValue: '',
+      configDict: '文本审核',
+      id: '',
+    },
   ],
   weixin: [
-    { configName: 'appId', configValue: '', configDict: '应用ID', id: '' },
     {
+      category: 'weixin',
+      configName: 'appId',
+      configValue: '',
+      configDict: '应用ID',
+      id: '',
+    },
+    {
+      category: 'weixin',
       configName: 'appSecret',
       configValue: '',
       configDict: '应用密钥',
       id: '',
     },
-    { configName: 'mchId', configValue: '', configDict: '商户ID', id: '' },
     {
+      category: 'weixin',
+      configName: 'mchId',
+      configValue: '',
+      configDict: '商户ID',
+      id: '',
+    },
+    {
+      category: 'weixin',
       configName: 'notifyUrl',
       configValue: '',
       configDict: '回调地址',
       id: '',
     },
-    { configName: 'enabled', configValue: '', configDict: '开启支付', id: '' },
+    {
+      category: 'weixin',
+      configName: 'enabled',
+      configValue: '',
+      configDict: '开启支付',
+      id: '',
+    },
   ],
   sys: [
-    { configName: 'name', configValue: '', configDict: '网站名称', id: '' },
     {
+      category: 'sys',
+      configName: 'name',
+      configValue: '',
+      configDict: '网站名称',
+      id: '',
+    },
+    {
+      category: 'sys',
       configName: 'logoImage',
       configValue: '',
       configDict: '网站logo',
       id: '',
     },
     {
+      category: 'sys',
       configName: 'copyright',
       configValue: '',
       configDict: '版权信息',
       id: '',
     },
     {
+      category: 'sys',
       configName: 'customImage',
       configValue: '',
       configDict: '客服二维码',
       id: '',
     },
-    { configName: 'model', configValue: '', configDict: '系统模型', id: '' },
+    {
+      category: 'sys',
+      configName: 'model',
+      configValue: '',
+      configDict: '系统模型',
+      id: '',
+    },
   ],
   stripe: [
-    { configName: 'success', configValue: '', configDict: '成功回调', id: '' },
-    { configName: 'cancel', configValue: '', configDict: '取消回调', id: '' },
-    { configName: 'key', configValue: '', configDict: '支付密钥', id: '' },
-    { configName: 'secret', configValue: '', configDict: '回调密钥', id: '' },
-    { configName: 'prompt', configValue: '', configDict: '提示语', id: '' },
-    { configName: 'enabled', configValue: '', configDict: '开启支付', id: '' },
+    {
+      category: 'stripe',
+      configName: 'success',
+      configValue: '',
+      configDict: '成功回调',
+      id: '',
+    },
+    {
+      category: 'stripe',
+      configName: 'cancel',
+      configValue: '',
+      configDict: '取消回调',
+      id: '',
+    },
+    {
+      category: 'stripe',
+      configName: 'key',
+      configValue: '',
+      configDict: '支付密钥',
+      id: '',
+    },
+    {
+      category: 'stripe',
+      configName: 'secret',
+      configValue: '',
+      configDict: '回调密钥',
+      id: '',
+    },
+    {
+      category: 'stripe',
+      configName: 'prompt',
+      configValue: '',
+      configDict: '提示语',
+      id: '',
+    },
+    {
+      category: 'stripe',
+      configName: 'enabled',
+      configValue: '',
+      configDict: '开启支付',
+      id: '',
+    },
   ],
 });
+
+onMounted(() => {
+  getConfig();
+});
+
+// 定义获取配置的方法
+async function getConfig() {
+  try {
+    const res: ConfigResponseItem[] = await listConfig();
+    res.forEach((item) => {
+      if (tabsData.value[item.category]) {
+        tabsData.value[item.category].forEach((items: ConfigItem) => {
+          if (items.configName === item.configName) {
+            items.configValue = item.configValue;
+            items.id = item.id;
+          }
+        });
+      }
+    });
+    handleChange(activeKey.value);
+  } catch (error) {
+    console.error('获取配置信息失败:', error);
+  }
+}
 
 const activeKey = ref('1');
 const tabPosition = ref<TabsProps['tabPosition']>('left');
@@ -159,12 +355,15 @@ const tabList = ref([
   },
 ]);
 
-const formData = ref({});
+const formData = ref<Record<string, boolean | string>>({});
 const handleSubmit = () => {
-  console.log(formData.value);
+  const name = getTabName();
+  addConfig(tabsData.value[name]).then(() => {
+    message.success('保存成功');
+  });
 };
-const handleChange = (key: string) => {
-  const currentTab = tabList.value.find((tab) => tab.key === key);
+const handleChange = (key: number | string) => {
+  const currentTab = tabList.value.find((tab) => tab.key === String(key));
   if (currentTab) {
     formData.value = {}; // 清空之前的表单数据
     currentTab.data.forEach((item) => {
@@ -173,15 +372,51 @@ const handleChange = (key: string) => {
   }
 };
 
-const inputStatus = ref('success');
-const inputCheck = (configName: string, val: string) => {
-  if (configName === 'apiHost') {
-    if (URL.canParse(val)) {
-      inputStatus.value = val.endsWith('/') ? 'success' : 'error';
-    } else {
-      inputStatus.value = 'error';
+function getTabName() {
+  let name: keyof typeof tabsData.value = 'chat';
+  switch (activeKey.value) {
+    case '1': {
+      name = 'chat';
+
+      break;
     }
+    case '2': {
+      name = 'mj';
+
+      break;
+    }
+    case '3': {
+      name = 'pay';
+
+      break;
+    }
+    case '4': {
+      name = 'review';
+
+      break;
+    }
+    case '5': {
+      name = 'weixin';
+
+      break;
+    }
+    case '6': {
+      name = 'sys';
+
+      break;
+    }
+    // No default
   }
+  return name;
+}
+
+const handleBlur = (item: any, value: string) => {
+  const name = getTabName();
+  tabsData.value[name].forEach((items: any) => {
+    if (items.configName === item.configName) {
+      items.configValue = value;
+    }
+  });
 };
 </script>
 
@@ -203,16 +438,15 @@ const inputCheck = (configName: string, val: string) => {
               :name="items.configName"
             >
               <template v-if="items.configName === 'enabled'">
-                <Switch v-model:checked="formData[items.configName]" />
+                <Switch
+                  v-model:checked="formData[items.configName] as boolean"
+                />
               </template>
               <template v-else>
                 <Input
-                  v-model:value="formData[items.configName]"
-                  :status="
-                    items.configName === 'apiHost' ? inputStatus : 'success'
-                  "
-                  @change="
-                    inputCheck(items.configName, formData[items.configName])
+                  v-model:value="formData[items.configName] as string"
+                  @blur="
+                    handleBlur(items, formData[items.configName] as string)
                   "
                 />
               </template>
@@ -230,7 +464,6 @@ const inputCheck = (configName: string, val: string) => {
 <style lang="less" scoped>
 .configuration-manage {
   padding: 10px;
-  // background-color: #fff;
   height: 100%;
 }
 </style>

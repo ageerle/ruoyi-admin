@@ -1,9 +1,16 @@
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+
+import { h } from 'vue';
+
 import { DictEnum } from '@vben/constants';
+import { FolderIcon, MenuIcon, OkButtonIcon, VbenIcon } from '@vben/icons';
+import { $t } from '@vben/locales';
 import { getPopupContainer } from '@vben/utils';
 
-import { type FormSchemaGetter, type VxeGridProps, z } from '#/adapter';
+import { z } from '#/adapter/form';
 import { getDictOptions } from '#/utils/dict';
-import { renderDict, renderIcon } from '#/utils/render';
+import { renderDict } from '#/utils/render';
 
 export const querySchema: FormSchemaGetter = () => [
   {
@@ -45,17 +52,20 @@ export const yesNoOptions = [
 
 // （M目录 C菜单 F按钮）
 const menuTypes = {
-  M: { value: '目录', icon: 'fxemoji:folder' },
-  C: { value: '菜单', icon: 'fluent-emoji-flat:open-book' },
-  F: { value: '按钮', icon: 'fluent-emoji:ok-button' },
+  C: { icon: MenuIcon, value: '菜单' },
+  F: { icon: OkButtonIcon, value: '按钮' },
+  M: { icon: FolderIcon, value: '目录' },
 };
-
 export const columns: VxeGridProps['columns'] = [
   {
     title: '菜单名称',
     field: 'menuName',
     treeNode: true,
     width: 200,
+    slots: {
+      // 需要i18n支持 否则返回原始值
+      default: ({ row }) => $t(row.menuName),
+    },
   },
   {
     title: '图标',
@@ -66,7 +76,11 @@ export const columns: VxeGridProps['columns'] = [
         if (row?.icon === '#') {
           return '';
         }
-        return renderIcon(row.icon);
+        return (
+          <span class={'flex justify-center'}>
+            <VbenIcon icon={row.icon} />
+          </span>
+        );
       },
     },
   },
@@ -86,9 +100,9 @@ export const columns: VxeGridProps['columns'] = [
           return '未知';
         }
         return (
-          <span class={['flex', 'items-center', 'justify-center']}>
-            {renderIcon(current.icon)}
-            <span style={{ marginLeft: '2px' }}>{current.value}</span>
+          <span class="flex items-center justify-center gap-1">
+            {h(current.icon, { class: 'size-[18px]' })}
+            <span>{current.value}</span>
           </span>
         );
       },
@@ -131,7 +145,7 @@ export const columns: VxeGridProps['columns'] = [
     fixed: 'right',
     slots: { default: 'action' },
     title: '操作',
-    width: 180,
+    width: 200,
   },
 ];
 
@@ -180,14 +194,23 @@ export const drawerSchema: FormSchemaGetter = () => [
       show: (values) => values.menuType !== 'F',
       triggerFields: ['menuType'],
     },
+    renderComponentContent: (model) => ({
+      addonBefore: () => <VbenIcon icon={model.icon} />,
+      addonAfter: () => (
+        <a href="https://icon-sets.iconify.design/" target="_blank">
+          搜索图标
+        </a>
+      ),
+    }),
     fieldName: 'icon',
-    help: '选择或者从 https://icon-sets.iconify.design/ 查找名称粘贴',
+    help: '点击搜索图标跳转到iconify & 粘贴',
     label: '菜单图标',
   },
   {
     component: 'Input',
     fieldName: 'menuName',
     label: '菜单名称',
+    help: '支持i18n写法, 如: menu.system.user',
     rules: 'required',
   },
   {
@@ -223,11 +246,11 @@ export const drawerSchema: FormSchemaGetter = () => [
           .regex(/^https?:\/\//, { message: '请输入正确的链接地址' });
       },
       // 类型不为按钮时显示
-      show: (values) => values.menuType !== 'F',
-      triggerFields: ['isFrame'],
+      show: (values) => values?.menuType !== 'F',
+      triggerFields: ['isFrame', 'menuType'],
     },
     fieldName: 'path',
-    help: `路由地址不带/, 如: menu, user 链接为http(s)://开头 链接默认使用内部iframe打开, 可通过{是否外链}控制打开方式`,
+    help: `路由地址不带/, 如: menu, user\n 链接为http(s)://开头\n 链接默认使用内部iframe打开, 可通过{是否外链}控制打开方式`,
     label: '路由地址',
   },
   {
@@ -275,7 +298,7 @@ export const drawerSchema: FormSchemaGetter = () => [
       triggerFields: ['menuType'],
     },
     fieldName: 'isFrame',
-    help: '外链为http(s)://开头 选择否时, 使用iframe从内部打开页面, 否则新窗口打开',
+    help: '外链为http(s)://开头\n 选择否时, 使用iframe从内部打开页面, 否则新窗口打开',
     label: '是否外链',
   },
   {
@@ -320,7 +343,7 @@ export const drawerSchema: FormSchemaGetter = () => [
       triggerFields: ['menuType'],
     },
     fieldName: 'perms',
-    help: `控制器中定义的权限字符, 如: @SaCheckPermission("system:user:import")`,
+    help: `控制器中定义的权限字符\n 如: @SaCheckPermission("system:user:import")`,
     label: '权限标识',
   },
   {
@@ -328,6 +351,7 @@ export const drawerSchema: FormSchemaGetter = () => [
     componentProps: (model) => ({
       // 为链接时组件disabled
       disabled: model.isFrame === '0',
+      placeholder: '必须为json字符串格式',
     }),
     dependencies: {
       // 类型为菜单时显示
@@ -335,7 +359,7 @@ export const drawerSchema: FormSchemaGetter = () => [
       triggerFields: ['menuType'],
     },
     fieldName: 'queryParam',
-    help: 'vue-router中的query属性, 如{"name": "xxx", "age": 16}',
+    help: 'vue-router中的query属性\n 如{"name": "xxx", "age": 16}',
     label: '路由参数',
   },
   {

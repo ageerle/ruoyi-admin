@@ -1,9 +1,12 @@
 <script lang="ts" setup>
 import { computed, useSlots } from 'vue';
 
+import { useRefresh } from '@vben/hooks';
+import { RotateCw } from '@vben/icons';
 import { preferences, usePreferences } from '@vben/preferences';
 import { useAccessStore } from '@vben/stores';
-import { VbenFullScreen } from '@vben-core/shadcn-ui';
+
+import { VbenFullScreen, VbenIconButton } from '@vben-core/shadcn-ui';
 
 import {
   GlobalSearch,
@@ -29,45 +32,49 @@ withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{ clearPreferencesAndLogout: [] }>();
 
+const REFERENCE_VALUE = 50;
+
 const accessStore = useAccessStore();
 const { globalSearchShortcutKey, preferencesButtonPosition } = usePreferences();
 const slots = useSlots();
+const { refresh } = useRefresh();
+
 const rightSlots = computed(() => {
-  const list = [{ index: 100, name: 'user-dropdown' }];
+  const list = [{ index: REFERENCE_VALUE + 100, name: 'user-dropdown' }];
   if (preferences.widget.globalSearch) {
     list.push({
-      index: 5,
+      index: REFERENCE_VALUE,
       name: 'global-search',
     });
   }
 
   if (preferencesButtonPosition.value.header) {
     list.push({
-      index: 10,
+      index: REFERENCE_VALUE + 10,
       name: 'preferences',
     });
   }
   if (preferences.widget.themeToggle) {
     list.push({
-      index: 15,
+      index: REFERENCE_VALUE + 20,
       name: 'theme-toggle',
     });
   }
   if (preferences.widget.languageToggle) {
     list.push({
-      index: 20,
+      index: REFERENCE_VALUE + 30,
       name: 'language-toggle',
     });
   }
   if (preferences.widget.fullscreen) {
     list.push({
-      index: 25,
+      index: REFERENCE_VALUE + 40,
       name: 'fullscreen',
     });
   }
   if (preferences.widget.notification) {
     list.push({
-      index: 30,
+      index: REFERENCE_VALUE + 50,
       name: 'notification',
     });
   }
@@ -82,7 +89,14 @@ const rightSlots = computed(() => {
 });
 
 const leftSlots = computed(() => {
-  const list: any[] = [];
+  const list: Array<{ index: number; name: string }> = [];
+
+  if (preferences.widget.refresh) {
+    list.push({
+      index: 0,
+      name: 'refresh',
+    });
+  }
 
   Object.keys(slots).forEach((key) => {
     const name = key.split('-');
@@ -100,21 +114,30 @@ function clearPreferencesAndLogout() {
 
 <template>
   <template
-    v-for="slot in leftSlots.filter((item) => item.index < 5)"
+    v-for="slot in leftSlots.filter((item) => item.index < REFERENCE_VALUE)"
     :key="slot.name"
   >
-    <slot :name="slot.name"></slot>
+    <slot :name="slot.name">
+      <template v-if="slot.name === 'refresh'">
+        <VbenIconButton class="my-0 mr-1 rounded-md" @click="refresh">
+          <RotateCw class="size-4" />
+        </VbenIconButton>
+      </template>
+    </slot>
   </template>
   <div class="flex-center hidden lg:block">
     <slot name="breadcrumb"></slot>
   </div>
   <template
-    v-for="slot in leftSlots.filter((item) => item.index > 5)"
+    v-for="slot in leftSlots.filter((item) => item.index > REFERENCE_VALUE)"
     :key="slot.name"
   >
     <slot :name="slot.name"></slot>
   </template>
-  <div class="flex h-full min-w-0 flex-1 items-center">
+  <div
+    :class="`menu-align-${preferences.header.menuAlign}`"
+    class="flex h-full min-w-0 flex-1 items-center"
+  >
     <slot name="menu"></slot>
   </div>
   <div class="flex h-full min-w-0 flex-shrink-0 items-center">
@@ -147,3 +170,16 @@ function clearPreferencesAndLogout() {
     </template>
   </div>
 </template>
+<style lang="scss" scoped>
+.menu-align-start {
+  --menu-align: start;
+}
+
+.menu-align-center {
+  --menu-align: center;
+}
+
+.menu-align-end {
+  --menu-align: end;
+}
+</style>

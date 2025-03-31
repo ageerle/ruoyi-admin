@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { computed, type PropType } from 'vue';
+import type { RadioChangeEvent } from 'ant-design-vue';
 
-import {
-  Input,
-  type RadioChangeEvent,
-  RadioGroup,
-  Select,
-} from 'ant-design-vue';
+import type { PropType } from 'vue';
+
+import { computed } from 'vue';
+
+import { Input, RadioGroup, Select } from 'ant-design-vue';
 
 import { tagSelectOptions } from '#/components/dict';
 

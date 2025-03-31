@@ -12,7 +12,7 @@ import { notification } from 'ant-design-vue';
 import dayjs from 'dayjs';
 import { defineStore } from 'pinia';
 
-const { apiURL, clientId } = useAppConfig(
+const { apiURL, clientId, sseEnable } = useAppConfig(
   import.meta.env,
   import.meta.env.PROD,
 );
@@ -40,6 +40,12 @@ export const useNotifyStore = defineStore(
      * 开始监听sse消息
      */
     function startListeningMessage() {
+      /**
+       * 未开启 不监听
+       */
+      if (!sseEnable) {
+        return;
+      }
       const accessStore = useAccessStore();
       const token = accessStore.accessToken;
 
@@ -75,6 +81,7 @@ export const useNotifyStore = defineStore(
           userId: userId.value,
         });
 
+        // 需要手动置空 vue3在值相同时不会触发watch
         data.value = null;
       });
     }

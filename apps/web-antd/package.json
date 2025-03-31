@@ -1,6 +1,6 @@
 {
   "name": "@vben/web-antd",
-  "version": "5.3.2",
+  "version": "1.2.3",
   "homepage": "https://vben.pro",
   "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
   "repository": {
@@ -16,7 +16,7 @@
   },
   "type": "module",
   "scripts": {
-    "build": "pnpm vite build --mode production",
+    "build": "pnpm vite build",
     "build:analyze": "pnpm vite build --mode analyze",
     "dev": "pnpm vite --mode development",
     "preview": "vite preview",
@@ -26,6 +26,7 @@
     "#/*": "./src/*"
   },
   "dependencies": {
+    "@ant-design/icons-vue": "^7.0.1",
     "@tinymce/tinymce-vue": "^6.0.1",
     "@vben/access": "workspace:*",
     "@vben/common-ui": "workspace:*",

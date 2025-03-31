@@ -1,7 +1,9 @@
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+
 import { DictEnum } from '@vben/constants';
 import { getPopupContainer } from '@vben/utils';
 
-import { type FormSchemaGetter, type VxeGridProps } from '#/adapter';
 import { getDictOptions } from '#/utils/dict';
 import { renderDict } from '#/utils/render';
 
@@ -80,7 +82,6 @@ export const drawerSchema: FormSchemaGetter = () => [
   {
     component: 'TreeSelect',
     componentProps: {
-      class: 'w-full',
       getPopupContainer,
     },
     fieldName: 'deptId',
@@ -125,7 +126,7 @@ export const drawerSchema: FormSchemaGetter = () => [
   {
     component: 'Textarea',
     fieldName: 'remark',
-    formItemClass: 'items-baseline',
+    formItemClass: 'items-start',
     label: '备注',
   },
 ];

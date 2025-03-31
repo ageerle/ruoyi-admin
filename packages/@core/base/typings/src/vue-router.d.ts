@@ -1,6 +1,5 @@
-import type { Router, RouteRecordRaw } from 'vue-router';
-
 import type { Component } from 'vue';
+import type { Router, RouteRecordRaw } from 'vue-router';
 
 interface RouteMeta {
   /**
@@ -99,9 +98,21 @@ interface RouteMeta {
    */
   menuVisibleWithForbidden?: boolean;
   /**
+   * 不使用基础布局（仅在顶级生效）
+   */
+  noBasicLayout?: boolean;
+  /**
+   * 在新窗口打开
+   */
+  openInNewWindow?: boolean;
+  /**
    * 用于路由->菜单排序
    */
   order?: number;
+  /**
+   * 菜单所携带的参数
+   */
+  query?: Recordable;
   /**
    * 标题名称
    */
@@ -109,10 +120,13 @@ interface RouteMeta {
 }
 
 // 定义递归类型以将 RouteRecordRaw 的 component 属性更改为 string
-type RouteRecordStringComponent<T = string> = {
+type RouteRecordStringComponent<T = string> = Omit<
+  RouteRecordRaw,
+  'children' | 'component'
+> & {
   children?: RouteRecordStringComponent<T>[];
   component: T;
-} & Omit<RouteRecordRaw, 'children' | 'component'>;
+};
 
 type ComponentRecordType = Record<string, () => Promise<Component>>;
 

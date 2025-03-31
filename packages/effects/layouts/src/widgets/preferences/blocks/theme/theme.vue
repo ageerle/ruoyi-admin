@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { ThemeModeType } from '@vben/types';
-
 import type { Component } from 'vue';
+
+import type { ThemeModeType } from '@vben/types';
 
 import { MoonStar, Sun, SunMoon } from '@vben/icons';
 import { $t } from '@vben/locales';
@@ -37,14 +37,14 @@ function activeClass(theme: string): string[] {
 
 function nameView(name: string) {
   switch (name) {
-    case 'light': {
-      return $t('preferences.theme.light');
+    case 'auto': {
+      return $t('preferences.followSystem');
     }
     case 'dark': {
       return $t('preferences.theme.dark');
     }
-    case 'auto': {
-      return $t('preferences.followSystem');
+    case 'light': {
+      return $t('preferences.theme.light');
     }
   }
 }

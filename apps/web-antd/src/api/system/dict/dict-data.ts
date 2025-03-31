@@ -34,7 +34,7 @@ export function dictDataList(params?: PageQuery) {
  * @param data 表单参数
  * @returns blob
  */
-export function dictDataExport(data: any) {
+export function dictDataExport(data: Partial<DictData>) {
   return commonExport(Api.dictDataExport, data);
 }
 
@@ -44,7 +44,7 @@ export function dictDataExport(data: any) {
  * @returns void
  */
 export function dictDataRemove(dictIds: IDS) {
-  return requestClient.deleteWithMsg<void>(`${Api.root}/${dictIds.join(',')}`);
+  return requestClient.deleteWithMsg<void>(`${Api.root}/${dictIds}`);
 }
 
 /**
@@ -52,7 +52,7 @@ export function dictDataRemove(dictIds: IDS) {
  * @param data 表单参数
  * @returns void
  */
-export function dictDataAdd(data: any) {
+export function dictDataAdd(data: Partial<DictData>) {
   return requestClient.postWithMsg<void>(Api.root, data);
 }
 
@@ -61,7 +61,7 @@ export function dictDataAdd(data: any) {
  * @param data 表单参数
  * @returns void
  */
-export function dictDataUpdate(data: any) {
+export function dictDataUpdate(data: Partial<DictData>) {
   return requestClient.putWithMsg<void>(Api.root, data);
 }
 

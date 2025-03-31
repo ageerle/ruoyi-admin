@@ -1,7 +1,8 @@
-import type { FormSchemaGetter, VxeGridProps } from '#/adapter';
-import type { DescItem } from '#/components/description';
-
 import type { VNode } from 'vue';
+
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { DescItem } from '#/components/description';
 
 import { DictEnum } from '@vben/constants';
 
@@ -67,7 +68,9 @@ export const columns: VxeGridProps['columns'] = [
     field: 'os',
     slots: {
       default: ({ row }) => {
-        // Windows 10 or Windows Server 2016 太长了 分割一下 详情依旧能看到详细的
+        /**
+         *  Windows 10 or Windows Server 2016 太长了 分割一下 详情依旧能看到详细的
+         */
         let value = row.os;
         if (value) {
           const split = value.split(' or ');
@@ -101,7 +104,7 @@ export const columns: VxeGridProps['columns'] = [
     fixed: 'right',
     slots: { default: 'action' },
     title: '操作',
-    width: 120,
+    width: 150,
   },
 ];
 

@@ -1,55 +1,40 @@
-import type { FormSchemaGetter, VxeGridProps } from '#/adapter';
-
-import { DictEnum } from '@vben/constants';
-import { getPopupContainer } from '@vben/utils';
-
-import { getDictOptions } from '#/utils/dict';
-import { renderDict } from '#/utils/render';
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
 
 export const querySchema: FormSchemaGetter = () => [
   {
     component: 'Input',
-    fieldName: 'configName',
-    label: '参数名称',
-  },
-  {
-    component: 'Input',
-    fieldName: 'configKey',
-    label: '参数键名',
-  },
-  {
-    component: 'Select',
-    componentProps: {
-      getPopupContainer,
-      options: getDictOptions(DictEnum.SYS_YES_NO),
-    },
-    fieldName: 'configType',
-    label: '系统内置',
-  },
-  {
-    component: 'RangePicker',
-    fieldName: 'createTime',
-    label: '创建时间',
+    fieldName: 'modelName',
+    label: '模型名称',
   },
 ];
 
+// 需要使用i18n注意这里要改成getter形式 否则切换语言不会刷新
+// export const columns: () => VxeGridProps['columns'] = () => [
 export const columns: VxeGridProps['columns'] = [
   { type: 'checkbox', width: 60 },
   {
-    title: '用户名称',
-    field: 'userName',
+    title: '主键',
+    field: 'id',
+  },
+  {
+    title: '用户id',
+    field: 'userId',
   },
   {
     title: '消息内容',
     field: 'content',
   },
   {
-    title: '扣除费用',
+    title: '对话角色',
+    field: 'role',
+  },
+  {
+    title: '扣除金额',
     field: 'deductCost',
   },
-
   {
-    title: '累计Tokens',
+    title: '累计 Tokens',
     field: 'totalTokens',
   },
   {
@@ -57,8 +42,8 @@ export const columns: VxeGridProps['columns'] = [
     field: 'modelName',
   },
   {
-    title: '创建时间',
-    field: 'createTime',
+    title: '备注',
+    field: 'remark',
   },
   {
     field: 'action',
@@ -66,53 +51,5 @@ export const columns: VxeGridProps['columns'] = [
     slots: { default: 'action' },
     title: '操作',
     width: 180,
-  },
-];
-
-export const modalSchema: FormSchemaGetter = () => [
-  {
-    component: 'Input',
-    dependencies: {
-      show: () => false,
-      triggerFields: [''],
-    },
-    fieldName: 'configId',
-    label: '参数主键',
-  },
-  {
-    component: 'Input',
-    fieldName: 'configName',
-    label: '参数名称',
-    rules: 'required',
-  },
-  {
-    component: 'Input',
-    fieldName: 'configKey',
-    label: '参数键名',
-    rules: 'required',
-  },
-  {
-    component: 'Input',
-    fieldName: 'configValue',
-    label: '参数键值',
-    rules: 'required',
-  },
-  {
-    component: 'RadioGroup',
-    componentProps: {
-      buttonStyle: 'solid',
-      options: getDictOptions(DictEnum.SYS_YES_NO),
-      optionType: 'button',
-    },
-    defaultValue: 'N',
-    fieldName: 'configType',
-    label: '是否内置',
-    rules: 'required',
-  },
-  {
-    component: 'Textarea',
-    fieldName: 'remark',
-    formItemClass: 'items-baseline',
-    label: '备注',
   },
 ];

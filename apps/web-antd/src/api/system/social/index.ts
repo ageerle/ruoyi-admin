@@ -1,5 +1,7 @@
 import type { SocialInfo } from './model';
 
+import type { ID } from '#/api/common';
+
 import { requestClient } from '#/api/request';
 
 enum Api {
@@ -15,6 +17,9 @@ export function socialList() {
   return requestClient.get<SocialInfo[]>(Api.socialList);
 }
 
-export function socialInfo(id: number | string) {
+/**
+ * @deprecated 并没有用到这个方法
+ */
+export function socialInfo(id: ID) {
   return requestClient.get(`${Api.root}/${id}`);
 }

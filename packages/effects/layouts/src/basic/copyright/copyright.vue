@@ -42,7 +42,7 @@ withDefaults(defineProps<Props>(), {
       class="hover:text-primary-hover mx-1"
       target="_blank"
     >
-      ageerle
+      {{ companyName }}
     </a>
   </div>
 </template>

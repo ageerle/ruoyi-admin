@@ -13,6 +13,8 @@ import { defineStore } from 'pinia';
 import { doLogout, getUserInfoApi, loginApi, seeConnectionClose } from '#/api';
 import { $t } from '#/locales';
 
+import { useDictStore } from './dict';
+
 export const useAuthStore = defineStore('auth', () => {
   const accessStore = useAccessStore();
   const userStore = useUserStore();
@@ -33,11 +35,11 @@ export const useAuthStore = defineStore('auth', () => {
     let userInfo: null | UserInfo = null;
     try {
       loginLoading.value = true;
-      const { token } = await loginApi(params);
+      const { access_token } = await loginApi(params);
 
       // 将 accessToken 存储到 accessStore 中
-      accessStore.setAccessToken(token);
-      accessStore.setRefreshToken(token);
+      accessStore.setAccessToken(access_token);
+      accessStore.setRefreshToken(access_token);
 
       // 获取用户信息并存储到 accessStore 中
       userInfo = await fetchUserInfo();
@@ -95,8 +97,14 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchUserInfo() {
-    const { permissions = [], roles = [], user } = await getUserInfoApi();
-
+    const backUserInfo = await getUserInfoApi();
+    /**
+     * 登录超时的情况
+     */
+    if (!backUserInfo) {
+      throw new Error('获取用户信息失败.');
+    }
+    const { permissions = [], roles = [], user } = backUserInfo;
     /**
      * 从后台user -> vben user转换
      */
@@ -109,6 +117,12 @@ export const useAuthStore = defineStore('auth', () => {
       username: user.userName,
     };
     userStore.setUserInfo(userInfo);
+    /**
+     * 需要重新加载字典
+     * 比如退出登录切换到其他租户
+     */
+    const dictStore = useDictStore();
+    dictStore.resetCache();
     return userInfo;
   }
 

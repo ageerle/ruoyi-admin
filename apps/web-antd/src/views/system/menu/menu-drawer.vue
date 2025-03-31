@@ -10,10 +10,15 @@ import {
   listToTree,
 } from '@vben/utils';
 
-import { useVbenForm } from '#/adapter';
+import { useVbenForm } from '#/adapter/form';
 import { menuAdd, menuInfo, menuList, menuUpdate } from '#/api/system/menu';
 
 import { drawerSchema } from './data';
+
+interface ModalProps {
+  id?: number | string;
+  update: boolean;
+}
 
 const emit = defineEmits<{ reload: [] }>();
 
@@ -28,6 +33,7 @@ const [BasicForm, formApi] = useVbenForm({
       class: 'w-full',
     },
     formItemClass: 'col-span-2',
+    labelWidth: 90,
   },
   schema: drawerSchema(),
   showDefaultActions: false,
@@ -37,12 +43,21 @@ const [BasicForm, formApi] = useVbenForm({
 async function setupMenuSelect() {
   // menu
   const menuArray = await menuList();
+  // support i18n
+  menuArray.forEach((item) => {
+    item.menuName = $t(item.menuName);
+  });
   // const folderArray = menuArray.filter((item) => item.menuType === 'M');
-  const menuTree = listToTree(menuArray, { id: 'menuId', pid: 'parentId' });
+  /**
+   * 这里需要过滤掉按钮类型
+   * 不允许在按钮下添加数据
+   */
+  const filteredList = menuArray.filter((item) => item.menuType !== 'F');
+  const menuTree = listToTree(filteredList, { id: 'menuId', pid: 'parentId' });
   const fullMenuTree = [
     {
       menuId: 0,
-      menuName: '根目录',
+      menuName: $t('menu.root'),
       children: menuTree,
     },
   ];
@@ -81,13 +96,17 @@ const [BasicDrawer, drawerApi] = useVbenDrawer({
       return null;
     }
     drawerApi.drawerLoading(true);
-    const { id } = drawerApi.getData() as { id?: number | string };
-    isUpdate.value = !!id;
+    const { id, update } = drawerApi.getData() as ModalProps;
+    isUpdate.value = update;
+
     // 加载菜单树选择
     await setupMenuSelect();
-    if (isUpdate.value && id) {
-      const record = await menuInfo(id);
-      await formApi.setValues(record);
+    if (id) {
+      await formApi.setFieldValue('parentId', id);
+      if (update) {
+        const record = await menuInfo(id);
+        await formApi.setValues(record);
+      }
     }
     drawerApi.drawerLoading(false);
   },

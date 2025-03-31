@@ -5,9 +5,12 @@ import { useVbenDrawer } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { cloneDeep } from '@vben/utils';
 
-import { useVbenForm } from '#/adapter';
-import { clientAdd, clientUpdate } from '#/api/system/client';
-import { dictDetailInfo } from '#/api/system/dict/dict-data';
+import { useVbenForm } from '#/adapter/form';
+import {
+  dictDataAdd,
+  dictDataUpdate,
+  dictDetailInfo,
+} from '#/api/system/dict/dict-data';
 import { tagTypes } from '#/components/dict';
 
 import { drawerSchema } from './data';
@@ -85,7 +88,11 @@ async function handleConfirm() {
       return;
     }
     const data = cloneDeep(await formApi.getValues());
-    await (isUpdate.value ? clientUpdate(data) : clientAdd(data));
+    // 需要置空的情况 undefined不会提交给后端 需要改为空字符串
+    if (!data.listClass) {
+      data.listClass = '';
+    }
+    await (isUpdate.value ? dictDataUpdate(data) : dictDataAdd(data));
     emit('reload');
     await handleCancel();
   } catch (error) {

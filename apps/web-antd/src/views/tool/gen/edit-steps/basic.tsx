@@ -1,6 +1,8 @@
+import type { FormSchemaGetter } from '#/adapter/form';
+
 import { getPopupContainer } from '@vben/utils';
 
-import { type FormSchemaGetter, z } from '#/adapter';
+import { z } from '#/adapter/form';
 
 export const formSchema: FormSchemaGetter = () => [
   {
@@ -154,6 +156,21 @@ export const formSchema: FormSchemaGetter = () => [
     defaultValue: 'modal',
     fieldName: 'popupComponent',
     label: '弹窗组件类型',
+  },
+  {
+    component: 'RadioGroup',
+    componentProps: {
+      buttonStyle: 'solid',
+      options: [
+        { label: 'useVbenForm', value: 'useForm' },
+        { label: 'antd原生表单', value: 'native' },
+      ],
+      optionType: 'button',
+    },
+    help: '自定义功能, 需要后端支持\n复杂(布局, 联动等)表单建议用antd原生表单',
+    defaultValue: 'useForm',
+    fieldName: 'formComponent',
+    label: '生成表单类型',
   },
   {
     component: 'RadioGroup',

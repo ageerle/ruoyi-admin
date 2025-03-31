@@ -1,13 +1,15 @@
 <script setup lang="ts">
+import type { AuthApi } from '#/api';
+
 import { onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { DEFAULT_HOME_PATH } from '@vben/constants';
+import { DEFAULT_HOME_PATH, DEFAULT_TENANT_ID } from '@vben/constants';
 import { useAccessStore } from '@vben/stores';
 
 import { message } from 'ant-design-vue';
 
-import { type AuthApi, authCallback } from '#/api';
+import { authCallback } from '#/api';
 import { useAuthStore } from '#/store';
 
 import { accountBindList } from '../oauth-common';
@@ -20,7 +22,7 @@ const stateJson = JSON.parse(atob(state));
 // 来源
 const source = route.query.source as string;
 // 租户ID
-const defaultTenantId = '000000';
+const defaultTenantId = DEFAULT_TENANT_ID;
 const tenantId = (stateJson.tenantId as string) ?? defaultTenantId;
 const domain = stateJson.domain as string;
 
@@ -42,7 +44,7 @@ onMounted(async () => {
   try {
     // 已经实现的平台
     const currentClient = accountBindList.find(
-      (item) => item.source === source && item.action,
+      (item) => item.source === source,
     );
     if (!currentClient) {
       message.error({ content: `未找到${source}平台` });

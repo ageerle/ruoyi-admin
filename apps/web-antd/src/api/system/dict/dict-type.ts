@@ -27,7 +27,7 @@ export function dictTypeList(params?: PageQuery) {
  * @param data 表单参数
  * @returns blob
  */
-export function dictTypeExport(data: any) {
+export function dictTypeExport(data: Partial<DictType>) {
   return commonExport(Api.dictTypeExport, data);
 }
 
@@ -37,7 +37,7 @@ export function dictTypeExport(data: any) {
  * @returns void
  */
 export function dictTypeRemove(dictIds: IDS) {
-  return requestClient.deleteWithMsg<void>(`${Api.root}/${dictIds.join(',')}`);
+  return requestClient.deleteWithMsg<void>(`${Api.root}/${dictIds}`);
 }
 
 /**
@@ -53,7 +53,7 @@ export function refreshDictTypeCache() {
  * @param data 表单参数
  * @returns void
  */
-export function dictTypeAdd(data: any) {
+export function dictTypeAdd(data: Partial<DictType>) {
   return requestClient.postWithMsg<void>(Api.root, data);
 }
 
@@ -62,7 +62,7 @@ export function dictTypeAdd(data: any) {
  * @param data 表单参数
  * @returns void
  */
-export function dictTypeUpdate(data: any) {
+export function dictTypeUpdate(data: Partial<DictType>) {
   return requestClient.putWithMsg<void>(Api.root, data);
 }
 
@@ -76,6 +76,7 @@ export function dictTypeInfo(dictId: ID) {
 }
 
 /**
+ * 这个在ele用到 v5用不上
  * 下拉框  返回值和list一样
  * @returns options
  */

@@ -1,12 +1,12 @@
 /**
- * @zh_CN 登陆页面 url 地址
+ * @zh_CN 登录页面 url 地址
  */
 export const LOGIN_PATH = '/auth/login';
 
 /**
  * @zh_CN 默认首页地址
  */
-export const DEFAULT_HOME_PATH = '/workspace';
+export const DEFAULT_HOME_PATH = '/analytics';
 
 export interface LanguageOption {
   label: string;
@@ -26,3 +26,8 @@ export const SUPPORT_LANGUAGES: LanguageOption[] = [
     value: 'en-US',
   },
 ];
+
+/**
+ * 默认租户ID
+ */
+export const DEFAULT_TENANT_ID = '000000';

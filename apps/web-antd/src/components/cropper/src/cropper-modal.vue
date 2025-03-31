@@ -1,7 +1,9 @@
 <script lang="ts" setup>
+import type { PropType } from 'vue';
+
 import type { CropendResult, Cropper } from './typing';
 
-import { type PropType, ref } from 'vue';
+import { ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 import { $t as t } from '@vben/locales';
@@ -320,7 +322,8 @@ async function handleOk() {
   &-cropper {
     height: 300px;
     background: #eee;
-    background-image: linear-gradient(
+    background-image:
+      linear-gradient(
         45deg,
         rgb(0 0 0 / 25%) 25%,
         transparent 0,

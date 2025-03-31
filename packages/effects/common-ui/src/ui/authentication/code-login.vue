@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import type { VbenFormSchema } from '@vben-core/form-ui';
 
-import type { LoginCodeEmits } from './types';
-
 import { computed, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { $t } from '@vben/locales';
+
 import { useVbenForm } from '@vben-core/form-ui';
 import { VbenButton } from '@vben-core/shadcn-ui';
 
@@ -19,7 +18,7 @@ interface Props {
    */
   loading?: boolean;
   /**
-   * @zh_CN 登陆路径
+   * @zh_CN 登录路径
    */
   loginPath?: string;
   /**
@@ -49,12 +48,12 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  submit: LoginCodeEmits['submit'];
+  submit: [{ code: string; phoneNumber: string; tenantId: string }];
 }>();
 
 const router = useRouter();
 
-const [Form, { validate }] = useVbenForm(
+const [Form, formApi] = useVbenForm(
   reactive({
     commonConfig: {
       hideLabel: true,
@@ -66,10 +65,11 @@ const [Form, { validate }] = useVbenForm(
 );
 
 async function handleSubmit() {
-  const { valid, values } = await validate();
-
+  const { valid } = await formApi.validate();
+  const values = await formApi.getValues();
   if (valid) {
     emit('submit', {
+      tenantId: values?.tenantId,
       code: values?.code,
       phoneNumber: values?.phoneNumber,
     });
@@ -79,6 +79,10 @@ async function handleSubmit() {
 function goToLogin() {
   router.push(props.loginPath);
 }
+
+defineExpose({
+  getFormApi: () => formApi,
+});
 </script>
 
 <template>

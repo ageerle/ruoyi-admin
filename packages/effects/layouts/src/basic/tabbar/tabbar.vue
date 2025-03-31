@@ -5,12 +5,8 @@ import { useRoute } from 'vue-router';
 import { useContentMaximize, useTabs } from '@vben/hooks';
 import { preferences } from '@vben/preferences';
 import { useTabbarStore } from '@vben/stores';
-import {
-  TabsToolMore,
-  TabsToolRefresh,
-  TabsToolScreen,
-  TabsView,
-} from '@vben-core/tabs-ui';
+
+import { TabsToolMore, TabsToolScreen, TabsView } from '@vben-core/tabs-ui';
 
 import { useTabbar } from './use-tabbar';
 
@@ -23,7 +19,7 @@ defineProps<{ showIcon?: boolean; theme?: string }>();
 const route = useRoute();
 const tabbarStore = useTabbarStore();
 const { contentIsMaximize, toggleMaximize } = useContentMaximize();
-const { refreshTab, unpinTab } = useTabs();
+const { unpinTab } = useTabs();
 
 const {
   createContextMenus,
@@ -56,20 +52,18 @@ if (!preferences.tabbar.persist) {
     :active="currentActive"
     :class="theme"
     :context-menus="createContextMenus"
-    :dragable="preferences.tabbar.dragable"
+    :draggable="preferences.tabbar.draggable"
     :show-icon="showIcon"
     :style-type="preferences.tabbar.styleType"
     :tabs="currentTabs"
+    :wheelable="preferences.tabbar.wheelable"
+    :middle-click-to-close="preferences.tabbar.middleClickToClose"
     @close="handleClose"
     @sort-tabs="tabbarStore.sortTabs"
     @unpin="unpinTab"
     @update:active="handleClick"
   />
   <div class="flex-center h-full">
-    <TabsToolRefresh
-      v-if="preferences.tabbar.showRefresh"
-      @refresh="refreshTab"
-    />
     <TabsToolMore v-if="preferences.tabbar.showMore" :menus="menus" />
     <TabsToolScreen
       v-if="preferences.tabbar.showMaximize"

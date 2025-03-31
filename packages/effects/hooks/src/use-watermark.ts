@@ -1,10 +1,11 @@
 import type { Watermark, WatermarkOptions } from 'watermark-js-plus';
 
-import { nextTick, onUnmounted, ref, watch } from 'vue';
+import { nextTick, onUnmounted, readonly, ref } from 'vue';
 
-import { preferences } from '@vben/preferences';
+import { updatePreferences } from '@vben/preferences';
 
 const watermark = ref<Watermark>();
+const unmountedHooked = ref<boolean>(false);
 const cachedOptions = ref<Partial<WatermarkOptions>>({
   advancedStyle: {
     colorStops: [
@@ -47,7 +48,7 @@ export function useWatermark() {
       ...options,
     };
     watermark.value = new Watermark(cachedOptions.value);
-
+    updatePreferences({ app: { watermark: true } });
     await watermark.value?.create();
   }
 
@@ -64,25 +65,24 @@ export function useWatermark() {
   }
 
   function destroyWatermark() {
-    watermark.value?.destroy();
+    if (watermark.value) {
+      watermark.value.destroy();
+      watermark.value = undefined;
+    }
+    updatePreferences({ app: { watermark: false } });
   }
 
-  watch(
-    () => preferences.app.watermark,
-    (enable) => {
-      if (!enable) {
-        destroyWatermark();
-      }
-    },
-  );
-
-  onUnmounted(() => {
-    destroyWatermark();
-  });
+  // 只在第一次调用时注册卸载钩子，防止重复注册以致于在路由切换时销毁了水印
+  if (!unmountedHooked.value) {
+    unmountedHooked.value = true;
+    onUnmounted(() => {
+      destroyWatermark();
+    });
+  }
 
   return {
     destroyWatermark,
     updateWatermark,
-    watermark,
+    watermark: readonly(watermark),
   };
 }

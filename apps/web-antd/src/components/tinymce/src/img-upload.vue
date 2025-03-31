@@ -48,14 +48,6 @@ function handleChange(info: Record<string, any>) {
   const name = file?.name;
 
   switch (status) {
-    case 'uploading': {
-      if (!uploading) {
-        emit('uploading', name);
-        uploading = true;
-      }
-
-      break;
-    }
     case 'done': {
       // http 200会走到这里  需要再次判断
       const { response } = file;
@@ -74,6 +66,14 @@ function handleChange(info: Record<string, any>) {
     case 'error': {
       emit('error');
       uploading = false;
+
+      break;
+    }
+    case 'uploading': {
+      if (!uploading) {
+        emit('uploading', name);
+        uploading = true;
+      }
 
       break;
     }

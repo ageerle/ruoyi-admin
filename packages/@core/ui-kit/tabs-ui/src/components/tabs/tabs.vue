@@ -7,7 +7,6 @@ import { computed } from 'vue';
 
 import { Pin, X } from '@vben-core/icons';
 import { VbenContextMenu, VbenIcon } from '@vben-core/shadcn-ui';
-import { deepToRaw } from '@vben-core/shared/utils';
 
 interface Props extends TabsProps {}
 
@@ -46,36 +45,53 @@ const typeWithClass = computed(() => {
   return typeClasses[props.styleType || 'plain'] || { content: '' };
 });
 
-const tabsView = computed((): TabConfig[] => {
-  return props.tabs.map((_tab) => {
-    const tab = deepToRaw(_tab);
+const tabsView = computed(() => {
+  return props.tabs.map((tab) => {
+    const { fullPath, meta, name, path } = tab || {};
+    const { affixTab, icon, newTabTitle, tabClosable, title } = meta || {};
     return {
-      ...tab,
-      affixTab: !!tab.meta?.affixTab,
-      closable: Reflect.has(tab.meta, 'tabClosable')
-        ? !!tab.meta.tabClosable
-        : true,
-      icon: tab.meta.icon as string,
-      key: tab.fullPath || tab.path,
-      title: (tab.meta?.newTabTitle || tab.meta?.title || tab.name) as string,
-    };
+      affixTab: !!affixTab,
+      closable: Reflect.has(meta, 'tabClosable') ? !!tabClosable : true,
+      fullPath,
+      icon: icon as string,
+      key: fullPath || path,
+      meta,
+      name,
+      path,
+      title: (newTabTitle || title || name) as string,
+    } as TabConfig;
   });
 });
+
+function onMouseDown(e: MouseEvent, tab: TabConfig) {
+  if (
+    e.button === 1 &&
+    tab.closable &&
+    !tab.affixTab &&
+    tabsView.value.length > 1 &&
+    props.middleClickToClose
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
+    emit('close', tab.key);
+  }
+}
 </script>
 
 <template>
   <div
     :class="contentClass"
-    class="relative !flex h-full w-max items-center overflow-y-hidden pr-6"
+    class="relative !flex h-full w-max items-center overflow-hidden pr-6"
   >
-    <TransitionGroup name="slide-down">
+    <TransitionGroup name="slide-left">
       <div
         v-for="(tab, i) in tabsView"
         :key="tab.key"
         :class="[
           {
             'is-active dark:bg-accent bg-primary/15': tab.key === active,
-            dragable: !tab.affixTab,
+            draggable: !tab.affixTab,
+            'affix-tab': tab.affixTab,
           },
           typeWithClass.content,
         ]"
@@ -83,6 +99,7 @@ const tabsView = computed((): TabConfig[] => {
         class="tab-item [&:not(.is-active)]:hover:bg-accent translate-all group relative flex cursor-pointer select-none"
         data-tab-item="true"
         @click="active = tab.key"
+        @mousedown="onMouseDown($event, tab)"
       >
         <VbenContextMenu
           :handler-data="tab"

@@ -46,7 +46,9 @@ export default defineComponent({
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     type CheckedType = boolean | number | string;
-    async function onChange(checked: CheckedType) {
+    async function onChange(checked: CheckedType, e: Event) {
+      // 阻止事件冒泡 否则会跟行选中冲突
+      e.stopPropagation();
       const { checkedValue, unCheckedValue } = props;
       // 原本的状态
       const lastStatus =

@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import type { Recordable } from '@vben/types';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import { ref } from 'vue';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { TenantPackage } from '#/api/system/tenant-package/model';
+
+import { computed } from 'vue';
 
 import { useAccess } from '@vben/access';
-import { Page, useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
+import { Fallback, Page, useVbenDrawer } from '@vben/common-ui';
+import { getVxePopupContainer } from '@vben/utils';
 
 import { Modal, Popconfirm, Space } from 'ant-design-vue';
-import dayjs from 'dayjs';
 
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter';
+import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
 import {
   packageChangeStatus,
   packageExport,
@@ -17,7 +20,7 @@ import {
   packageRemove,
 } from '#/api/system/tenant-package';
 import { TableSwitch } from '#/components/table';
-import { downloadExcel } from '#/utils/file/download';
+import { commonDownloadExcel } from '#/utils/file/download';
 
 import { columns, querySchema } from './data';
 import tenantPackageDrawer from './tenant-package-drawer.vue';
@@ -25,6 +28,9 @@ import tenantPackageDrawer from './tenant-package-drawer.vue';
 const formOptions: VbenFormProps = {
   commonConfig: {
     labelWidth: 80,
+    componentProps: {
+      allowClear: true,
+    },
   },
   schema: querySchema(),
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
@@ -45,22 +51,7 @@ const gridOptions: VxeGridProps = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, formValues) => {
-        // 区间选择器处理
-        if (formValues?.createTime) {
-          formValues.params = {
-            beginTime: dayjs(formValues.createTime[0]).format(
-              'YYYY-MM-DD 00:00:00',
-            ),
-            endTime: dayjs(formValues.createTime[1]).format(
-              'YYYY-MM-DD 23:59:59',
-            ),
-          };
-          Reflect.deleteProperty(formValues, 'createTime');
-        } else {
-          Reflect.deleteProperty(formValues, 'params');
-        }
-
+      query: async ({ page }, formValues = {}) => {
         return await packageList({
           pageNum: page.currentPage,
           pageSize: page.pageSize,
@@ -70,26 +61,14 @@ const gridOptions: VxeGridProps = {
     },
   },
   rowConfig: {
-    isHover: true,
     keyField: 'packageId',
   },
-  round: true,
-  align: 'center',
-  showOverflow: true,
+  id: 'system-tenant-package-index',
 };
 
-const checked = ref(false);
 const [BasicTable, tableApi] = useVbenVxeGrid({
   formOptions,
   gridOptions,
-  gridEvents: {
-    checkboxChange: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-    checkboxAll: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-  },
 });
 
 const [TenantPackageDrawer, drawerApi] = useVbenDrawer({
@@ -101,19 +80,19 @@ function handleAdd() {
   drawerApi.open();
 }
 
-async function handleEdit(record: Recordable<any>) {
+async function handleEdit(record: TenantPackage) {
   drawerApi.setData({ id: record.packageId });
   drawerApi.open();
 }
 
-async function handleDelete(row: Recordable<any>) {
-  await packageRemove(row.packageId);
+async function handleDelete(row: TenantPackage) {
+  await packageRemove([row.packageId]);
   await tableApi.query();
 }
 
 function handleMultiDelete() {
   const rows = tableApi.grid.getCheckboxRecords();
-  const ids = rows.map((row: any) => row.packageId);
+  const ids = rows.map((row: TenantPackage) => row.packageId);
   Modal.confirm({
     title: '提示',
     okType: 'danger',
@@ -121,30 +100,42 @@ function handleMultiDelete() {
     onOk: async () => {
       await packageRemove(ids);
       await tableApi.query();
-      checked.value = false;
     },
   });
 }
 
-const { hasAccessByCodes } = useAccess();
+function handleDownloadExcel() {
+  commonDownloadExcel(
+    packageExport,
+    '租户套餐数据',
+    tableApi.formApi.form.values,
+  );
+}
+
+/**
+ * 与后台逻辑相同
+ * 只有超级管理员能访问租户相关
+ */
+const { hasAccessByCodes, hasAccessByRoles } = useAccess();
+
+const isSuperAdmin = computed(() => {
+  return hasAccessByRoles(['superadmin']);
+});
 </script>
 
 <template>
-  <Page :auto-content-height="true">
-    <BasicTable>
-      <template #toolbar-actions>
-        <span class="pl-[7px] text-[16px]">租户套餐列表</span>
-      </template>
+  <Page v-if="isSuperAdmin" :auto-content-height="true">
+    <BasicTable table-title="租户套餐列表">
       <template #toolbar-tools>
         <Space>
           <a-button
             v-access:code="['system:tenantPackage:export']"
-            @click="downloadExcel(packageExport, '租户套餐数据', {})"
+            @click="handleDownloadExcel"
           >
             {{ $t('pages.common.export') }}
           </a-button>
           <a-button
-            :disabled="!checked"
+            :disabled="!vxeCheckboxChecked(tableApi)"
             danger
             type="primary"
             v-access:code="['system:tenantPackage:remove']"
@@ -170,31 +161,31 @@ const { hasAccessByCodes } = useAccess();
         />
       </template>
       <template #action="{ row }">
-        <a-button
-          size="small"
-          type="link"
-          v-access:code="['system:tenantPackage:edit']"
-          @click="handleEdit(row)"
-        >
-          {{ $t('pages.common.edit') }}
-        </a-button>
-        <Popconfirm
-          placement="left"
-          title="确认删除？"
-          @confirm="handleDelete(row)"
-        >
-          <a-button
-            danger
-            size="small"
-            type="link"
-            v-access:code="['system:tenantPackage:remove']"
-            @click.stop=""
+        <Space>
+          <ghost-button
+            v-access:code="['system:tenantPackage:edit']"
+            @click="handleEdit(row)"
           >
-            {{ $t('pages.common.delete') }}
-          </a-button>
-        </Popconfirm>
+            {{ $t('pages.common.edit') }}
+          </ghost-button>
+          <Popconfirm
+            :get-popup-container="getVxePopupContainer"
+            placement="left"
+            title="确认删除？"
+            @confirm="handleDelete(row)"
+          >
+            <ghost-button
+              danger
+              v-access:code="['system:tenantPackage:remove']"
+              @click.stop=""
+            >
+              {{ $t('pages.common.delete') }}
+            </ghost-button>
+          </Popconfirm>
+        </Space>
       </template>
     </BasicTable>
     <TenantPackageDrawer @reload="tableApi.query()" />
   </Page>
+  <Fallback v-else description="您没有租户的访问权限" status="403" />
 </template>

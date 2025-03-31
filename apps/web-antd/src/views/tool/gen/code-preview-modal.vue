@@ -1,15 +1,23 @@
 <script setup lang="ts">
-import type { Recordable } from '@vben/types';
 import type { Key } from 'ant-design-vue/es/vc-tree/interface';
 
-import { ref } from 'vue';
+import type { Component } from 'vue';
 
+import type { LanguageSupport } from '@vben/common-ui';
+import type { Recordable } from '@vben/types';
+
+import { markRaw, ref } from 'vue';
+
+import { CodeMirror, useVbenModal } from '@vben/common-ui';
 import {
-  CodeMirror,
-  type LanguageSupport,
-  useVbenModal,
-} from '@vben/common-ui';
-import { Icon } from '@vben/icons';
+  DefaultFileIcon,
+  FolderIcon,
+  JavaIcon,
+  SqlIcon,
+  TsIcon,
+  VueIcon,
+  XmlIcon,
+} from '@vben/icons';
 
 import { useClipboard } from '@vueuse/core';
 import { Skeleton, Tree } from 'ant-design-vue';
@@ -20,7 +28,7 @@ interface TreeNode {
   children: TreeNode[];
   title: string;
   key: string;
-  icon: string; // 树左边图标
+  icon: Component; // 树左边图标
 }
 
 const treeData = ref<TreeNode[]>([]);
@@ -90,16 +98,16 @@ function convertToTree(paths: string[]): TreeNode[] {
 }
 
 const iconMap = [
-  { key: 'java', value: 'skill-icons:java-light' },
-  { key: 'xml', value: 'tabler:file-type-xml' },
-  { key: 'sql', value: 'carbon:sql' },
-  { key: 'ts', value: 'skill-icons:typescript' },
-  { key: 'vue', value: 'logos:vue' },
-  { key: 'folder', value: 'flat-color-icons:folder' },
+  { key: 'java', value: markRaw(JavaIcon) },
+  { key: 'xml', value: markRaw(XmlIcon) },
+  { key: 'sql', value: markRaw(SqlIcon) },
+  { key: 'ts', value: markRaw(TsIcon) },
+  { key: 'vue', value: markRaw(VueIcon) },
+  { key: 'folder', value: markRaw(FolderIcon) },
 ];
 function findIcon(path: string) {
-  const defaultFileIcon = 'bx:file';
-  const defaultFolderIcon = 'flat-color-icons:folder';
+  const defaultFileIcon = DefaultFileIcon;
+  const defaultFolderIcon = FolderIcon;
   if (path.endsWith('.vm')) {
     const realPath = path.slice(0, -3);
     // 是否为指定拓展名
@@ -172,7 +180,7 @@ const { copy } = useClipboard({ legacy: true });
         >
           <template #title="{ title, icon }">
             <div class="flex items-center gap-[16px]">
-              <Icon :icon="icon" />
+              <component :is="icon" />
               <span>{{ title }}</span>
             </div>
           </template>

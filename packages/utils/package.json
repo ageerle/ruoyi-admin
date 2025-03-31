@@ -1,6 +1,6 @@
 {
   "name": "@vben/utils",
-  "version": "5.3.2",
+  "version": "5.5.4",
   "homepage": "https://github.com/vbenjs/vue-vben-admin",
   "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
   "repository": {
@@ -13,8 +13,6 @@
   "sideEffects": [
     "**/*.css"
   ],
-  "main": "./dist/index.mjs",
-  "module": "./dist/index.mjs",
   "exports": {
     ".": {
       "types": "./src/index.ts",
@@ -24,6 +22,7 @@
   "dependencies": {
     "@vben-core/shared": "workspace:*",
     "@vben-core/typings": "workspace:*",
+    "file-type": "^19.5.0",
     "vue-router": "catalog:"
   }
 }

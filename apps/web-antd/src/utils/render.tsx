@@ -1,13 +1,37 @@
+import type { Component as ComponentType } from 'vue';
+
 import type { DictData } from '#/api/system/dict/dict-data-model';
 
+import { h } from 'vue';
+
 import { JsonPreview } from '@vben/common-ui';
-import { Icon } from '@vben/icons';
+import {
+  AndroidIcon,
+  BaiduIcon,
+  ChromeIcon,
+  DefaultBrowserIcon,
+  DefaultOsIcon,
+  DingtalkIcon,
+  EdgeIcon,
+  FirefoxIcon,
+  IconifyIcon,
+  IPhoneIcon,
+  LinuxIcon,
+  MicromessengerIcon,
+  OperaIcon,
+  OSXIcon,
+  QuarkIcon,
+  SafariIcon,
+  SvgQQIcon,
+  UcIcon,
+  WindowsIcon,
+} from '@vben/icons';
 
 import { Tag } from 'ant-design-vue';
 
 import { DictTag } from '#/components/dict';
 
-import { getDict } from './dict';
+import { getDictOptions } from './dict';
 
 /**
  * 渲染标签
@@ -28,7 +52,10 @@ function renderTag(text: string, color?: string) {
  */
 export function renderTags(tags: string[], wrap = false, gap = 1) {
   return (
-    <div class={['flex', `gap-${gap}`, wrap ? 'flex-col' : 'flex-row']}>
+    <div
+      class={['flex', wrap ? 'flex-col' : 'flex-row']}
+      style={{ gap: `${gap}px` }}
+    >
       {tags.map((tag, index) => {
         return <div key={index}>{renderTag(tag)}</div>;
       })}
@@ -46,7 +73,7 @@ export function renderJsonPreview(json: any) {
     return <span>{json}</span>;
   }
   if (typeof json === 'object') {
-    return <JsonPreview data={json} />;
+    return <JsonPreview class="break-normal" data={json} />;
   }
   try {
     const obj = JSON.parse(json);
@@ -54,7 +81,7 @@ export function renderJsonPreview(json: any) {
     if (typeof obj !== 'object') {
       return <span>{obj}</span>;
     }
-    return <JsonPreview data={obj} />;
+    return <JsonPreview class="break-normal" data={obj} />;
   } catch {
     return <span>{json}</span>;
   }
@@ -66,32 +93,26 @@ export function renderJsonPreview(json: any) {
  * @returns render
  */
 export function renderIcon(icon: string) {
-  return <Icon icon={icon}></Icon>;
+  return <IconifyIcon icon={icon}></IconifyIcon>;
 }
 
-// httpMethod
+/**
+ * httpMethod标签
+ * @param type method类型
+ * @returns render
+ */
 export function renderHttpMethodTag(type: string) {
   const method = type.toUpperCase();
-  let color = 'default';
+  const colors: { [key: string]: string } = {
+    DELETE: 'red',
+    GET: 'green',
+    POST: 'blue',
+    PUT: 'orange',
+  };
+
+  const color = colors[method] ?? 'default';
   const title = `${method}请求`;
-  switch (method) {
-    case 'DELETE': {
-      color = 'red';
-      break;
-    }
-    case 'GET': {
-      color = 'green';
-      break;
-    }
-    case 'POST': {
-      color = 'blue';
-      break;
-    }
-    case 'PUT': {
-      color = 'orange';
-      break;
-    }
-  }
+
   return <Tag color={color}>{title}</Tag>;
 }
 
@@ -117,7 +138,10 @@ export function renderDictTags(
     return <div>{value}</div>;
   }
   return (
-    <div class={['flex', `gap-${gap}`, wrap ? 'flex-col' : 'flex-row']}>
+    <div
+      class={['flex', wrap ? 'flex-col' : 'flex-row']}
+      style={{ gap: `${gap}px` }}
+    >
       {value.map((item, index) => {
         return <div key={index}>{renderDictTag(item, dicts)}</div>;
       })}
@@ -132,31 +156,31 @@ export function renderDictTags(
  * @returns tag
  */
 export function renderDict(value: string, dictName: string) {
-  const dictInfo = getDict(dictName);
+  const dictInfo = getDictOptions(dictName);
   return renderDictTag(value, dictInfo);
 }
-
 export function renderIconSpan(
-  icon: string,
+  icon: ComponentType,
   value: string,
   center = false,
   marginLeft = '2px',
 ) {
   const justifyCenter = center ? 'justify-center' : '';
+
   return (
     <span class={['flex', 'items-center', justifyCenter]}>
-      {renderIcon(icon)}
+      {h(icon)}
       <span style={{ marginLeft }}>{value}</span>
     </span>
   );
 }
 
 const osOptions = [
-  { icon: 'devicon:windows8', value: 'windows' },
-  { icon: 'devicon:linux', value: 'linux' },
-  { icon: 'wpf:macos', value: 'osx' },
-  { icon: 'flat-color-icons:android-os', value: 'android' },
-  { icon: 'majesticons:iphone-x-apps-line', value: 'iphone' },
+  { icon: WindowsIcon, value: 'windows' },
+  { icon: LinuxIcon, value: 'linux' },
+  { icon: OSXIcon, value: 'osx' },
+  { icon: AndroidIcon, value: 'android' },
+  { icon: IPhoneIcon, value: 'iphone' },
 ];
 
 /**
@@ -164,18 +188,19 @@ const osOptions = [
  * cn.hutool.http.useragent -> browers
  */
 const browserOptions = [
-  { icon: 'logos:chrome', value: 'chrome' },
-  { icon: 'logos:microsoft-edge', value: 'edge' },
-  { icon: 'logos:firefox', value: 'firefox' },
-  { icon: 'logos:opera', value: 'opera' },
-  { icon: 'logos:safari', value: 'safari' },
-  { icon: 'mdi:wechat', value: 'micromessenger' },
-  { icon: 'logos:quarkus-icon', value: 'quark' },
-  { icon: 'mdi:wechat', value: 'wxwork' },
-  { icon: 'simple-icons:tencentqq', value: 'qq' },
-  { icon: 'ri:dingding-line', value: 'dingtalk' },
-  { icon: 'arcticons:uc-browser', value: 'uc' },
-  { icon: 'ri:baidu-fill', value: 'baidu' },
+  { icon: ChromeIcon, value: 'chrome' },
+  { icon: EdgeIcon, value: 'edge' },
+  { icon: FirefoxIcon, value: 'firefox' },
+  { icon: OperaIcon, value: 'opera' },
+  { icon: SafariIcon, value: 'safari' },
+  { icon: MicromessengerIcon, value: 'micromessenger' },
+  { icon: MicromessengerIcon, value: 'windowswechat' },
+  { icon: QuarkIcon, value: 'quark' },
+  { icon: MicromessengerIcon, value: 'wxwork' },
+  { icon: SvgQQIcon, value: 'qq' },
+  { icon: DingtalkIcon, value: 'dingtalk' },
+  { icon: UcIcon, value: 'uc' },
+  { icon: BaiduIcon, value: 'baidu' },
 ];
 
 export function renderOsIcon(os: string, center = false) {
@@ -189,12 +214,8 @@ export function renderOsIcon(os: string, center = false) {
   if (os.toLocaleLowerCase().includes('windows')) {
     current = osOptions[0];
   }
-  if (current) {
-    return renderIconSpan(current.icon, os, center, '5px');
-  }
-  // 返回默认
-  const defaultIcon = 'ic:outline-computer';
-  return renderIconSpan(defaultIcon, os, center, '5px');
+  const icon = current ? current.icon : DefaultOsIcon;
+  return renderIconSpan(icon, os, center, '5px');
 }
 
 export function renderBrowserIcon(browser: string, center = false) {
@@ -204,10 +225,6 @@ export function renderBrowserIcon(browser: string, center = false) {
   const current = browserOptions.find((item) =>
     browser.toLocaleLowerCase().includes(item.value),
   );
-  if (current) {
-    return renderIconSpan(current.icon, browser, center, '5px');
-  }
-  // 返回默认
-  const defaultIcon = 'ph:browser-duotone';
-  return renderIconSpan(defaultIcon, browser, center, '5px');
+  const icon = current ? current.icon : DefaultBrowserIcon;
+  return renderIconSpan(icon, browser, center, '5px');
 }

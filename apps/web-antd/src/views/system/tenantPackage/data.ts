@@ -1,4 +1,5 @@
-import type { FormSchemaGetter, VxeGridProps } from '#/adapter';
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
 
 export const querySchema: FormSchemaGetter = () => [
   {
@@ -19,7 +20,7 @@ export const columns: VxeGridProps['columns'] = [
     field: 'remark',
   },
   {
-    title: '租户状态',
+    title: '状态',
     field: 'status',
     slots: { default: 'status' },
   },
@@ -64,7 +65,7 @@ export const drawerSchema: FormSchemaGetter = () => [
   {
     component: 'Textarea',
     fieldName: 'remark',
-    formItemClass: 'items-baseline',
+    formItemClass: 'items-start',
     label: '备注',
   },
 ];

@@ -1,8 +1,9 @@
-import type { Recordable } from '@vben/types';
 import type { DescriptionsProps } from 'ant-design-vue/es/descriptions';
 import type { JSX } from 'vue/jsx-runtime';
 
 import type { CSSProperties, VNode } from 'vue';
+
+import type { Recordable } from '@vben/types';
 
 export interface DescItem {
   labelMinWidth?: number;

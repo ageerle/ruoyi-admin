@@ -5,6 +5,7 @@ import type {
   BuiltinThemeType,
   ContentCompactType,
   DeepPartial,
+  LayoutHeaderMenuAlignType,
   LayoutHeaderModeType,
   LayoutType,
   LoginExpiredModeType,
@@ -88,6 +89,8 @@ interface CopyrightPreferences {
   icp: string;
   /** 备案号链接 */
   icpLink: string;
+  /** 设置面板是否显示*/
+  settingShow?: boolean;
 }
 
 interface FooterPreferences {
@@ -102,6 +105,8 @@ interface HeaderPreferences {
   enable: boolean;
   /** 顶栏是否隐藏,css-隐藏 */
   hidden: boolean;
+  /** 顶栏菜单位置 */
+  menuAlign: LayoutHeaderMenuAlignType;
   /** header显示模式 */
   mode: LayoutHeaderModeType;
 }
@@ -123,6 +128,8 @@ interface NavigationPreferences {
 }
 
 interface SidebarPreferences {
+  /** 点击目录时自动激活子菜单   */
+  autoActivateChild: boolean;
   /** 侧边栏是否折叠 */
   collapsed: boolean;
   /** 侧边栏折叠时，是否显示title */
@@ -154,13 +161,17 @@ interface ShortcutKeyPreferences {
 
 interface TabbarPreferences {
   /** 是否开启多标签页拖拽 */
-  dragable: boolean;
+  draggable: boolean;
   /** 是否开启多标签页 */
   enable: boolean;
   /** 标签页高度 */
   height: number;
   /** 开启标签页缓存功能 */
   keepAlive: boolean;
+  /** 限制最大数量 */
+  maxCount: number;
+  /** 是否点击中键时关闭标签 */
+  middleClickToClose: boolean;
   /** 是否持久化标签 */
   persist: boolean;
   /** 是否开启多标签页图标 */
@@ -169,10 +180,10 @@ interface TabbarPreferences {
   showMaximize: boolean;
   /** 显示更多按钮 */
   showMore: boolean;
-  /** 显示刷新按钮 */
-  showRefresh: boolean;
   /** 标签页风格 */
   styleType: TabsStyleType;
+  /** 是否开启鼠标滚轮响应 */
+  wheelable: boolean;
 }
 
 interface ThemePreferences {
@@ -218,6 +229,8 @@ interface WidgetPreferences {
   lockScreen: boolean;
   /** 是否显示通知部件 */
   notification: boolean;
+  /** 显示刷新按钮 */
+  refresh: boolean;
   /** 是否显示侧边栏显示/隐藏部件 */
   sidebarToggle: boolean;
   /** 是否显示主题切换部件 */

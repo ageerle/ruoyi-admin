@@ -5,6 +5,8 @@ import type {
   ContextMenuRootProps,
 } from 'radix-vue';
 
+import type { ClassType } from '@vben-core/typings';
+
 import type { IContextMenuItem } from './interface';
 
 import { computed } from 'vue';
@@ -18,17 +20,17 @@ import {
   ContextMenuSeparator,
   ContextMenuShortcut,
   ContextMenuTrigger,
-} from '../ui/context-menu';
+} from '../../ui/context-menu';
 
 const props = defineProps<
-  {
-    class?: any;
-    contentClass?: any;
+  ContextMenuRootProps & {
+    class?: ClassType;
+    contentClass?: ClassType;
     contentProps?: ContextMenuContentProps;
     handlerData?: Record<string, any>;
-    itemClass?: any;
+    itemClass?: ClassType;
     menus: (data: any) => IContextMenuItem[];
-  } & ContextMenuRootProps
+  }
 >();
 
 const emits = defineEmits<ContextMenuRootEmits>();
@@ -67,7 +69,7 @@ function handleClick(menu: IContextMenuItem) {
     <ContextMenuContent
       :class="contentClass"
       v-bind="contentProps"
-      class="side-content z-[1000]"
+      class="side-content z-popup"
     >
       <template v-for="menu in menusView" :key="menu.key">
         <ContextMenuItem

@@ -1,8 +1,9 @@
+import type { ModalFuncProps } from 'ant-design-vue';
 import type { Rule } from 'ant-design-vue/es/form';
 
 import { reactive } from 'vue';
 
-import { Alert, Form, Input, Modal, type ModalFuncProps } from 'ant-design-vue';
+import { Alert, Form, Input, Modal } from 'ant-design-vue';
 import { isFunction } from 'lodash-es';
 
 export interface ConfirmModalProps extends Omit<ModalFuncProps, 'visible'> {

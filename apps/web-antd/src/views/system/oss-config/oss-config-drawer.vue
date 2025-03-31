@@ -5,7 +5,9 @@ import { useVbenDrawer } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { cloneDeep } from '@vben/utils';
 
-import { useVbenForm } from '#/adapter';
+import { Alert } from 'ant-design-vue';
+
+import { useVbenForm } from '#/adapter/form';
 import {
   ossConfigAdd,
   ossConfigInfo,
@@ -79,7 +81,17 @@ async function handleCancel() {
 
 <template>
   <BasicDrawer :close-on-click-modal="false" :title="title" class="w-[650px]">
-    <BasicForm />
+    <BasicForm>
+      <template #tip>
+        <div class="ml-7 w-full">
+          <Alert
+            message="私有桶使用自定义域名无法预览, 但可以正常上传/下载"
+            show-icon
+            type="warning"
+          />
+        </div>
+      </template>
+    </BasicForm>
   </BasicDrawer>
 </template>
 

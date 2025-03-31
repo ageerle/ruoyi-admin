@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { RedisInfo } from '#/api/monitor/cache';
+
 import { onMounted, reactive, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
@@ -6,15 +8,16 @@ import { CommandLineIcon, MemoryIcon, RedisIcon } from '@vben/icons';
 
 import { Button, Card, Col, Row } from 'ant-design-vue';
 
-import { redisCacheInfo, type RedisInfo } from '#/api/monitor/cache';
+import { redisCacheInfo } from '#/api/monitor/cache';
 
-import CommandChart from './components/CommandChart.vue';
-import MemoryChart from './components/MemoryChart.vue';
-import RedisDescription from './components/RedisDescription.vue';
+import { CommandChart, MemoryChart, RedisDescription } from './components';
 
 const baseSpan = { lg: 12, md: 24, sm: 24, xl: 12, xs: 24 };
 
-const chartData = reactive<{ command: any[]; memory: string }>({
+const chartData = reactive<{
+  command: { name: string; value: string }[];
+  memory: string;
+}>({
   command: [],
   memory: '0',
 });
@@ -41,6 +44,7 @@ async function loadInfo() {
     chartData.memory = usedMemory;
     // 命令统计
     chartData.command = ret.commandStats;
+    console.log(chartData.command);
     // redis信息
     redisInfo.value = { ...ret.info, dbSize: String(ret.dbSize) };
   } catch (error) {

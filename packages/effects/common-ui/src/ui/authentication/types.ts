@@ -89,6 +89,7 @@ interface LoginAndRegisterParams {
 }
 
 interface LoginCodeParams {
+  tenantId: string;
   code: string;
   phoneNumber: string;
 }

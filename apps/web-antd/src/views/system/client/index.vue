@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import type { Recordable } from '@vben/types';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import { ref } from 'vue';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { Client } from '#/api/system/client/model';
 
 import { useAccess } from '@vben/access';
-import { Page, useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
+import { Page, useVbenDrawer } from '@vben/common-ui';
+import { getVxePopupContainer } from '@vben/utils';
 
 import { Modal, Popconfirm, Space } from 'ant-design-vue';
 
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter';
+import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
 import {
   clientChangeStatus,
   clientExport,
@@ -16,7 +18,7 @@ import {
   clientRemove,
 } from '#/api/system/client';
 import { TableSwitch } from '#/components/table';
-import { downloadExcel } from '#/utils/file/download';
+import { commonDownloadExcel } from '#/utils/file/download';
 
 import clientDrawer from './client-drawer.vue';
 import { columns, querySchema } from './data';
@@ -24,6 +26,9 @@ import { columns, querySchema } from './data';
 const formOptions: VbenFormProps = {
   commonConfig: {
     labelWidth: 80,
+    componentProps: {
+      allowClear: true,
+    },
   },
   schema: querySchema(),
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
@@ -37,7 +42,7 @@ const gridOptions: VxeGridProps = {
     reserve: true,
     // 点击行选中
     // trigger: 'row',
-    checkMethod: (row: any) => row?.id !== 1,
+    checkMethod: ({ row }) => (row as Client)?.id !== 1,
   },
   columns,
   height: 'auto',
@@ -45,7 +50,7 @@ const gridOptions: VxeGridProps = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, formValues) => {
+      query: async ({ page }, formValues = {}) => {
         return await clientList({
           pageNum: page.currentPage,
           pageSize: page.pageSize,
@@ -55,27 +60,15 @@ const gridOptions: VxeGridProps = {
     },
   },
   rowConfig: {
-    isHover: true,
     keyField: 'id',
-    height: 90,
   },
-  round: true,
-  align: 'center',
-  showOverflow: true,
+  id: 'system-client-index',
+  showOverflow: false,
 };
 
-const checked = ref(false);
 const [BasicTable, tableApi] = useVbenVxeGrid({
   formOptions,
   gridOptions,
-  gridEvents: {
-    checkboxChange: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-    checkboxAll: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-  },
 });
 
 const [ClientDrawer, drawerApi] = useVbenDrawer({
@@ -87,19 +80,19 @@ function handleAdd() {
   drawerApi.open();
 }
 
-async function handleEdit(record: Recordable<any>) {
+async function handleEdit(record: Client) {
   drawerApi.setData({ id: record.id });
   drawerApi.open();
 }
 
-async function handleDelete(row: Recordable<any>) {
-  await clientRemove(row.id);
+async function handleDelete(row: Client) {
+  await clientRemove([row.id]);
   await tableApi.query();
 }
 
 function handleMultiDelete() {
   const rows = tableApi.grid.getCheckboxRecords();
-  const ids = rows.map((row: any) => row.id);
+  const ids = rows.map((row: Client) => row.id);
   Modal.confirm({
     title: '提示',
     okType: 'danger',
@@ -111,25 +104,26 @@ function handleMultiDelete() {
   });
 }
 
+function handleDownloadExcel() {
+  commonDownloadExcel(clientExport, '客户端数据', tableApi.formApi.form.values);
+}
+
 const { hasAccessByCodes } = useAccess();
 </script>
 
 <template>
   <Page :auto-content-height="true">
-    <BasicTable>
-      <template #toolbar-actions>
-        <span class="pl-[7px] text-[16px]">系统授权列表</span>
-      </template>
+    <BasicTable table-title="客户端列表">
       <template #toolbar-tools>
         <Space>
           <a-button
             v-access:code="['system:client:export']"
-            @click="downloadExcel(clientExport, '系统授权数据', {})"
+            @click="handleDownloadExcel"
           >
             {{ $t('pages.common.export') }}
           </a-button>
           <a-button
-            :disabled="!checked"
+            :disabled="!vxeCheckboxChecked(tableApi)"
             danger
             type="primary"
             v-access:code="['system:client:remove']"
@@ -157,31 +151,30 @@ const { hasAccessByCodes } = useAccess();
         />
       </template>
       <template #action="{ row }">
-        <a-button
-          size="small"
-          type="link"
-          v-access:code="['system:client:edit']"
-          @click="handleEdit(row)"
-        >
-          {{ $t('pages.common.edit') }}
-        </a-button>
-        <Popconfirm
-          :disabled="row.id === 1"
-          placement="left"
-          title="确认删除？"
-          @confirm="handleDelete(row)"
-        >
-          <a-button
-            :disabled="row.id === 1"
-            danger
-            size="small"
-            type="link"
-            v-access:code="['system:client:remove']"
-            @click.stop=""
+        <Space>
+          <ghost-button
+            v-access:code="['system:client:edit']"
+            @click.stop="handleEdit(row)"
           >
-            {{ $t('pages.common.delete') }}
-          </a-button>
-        </Popconfirm>
+            {{ $t('pages.common.edit') }}
+          </ghost-button>
+          <Popconfirm
+            :disabled="row.id === 1"
+            :get-popup-container="getVxePopupContainer"
+            placement="left"
+            title="确认删除？"
+            @confirm="handleDelete(row)"
+          >
+            <ghost-button
+              :disabled="row.id === 1"
+              danger
+              v-access:code="['system:client:remove']"
+              @click.stop=""
+            >
+              {{ $t('pages.common.delete') }}
+            </ghost-button>
+          </Popconfirm>
+        </Space>
       </template>
     </BasicTable>
     <ClientDrawer @reload="tableApi.query()" />

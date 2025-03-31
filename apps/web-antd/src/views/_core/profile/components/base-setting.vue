@@ -10,14 +10,14 @@ import { useUserStore } from '@vben/stores';
 
 import { pick } from 'lodash-es';
 
-import { useVbenForm, z } from '#/adapter';
+import { useVbenForm, z } from '#/adapter/form';
 import { userProfileUpdate } from '#/api/system/profile';
 import { useAuthStore } from '#/store';
 import { getDictOptions } from '#/utils/dict';
 
-const props = defineProps<{ profile: UserProfile }>();
+import { emitter } from '../mitt';
 
-const emit = defineEmits<{ reload: [] }>();
+const props = defineProps<{ profile: UserProfile }>();
 
 const userStore = useUserStore();
 const authStore = useAuthStore();
@@ -74,7 +74,7 @@ const [BasicForm, formApi] = useVbenForm({
     },
   ],
   submitButtonOptions: {
-    text: '更新信息',
+    content: '更新信息',
   },
 });
 
@@ -93,7 +93,7 @@ async function handleSubmit(values: Recordable<any>) {
     const userInfo = await authStore.fetchUserInfo();
     userStore.setUserInfo(userInfo);
     // 左边reload
-    emit('reload');
+    emitter.emit('updateProfile');
   } catch (error) {
     console.error(error);
   } finally {
@@ -109,9 +109,7 @@ onMounted(() => {
     'phonenumber',
     'sex',
   ]);
-  for (const key in data) {
-    formApi.setFieldValue(key, data[key as keyof typeof data]);
-  }
+  formApi.setValues(data);
 });
 </script>
 

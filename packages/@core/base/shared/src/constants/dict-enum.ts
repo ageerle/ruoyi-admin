@@ -1,7 +1,9 @@
 export enum DictEnum {
+  PAY_STATE = 'pay_state', // 支付状态
   SYS_COMMON_STATUS = 'sys_common_status',
   SYS_DEVICE_TYPE = 'sys_device_type', // 设备类型
   SYS_GRANT_TYPE = 'sys_grant_type', // 授权类型
+  SYS_MODEL_BILLING = 'sys_model_billing', // 计费方式
   SYS_NORMAL_DISABLE = 'sys_normal_disable',
   SYS_NOTICE_STATUS = 'sys_notice_status', // 通知状态
   SYS_NOTICE_TYPE = 'sys_notice_type', // 通知类型
@@ -12,7 +14,5 @@ export enum DictEnum {
   SYS_YES_NO = 'sys_yes_no', // 是否
   WF_BUSINESS_STATUS = 'wf_business_status', // 业务状态
   WF_FORM_TYPE = 'wf_form_type', // 表单类型
-  SYS_MODEL_BILLING = 'sys_model_billing', // 计费方式
-  PAY_STATE = 'pay_state', // 支付状态
-  
+  WF_TASK_STATUS = 'wf_task_status', // 任务状态
 }

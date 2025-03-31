@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { DictData } from '#/api/system/dict/dict-data-model';
 
 import { reactive } from 'vue';
@@ -6,29 +7,36 @@ import { defineStore } from 'pinia';
 
 /**
  * antd使用 select和radio通用
+ * 本质上是对DictData的拓展
  */
-export interface Option {
+export interface DictOption extends DictData {
   disabled?: boolean;
   label: string;
-  value: string;
+  value: number | string;
 }
 
-export function dictToOptions(data: DictData[]): Option[] {
+/**
+ * 将字典数据转为Options
+ * @param data 字典数据
+ * @param formatNumber 是否需要将value格式化为number类型
+ * @returns options
+ */
+export function dictToOptions(
+  data: DictData[],
+  formatNumber = false,
+): DictOption[] {
   return data.map((item) => ({
+    ...item,
     label: item.dictLabel,
-    value: item.dictValue,
+    value: formatNumber ? Number(item.dictValue) : item.dictValue,
   }));
 }
 
 export const useDictStore = defineStore('app-dict', () => {
   /**
-   * 一般是dictTag使用
+   * select radio checkbox等使用 只能为固定格式{label, value}
    */
-  const dictMap = reactive(new Map<string, DictData[]>());
-  /**
-   * select radio radioButton使用 只能为固定格式(Option)
-   */
-  const dictOptionsMap = reactive(new Map<string, Option[]>());
+  const dictOptionsMap = reactive(new Map<string, DictOption[]>());
   /**
    * 添加一个字典请求状态的缓存
    *
@@ -40,30 +48,17 @@ export const useDictStore = defineStore('app-dict', () => {
     new Map<string, Promise<DictData[] | void>>(),
   );
 
-  function getDict(dictName: string): DictData[] {
-    if (!dictName) return [];
-    // 没有key 添加一个空数组
-    if (!dictMap.has(dictName)) {
-      dictMap.set(dictName, reactive([]));
-    }
-    // 这里拿到的就不可能为空了
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return dictMap.get(dictName)!;
-  }
-
-  function getDictOptions(dictName: string): Option[] {
+  function getDictOptions(dictName: string): DictOption[] {
     if (!dictName) return [];
     // 没有key 添加一个空数组
     if (!dictOptionsMap.has(dictName)) {
       dictOptionsMap.set(dictName, []);
     }
     // 这里拿到的就不可能为空了
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return dictOptionsMap.get(dictName)!;
   }
 
   function resetCache() {
-    dictMap.clear();
     dictOptionsMap.clear();
   }
 
@@ -76,19 +71,20 @@ export const useDictStore = defineStore('app-dict', () => {
    * 否则 直接set
    *
    */
-  function setDictInfo(dictName: string, dictValue: DictData[]) {
-    if (dictMap.has(dictName) && dictMap.get(dictName)?.length === 0) {
-      dictMap.get(dictName)?.push(...dictValue);
-    } else {
-      dictMap.set(dictName, dictValue);
-    }
+  function setDictInfo(
+    dictName: string,
+    dictValue: DictData[],
+    formatNumber = false,
+  ) {
     if (
       dictOptionsMap.has(dictName) &&
       dictOptionsMap.get(dictName)?.length === 0
     ) {
-      dictOptionsMap.get(dictName)?.push(...dictToOptions(dictValue));
+      dictOptionsMap
+        .get(dictName)
+        ?.push(...dictToOptions(dictValue, formatNumber));
     } else {
-      dictOptionsMap.set(dictName, dictToOptions(dictValue));
+      dictOptionsMap.set(dictName, dictToOptions(dictValue, formatNumber));
     }
   }
 
@@ -100,10 +96,8 @@ export const useDictStore = defineStore('app-dict', () => {
 
   return {
     $reset,
-    dictMap,
     dictOptionsMap,
     dictRequestCache,
-    getDict,
     getDictOptions,
     resetCache,
     setDictInfo,

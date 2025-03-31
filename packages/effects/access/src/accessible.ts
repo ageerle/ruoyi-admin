@@ -1,15 +1,22 @@
+import type { Component, DefineComponent } from 'vue';
+
 import type {
   AccessModeType,
   GenerateMenuAndRoutesOptions,
   RouteRecordRaw,
 } from '@vben/types';
 
+import { defineComponent, h } from 'vue';
+
 import {
   cloneDeep,
   generateMenus,
   generateRoutesByBackend,
   generateRoutesByFrontend,
+  isFunction,
+  isString,
   mapTree,
+  setObjToUrlParams,
 } from '@vben/utils';
 
 async function generateAccessible(
@@ -22,6 +29,8 @@ async function generateAccessible(
   // 生成路由
   const accessibleRoutes = await generateRoutes(mode, options);
 
+  const root = router.getRoutes().find((item) => item.path === '/');
+
   // 动态添加到router实例内
   accessibleRoutes.forEach((route) => {
     /**
@@ -30,8 +39,25 @@ async function generateAccessible(
     if (/^https?:\/\//.test(route.path)) {
       return;
     }
-    router.addRoute(route);
+    if (root && !route.meta?.noBasicLayout) {
+      // 为了兼容之前的版本用法，如果包含子路由，则将component移除，以免出现多层BasicLayout
+      // 如果你的项目已经跟进了本次修改，移除了所有自定义菜单首级的BasicLayout，可以将这段if代码删除
+      // TODO: 这里后期需要follow更新
+      if (route.children && route.children.length > 0) {
+        delete route.component;
+      }
+      root.children?.push(route);
+    } else {
+      router.addRoute(route);
+    }
   });
+
+  if (root) {
+    if (root.name) {
+      router.removeRoute(root.name);
+    }
+    router.addRoute(root);
+  }
 
   // 生成菜单
   const accessibleMenus = await generateMenus(accessibleRoutes, options.router);
@@ -52,6 +78,10 @@ async function generateRoutes(
 
   let resultRoutes: RouteRecordRaw[] = routes;
   switch (mode) {
+    case 'backend': {
+      resultRoutes = await generateRoutesByBackend(options);
+      break;
+    }
     case 'frontend': {
       resultRoutes = await generateRoutesByFrontend(
         routes,
@@ -60,17 +90,36 @@ async function generateRoutes(
       );
       break;
     }
-    case 'backend': {
-      resultRoutes = await generateRoutesByBackend(options);
-      break;
-    }
   }
 
   /**
    * 调整路由树，做以下处理：
    * 1. 对未添加redirect的路由添加redirect
+   * 2. 将懒加载的组件名称修改为当前路由的名称（如果启用了keep-alive的话）
    */
   resultRoutes = mapTree(resultRoutes, (route) => {
+    // 重新包装component，使用与路由名称相同的name以支持keep-alive的条件缓存。
+    if (
+      route.meta?.keepAlive &&
+      isFunction(route.component) &&
+      route.name &&
+      isString(route.name)
+    ) {
+      const originalComponent = route.component as () => Promise<{
+        default: Component | DefineComponent;
+      }>;
+      route.component = async () => {
+        const component = await originalComponent();
+        if (!component.default) return component;
+        return defineComponent({
+          name: route.name as string,
+          setup(props, { attrs, slots }) {
+            return () => h(component.default, { ...props, ...attrs }, slots);
+          },
+        });
+      };
+    }
+
     // 如果有redirect或者没有子路由，则直接返回
     if (route.redirect || !route.children || route.children.length === 0) {
       return route;
@@ -82,7 +131,14 @@ async function generateRoutes(
       return route;
     }
 
-    route.redirect = firstChild.path;
+    // 第一个路由如果有query参数 需要加上参数
+    const fistChildQuery = route.children[0]?.meta?.query;
+    // 根目录菜单固定只有一个children 且path为/ 不需要添加redirect
+    route.redirect =
+      fistChildQuery && route.children.length !== 1 && route.path !== '/'
+        ? setObjToUrlParams(firstChild.path, fistChildQuery)
+        : firstChild.path;
+
     return route;
   });
 

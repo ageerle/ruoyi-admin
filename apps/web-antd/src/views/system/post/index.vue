@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import type { Recordable } from '@vben/types';
+import type { VbenFormProps } from '@vben/common-ui';
+
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { Post } from '#/api/system/post/model';
 
 import { ref } from 'vue';
 
-import { Page, useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
+import { Page, useVbenDrawer } from '@vben/common-ui';
+import { getVxePopupContainer } from '@vben/utils';
 
 import { Modal, Popconfirm, Space } from 'ant-design-vue';
-import dayjs from 'dayjs';
 
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter';
+import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
 import { postExport, postList, postRemove } from '#/api/system/post';
-import { downloadExcel } from '#/utils/file/download';
+import { commonDownloadExcel } from '#/utils/file/download';
 import DeptTree from '#/views/system/user/dept-tree.vue';
 
 import { columns, querySchema } from './data';
@@ -21,13 +24,20 @@ const selectDeptId = ref<string[]>([]);
 const formOptions: VbenFormProps = {
   commonConfig: {
     labelWidth: 80,
+    componentProps: {
+      allowClear: true,
+    },
   },
   schema: querySchema(),
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
   handleReset: async () => {
     selectDeptId.value = [];
-    // eslint-disable-next-line no-use-before-define
-    await tableApi.query();
+
+    const { formApi, reload } = tableApi;
+    await formApi.resetForm();
+    const formValues = formApi.form.values;
+    formApi.setLatestSubmissionValues(formValues);
+    await reload(formValues);
   },
 };
 
@@ -45,27 +55,12 @@ const gridOptions: VxeGridProps = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, formValues) => {
-        // 区间选择器处理
-        if (formValues?.createTime) {
-          formValues.params = {
-            beginTime: dayjs(formValues.createTime[0]).format(
-              'YYYY-MM-DD 00:00:00',
-            ),
-            endTime: dayjs(formValues.createTime[1]).format(
-              'YYYY-MM-DD 23:59:59',
-            ),
-          };
-          Reflect.deleteProperty(formValues, 'createTime');
-        } else {
-          Reflect.deleteProperty(formValues, 'params');
-        }
-
+      query: async ({ page }, formValues = {}) => {
         // 部门树选择处理
         if (selectDeptId.value.length === 1) {
-          formValues.deptId = selectDeptId.value[0];
+          formValues.belongDeptId = selectDeptId.value[0];
         } else {
-          Reflect.deleteProperty(formValues, 'deptId');
+          Reflect.deleteProperty(formValues, 'belongDeptId');
         }
 
         return await postList({
@@ -77,26 +72,14 @@ const gridOptions: VxeGridProps = {
     },
   },
   rowConfig: {
-    isHover: true,
     keyField: 'postId',
   },
-  round: true,
-  align: 'center',
-  showOverflow: true,
+  id: 'system-post-index',
 };
 
-const checked = ref(false);
 const [BasicTable, tableApi] = useVbenVxeGrid({
   formOptions,
   gridOptions,
-  gridEvents: {
-    checkboxChange: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-    checkboxAll: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-  },
 });
 
 const [PostDrawer, drawerApi] = useVbenDrawer({
@@ -108,53 +91,54 @@ function handleAdd() {
   drawerApi.open();
 }
 
-async function handleEdit(record: Recordable<any>) {
+async function handleEdit(record: Post) {
   drawerApi.setData({ id: record.postId });
   drawerApi.open();
 }
 
-async function handleDelete(row: Recordable<any>) {
-  await postRemove(row.postId);
+async function handleDelete(row: Post) {
+  await postRemove([row.postId]);
   await tableApi.query();
 }
 
 function handleMultiDelete() {
   const rows = tableApi.grid.getCheckboxRecords();
-  const ids = rows.map((row: any) => row.postId);
+  const ids = rows.map((row: Post) => row.postId);
   Modal.confirm({
     title: '提示',
     okType: 'danger',
     content: `确认删除选中的${ids.length}条记录吗？`,
     onOk: async () => {
       await postRemove(ids);
-      await tableApi.reload();
+      await tableApi.query();
     },
   });
+}
+
+function handleDownloadExcel() {
+  commonDownloadExcel(postExport, '岗位信息', tableApi.formApi.form.values);
 }
 </script>
 
 <template>
-  <Page :auto-content-height="true" content-class="flex gap-[8px]">
+  <Page :auto-content-height="true" content-class="flex gap-[8px] w-full">
     <DeptTree
       v-model:select-dept-id="selectDeptId"
-      :height="300"
       class="w-[260px]"
-      @select="() => tableApi.query()"
+      @reload="() => tableApi.reload()"
+      @select="() => tableApi.reload()"
     />
-    <BasicTable class="flex-1 overflow-hidden">
-      <template #toolbar-actions>
-        <span class="pl-[7px] text-[16px]">岗位列表</span>
-      </template>
+    <BasicTable class="flex-1 overflow-hidden" table-title="岗位列表">
       <template #toolbar-tools>
         <Space>
           <a-button
             v-access:code="['system:post:export']"
-            @click="downloadExcel(postExport, '岗位信息数据', {})"
+            @click="handleDownloadExcel"
           >
             {{ $t('pages.common.export') }}
           </a-button>
           <a-button
-            :disabled="!checked"
+            :disabled="!vxeCheckboxChecked(tableApi)"
             danger
             type="primary"
             v-access:code="['system:post:remove']"
@@ -173,28 +157,25 @@ function handleMultiDelete() {
       </template>
       <template #action="{ row }">
         <Space>
-          <a-button
-            size="small"
-            type="link"
+          <GhostButton
             v-access:code="['system:post:edit']"
             @click="handleEdit(row)"
           >
             {{ $t('pages.common.edit') }}
-          </a-button>
+          </GhostButton>
           <Popconfirm
+            :get-popup-container="getVxePopupContainer"
             placement="left"
             title="确认删除？"
             @confirm="handleDelete(row)"
           >
-            <a-button
+            <GhostButton
               danger
-              size="small"
-              type="link"
               v-access:code="['system:post:remove']"
               @click.stop=""
             >
               {{ $t('pages.common.delete') }}
-            </a-button>
+            </GhostButton>
           </Popconfirm>
         </Space>
       </template>

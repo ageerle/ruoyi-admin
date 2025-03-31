@@ -1,7 +1,10 @@
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+
 import { DictEnum } from '@vben/constants';
 import { getPopupContainer } from '@vben/utils';
 
-import { type FormSchemaGetter, type VxeGridProps, z } from '#/adapter';
+import { z } from '#/adapter/form';
 import { getDictOptions } from '#/utils/dict';
 import { renderDict } from '#/utils/render';
 
@@ -57,7 +60,7 @@ export const columns: VxeGridProps['columns'] = [
     fixed: 'right',
     slots: { default: 'action' },
     title: '操作',
-    width: 180,
+    width: 200,
   },
 ];
 
@@ -117,13 +120,18 @@ export const drawerSchema: FormSchemaGetter = () => [
     rules: z
       .string()
       .regex(/^1[3,4578]\d{9}$/, { message: '请输入正确的手机号' })
-      .optional(),
+      .optional()
+      .or(z.literal('')),
   },
   {
     component: 'Input',
     fieldName: 'email',
     label: '邮箱',
-    rules: z.string().email({ message: '请输入正确的邮箱' }).optional(),
+    rules: z
+      .string()
+      .email({ message: '请输入正确的邮箱' })
+      .optional()
+      .or(z.literal('')),
   },
   {
     component: 'RadioGroup',

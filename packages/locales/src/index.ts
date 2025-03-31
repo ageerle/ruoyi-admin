@@ -1,8 +1,23 @@
-import { i18n, loadLocaleMessages, loadLocalesMap, setupI18n } from './i18n';
+import {
+  i18n,
+  loadLocaleMessages,
+  loadLocalesMap,
+  loadLocalesMapFromDir,
+  setupI18n,
+} from './i18n';
 
 const $t = i18n.global.t;
+const $te = i18n.global.te;
 
-export { $t, i18n, loadLocaleMessages, loadLocalesMap, setupI18n };
+export {
+  $t,
+  $te,
+  i18n,
+  loadLocaleMessages,
+  loadLocalesMap,
+  loadLocalesMapFromDir,
+  setupI18n,
+};
 export {
   type ImportLocaleFn,
   type LocaleSetupOptions,

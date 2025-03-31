@@ -33,6 +33,8 @@ export interface MenuOption {
   weight: number;
   children: MenuOption[];
   key: string; // 实际上不存在 ide报错
+  menuType: string;
+  icon: string;
 }
 
 /**
@@ -43,4 +45,13 @@ export interface MenuOption {
 export interface MenuResp {
   checkedKeys: number[];
   menus: MenuOption[];
+}
+
+/**
+ * 菜单表单查询
+ */
+export interface MenuQuery {
+  menuName?: string;
+  visible?: string;
+  status?: string;
 }

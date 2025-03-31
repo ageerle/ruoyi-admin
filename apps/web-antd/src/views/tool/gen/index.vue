@@ -1,16 +1,27 @@
 <script setup lang="ts">
+import type { VbenFormProps } from '@vben/common-ui';
 import type { Recordable } from '@vben/types';
 
-import { ref } from 'vue';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+
+import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { Page, useVbenModal, type VbenFormProps } from '@vben/common-ui';
+import { Page, useVbenModal } from '@vben/common-ui';
+import { getVxePopupContainer } from '@vben/utils';
 
 import { message, Modal, Popconfirm, Space } from 'ant-design-vue';
 import dayjs from 'dayjs';
 
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter';
-import { batchGenCode, generatedList, genRemove, syncDb } from '#/api/tool/gen';
+import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
+import {
+  batchGenCode,
+  generatedList,
+  genRemove,
+  genWithPath,
+  getDataSourceNames,
+  syncDb,
+} from '#/api/tool/gen';
 import { downloadByData } from '#/utils/file/download';
 
 import codePreviewModal from './code-preview-modal.vue';
@@ -19,7 +30,21 @@ import tableImportModal from './table-import-modal.vue';
 
 const formOptions: VbenFormProps = {
   schema: querySchema(),
+  commonConfig: {
+    labelWidth: 80,
+    componentProps: {
+      allowClear: true,
+    },
+  },
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+  // 日期选择格式化
+  fieldMappingTime: [
+    [
+      'createTime',
+      ['params[beginTime]', 'params[endTime]'],
+      ['YYYY-MM-DD 00:00:00', 'YYYY-MM-DD 23:59:59'],
+    ],
+  ],
 };
 
 const gridOptions: VxeGridProps = {
@@ -37,22 +62,7 @@ const gridOptions: VxeGridProps = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, formValues) => {
-        // 区间选择器处理
-        if (formValues?.createTime) {
-          formValues.params = {
-            beginTime: dayjs(formValues.createTime[0]).format(
-              'YYYY-MM-DD 00:00:00',
-            ),
-            endTime: dayjs(formValues.createTime[1]).format(
-              'YYYY-MM-DD 23:59:59',
-            ),
-          };
-          Reflect.deleteProperty(formValues, 'createTime');
-        } else {
-          Reflect.deleteProperty(formValues, 'params');
-        }
-
+      query: async ({ page }, formValues = {}) => {
         return await generatedList({
           pageNum: page.currentPage,
           pageSize: page.pageSize,
@@ -62,26 +72,31 @@ const gridOptions: VxeGridProps = {
     },
   },
   rowConfig: {
-    isHover: true,
     keyField: 'tableId',
   },
-  round: true,
-  align: 'center',
-  showOverflow: true,
+  id: 'tool-gen-index',
 };
 
-const checked = ref(false);
 const [BasicTable, tableApi] = useVbenVxeGrid({
   formOptions,
   gridOptions,
-  gridEvents: {
-    checkboxChange: (e: any) => {
-      checked.value = e.records.length > 0;
+});
+
+onMounted(async () => {
+  // 获取数据源
+  const ret = await getDataSourceNames();
+  const dataSourceOptions = [{ label: '全部', value: '' }];
+  const transOptions = ret.map((item) => ({ label: item, value: item }));
+  dataSourceOptions.push(...transOptions);
+  // 更新selectOptions
+  tableApi.formApi.updateSchema([
+    {
+      fieldName: 'dataName',
+      componentProps: {
+        options: dataSourceOptions,
+      },
     },
-    checkboxAll: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-  },
+  ]);
 });
 
 const [CodePreviewModal, previewModalApi] = useVbenModal({
@@ -125,10 +140,17 @@ async function handleBatchGen() {
 }
 
 async function handleDownload(record: Recordable<any>) {
-  const hideLoading = message.loading('下载中...');
+  const hideLoading = message.loading('加载中...');
   try {
+    // 路径生成
+    if (record.genType === '1' && record.genPath) {
+      await genWithPath(record.tableId);
+      message.success(`生成成功: ${record.genPath}`);
+      return;
+    }
+    // zip生成
     const blob = await batchGenCode(record.tableId);
-    const filename = `代码生成_${record.tableName}_${new Date().toLocaleString()}.zip`;
+    const filename = `代码生成_${record.tableName}_${dayjs().valueOf()}.zip`;
     downloadByData(blob, filename);
   } catch (error) {
     console.error(error);
@@ -156,7 +178,6 @@ function handleMultiDelete() {
     onOk: async () => {
       await genRemove(ids);
       await tableApi.query();
-      checked.value = false;
     },
   });
 }
@@ -172,53 +193,93 @@ function handleImport() {
 
 <template>
   <Page :auto-content-height="true">
-    <BasicTable>
-      <template #toolbar-actions>
-        <span class="pl-[7px] text-[16px]">代码生成列表</span>
-      </template>
+    <BasicTable table-title="代码生成列表">
       <template #toolbar-tools>
+        <a
+          class="text-primary mr-2"
+          href="https://dapdap.top/other/template.html"
+          target="_blank"
+          >👉关于代码生成模板
+        </a>
         <Space>
           <a-button
-            :disabled="!checked"
+            :disabled="!vxeCheckboxChecked(tableApi)"
             danger
             type="primary"
+            v-access:code="['tool:gen:remove']"
             @click="handleMultiDelete"
           >
             {{ $t('pages.common.delete') }}
           </a-button>
-          <a-button :disabled="!checked" @click="handleBatchGen">
+          <a-button
+            :disabled="!vxeCheckboxChecked(tableApi)"
+            v-access:code="['tool:gen:code']"
+            @click="handleBatchGen"
+          >
             {{ $t('pages.common.generate') }}
           </a-button>
-          <a-button type="primary" @click="handleImport">
+          <a-button
+            type="primary"
+            v-access:code="['tool:gen:import']"
+            @click="handleImport"
+          >
             {{ $t('pages.common.import') }}
           </a-button>
         </Space>
       </template>
       <template #action="{ row }">
-        <a-button size="small" type="link" @click.stop="handlePreview(row)">
+        <a-button
+          size="small"
+          type="link"
+          v-access:code="['tool:gen:preview']"
+          @click.stop="handlePreview(row)"
+        >
           {{ $t('pages.common.preview') }}
         </a-button>
-        <a-button size="small" type="link" @click.stop="handleEdit(row)">
+        <a-button
+          size="small"
+          type="link"
+          v-access:code="['tool:gen:edit']"
+          @click.stop="handleEdit(row)"
+        >
           {{ $t('pages.common.edit') }}
         </a-button>
         <Popconfirm
+          :get-popup-container="getVxePopupContainer"
           :title="`确认同步[${row.tableName}]?`"
           placement="left"
           @confirm="handleSync(row)"
         >
-          <a-button size="small" type="link" @click.stop="">
+          <a-button
+            size="small"
+            type="link"
+            v-access:code="['tool:gen:edit']"
+            @click.stop=""
+          >
             {{ $t('pages.common.sync') }}
           </a-button>
         </Popconfirm>
-        <a-button size="small" type="link" @click.stop="handleDownload(row)">
+        <a-button
+          size="small"
+          type="link"
+          v-access:code="['tool:gen:code']"
+          @click.stop="handleDownload(row)"
+        >
           生成代码
         </a-button>
         <Popconfirm
+          :get-popup-container="getVxePopupContainer"
           :title="`确认删除[${row.tableName}]?`"
           placement="left"
           @confirm="handleDelete(row)"
         >
-          <a-button danger size="small" type="link" @click.stop="">
+          <a-button
+            danger
+            size="small"
+            type="link"
+            v-access:code="['tool:gen:remove']"
+            @click.stop=""
+          >
             {{ $t('pages.common.delete') }}
           </a-button>
         </Popconfirm>

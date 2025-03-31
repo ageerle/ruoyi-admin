@@ -130,21 +130,18 @@ interface ApplicationPluginOptions extends CommonPluginOptions {
 interface LibraryPluginOptions extends CommonPluginOptions {
   /** 开启 dts 输出 */
   dts?: boolean | PluginOptions;
-
-  /** 是否注入lib css */
-  injectLibCss?: boolean;
 }
 
 type ApplicationOptions = ApplicationPluginOptions;
 
 type LibraryOptions = LibraryPluginOptions;
 
-type DefineApplicationOptions = (config: ConfigEnv) => Promise<{
+type DefineApplicationOptions = (config?: ConfigEnv) => Promise<{
   application?: ApplicationOptions;
   vite?: UserConfig;
 }>;
 
-type DefineLibraryOptions = (config: ConfigEnv) => Promise<{
+type DefineLibraryOptions = (config?: ConfigEnv) => Promise<{
   library?: LibraryOptions;
   vite?: UserConfig;
 }>;

@@ -1,4 +1,5 @@
-import type { FormSchemaGetter, VxeGridProps } from '#/adapter';
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
 
 import { DictEnum } from '@vben/constants';
 import { getPopupContainer } from '@vben/utils';
@@ -97,9 +98,13 @@ export const modalSchema: FormSchemaGetter = () => [
     rules: 'required',
   },
   {
-    component: 'Input',
+    component: 'Textarea',
+    formItemClass: 'items-start',
     fieldName: 'configValue',
     label: '参数键值',
+    componentProps: {
+      autoSize: true,
+    },
     rules: 'required',
   },
   {
@@ -117,7 +122,7 @@ export const modalSchema: FormSchemaGetter = () => [
   {
     component: 'Textarea',
     fieldName: 'remark',
-    formItemClass: 'items-baseline',
+    formItemClass: 'items-start',
     label: '备注',
   },
 ];

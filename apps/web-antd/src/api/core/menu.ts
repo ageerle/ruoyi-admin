@@ -19,7 +19,7 @@ export interface MenuMeta {
  * @param name 菜单名
  * @param path 菜单路径
  * @param hidden 是否隐藏
- * @param component 组件名称 Laout
+ * @param component 组件名称 Layout
  * @param alwaysShow 总是显示
  * @param query 路由参数(json形式)
  * @param meta 路由信息

@@ -113,11 +113,11 @@ async function runPublint(files: string[], { check }: PubLintCommandOptions) {
 }
 
 function printResult(
-  results: Array<{
+  results: Array<null | {
     pkgJson: Record<string, number | string>;
     pkgPath: string;
     publintResult: Result;
-  } | null>,
+  }>,
   check?: boolean,
 ) {
   let errorCount = 0;
@@ -143,13 +143,13 @@ function printResult(
 
           break;
         }
+        case 'suggestion': {
+          suggestionsCount++;
+          break;
+        }
         case 'warning': {
           warningCount++;
 
-          break;
-        }
-        case 'suggestion': {
-          suggestionsCount++;
           break;
         }
         // No default

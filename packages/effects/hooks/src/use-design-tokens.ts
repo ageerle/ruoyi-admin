@@ -25,6 +25,7 @@ export function useAntdDesignTokens() {
     colorSuccess: '',
     colorTextBase: '',
     colorWarning: '',
+    zIndexPopupBase: 2000, // 调整基础弹层层级，避免下拉等组件被弹窗或者最大化状态下的表格遮挡
   });
 
   const getCssVariableValue = (variable: string, isColor: boolean = true) => {
@@ -217,12 +218,13 @@ export function useElementPlusDesignTokens() {
 
         '--el-color-info-light-8': border,
         '--el-color-info-light-9': getCssVariableValue('--info'), // getCssVariableValue('--secondary'),
-
         '--el-color-primary': getCssVariableValue('--primary-500'),
         '--el-color-primary-dark-2': getCssVariableValue('--primary'),
         '--el-color-primary-light-3': getCssVariableValue('--primary-400'),
         '--el-color-primary-light-5': getCssVariableValue('--primary-300'),
-        '--el-color-primary-light-7': getCssVariableValue('--primary-200'),
+        '--el-color-primary-light-7': isDark.value
+          ? border
+          : getCssVariableValue('--primary-200'),
         '--el-color-primary-light-8': isDark.value
           ? border
           : getCssVariableValue('--primary-100'),
@@ -259,6 +261,9 @@ export function useElementPlusDesignTokens() {
         '--el-fill-color-light': getCssVariableValue('--accent'),
         '--el-fill-color-lighter': getCssVariableValue('--accent-lighter'),
 
+        '--el-fill-color-dark': getCssVariableValue('--accent-dark'),
+        '--el-fill-color-darker': getCssVariableValue('--accent-darker'),
+
         // 解决ElLoading背景色问题
         '--el-mask-color': isDark.value
           ? 'rgba(0,0,0,.8)'
@@ -268,6 +273,7 @@ export function useElementPlusDesignTokens() {
 
         '--el-text-color-regular': getCssVariableValue('--foreground'),
       };
+
       updateCSSVariables(variables, `__vben_design_styles__`);
     },
     { immediate: true },

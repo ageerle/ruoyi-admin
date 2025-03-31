@@ -1,9 +1,10 @@
-import type { FormSchemaGetter, VxeGridProps } from '#/adapter';
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
 
 import { DictEnum } from '@vben/constants';
 import { getPopupContainer } from '@vben/utils';
 
-import { getDict, getDictOptions } from '#/utils/dict';
+import { getDictOptions } from '#/utils/dict';
 import { renderDict, renderDictTags } from '#/utils/render';
 
 export const querySchema: FormSchemaGetter = () => [
@@ -52,7 +53,9 @@ export const columns: VxeGridProps['columns'] = [
         }
         return renderDictTags(
           row.grantTypeList,
-          getDict(DictEnum.SYS_GRANT_TYPE),
+          getDictOptions(DictEnum.SYS_GRANT_TYPE),
+          true,
+          4,
         );
       },
     },
@@ -133,7 +136,6 @@ export const drawerSchema: FormSchemaGetter = () => [
   {
     component: 'Select',
     componentProps: {
-      class: 'w-full',
       getPopupContainer,
       mode: 'multiple',
       optionFilterProp: 'label',
@@ -147,7 +149,6 @@ export const drawerSchema: FormSchemaGetter = () => [
     component: 'Select',
     componentProps: {
       allowClear: false,
-      class: 'w-full',
       getPopupContainer,
       options: getDictOptions(DictEnum.SYS_DEVICE_TYPE),
     },

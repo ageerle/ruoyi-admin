@@ -1,32 +1,62 @@
-import type { Message } from './message';
+import type { MessageForm, MessageQuery, MessageVO } from './model';
 
-import type { ID, IDS, PageQuery, PageResult } from '#/api/common';
+import type { ID, IDS, PageResult } from '#/api/common';
 
+import { commonExport } from '#/api/helper';
 import { requestClient } from '#/api/request';
 
-enum Api {
-  configExport = '/system/message/export',
-  configList = '/system/message/list',
-  root = '/system/message',
+/**
+ * 查询聊天消息列表
+ * @param params
+ * @returns 聊天消息列表
+ */
+export function messageList(params?: MessageQuery) {
+  return requestClient.get<PageResult<MessageVO>>('/system/message/list', {
+    params,
+  });
 }
 
-export function messageList(params?: PageQuery) {
-  return requestClient.get<PageResult<Message>>(Api.configList, { params });
+/**
+ * 导出聊天消息列表
+ * @param params
+ * @returns 聊天消息列表
+ */
+export function messageExport(params?: MessageQuery) {
+  return commonExport('/system/message/export', params ?? {});
 }
 
-export function messageInfo(configId: ID) {
-  return requestClient.get<Message>(`${Api.root}/${configId}`);
+/**
+ * 查询聊天消息详情
+ * @param id id
+ * @returns 聊天消息详情
+ */
+export function messageInfo(id: ID) {
+  return requestClient.get<MessageVO>(`/system/message/${id}`);
 }
 
-
-export function messageUpdate(data: any) {
-  return requestClient.putWithMsg<void>(Api.root, data);
+/**
+ * 新增聊天消息
+ * @param data
+ * @returns void
+ */
+export function messageAdd(data: MessageForm) {
+  return requestClient.postWithMsg<void>('/system/message', data);
 }
 
-export function messageAdd(data: any) {
-  return requestClient.postWithMsg<void>(Api.root, data);
+/**
+ * 更新聊天消息
+ * @param data
+ * @returns void
+ */
+export function messageUpdate(data: MessageForm) {
+  return requestClient.putWithMsg<void>('/system/message', data);
 }
 
-export function messageRemove(configIds: IDS) {
-  return requestClient.deleteWithMsg<void>(`${Api.root}/${configIds}`);
+/**
+ * 删除聊天消息
+ * @param id id
+ * @returns void
+ */
+export function messageRemove(id: ID | IDS) {
+  return requestClient.deleteWithMsg<void>(`/system/message/${id}`);
 }

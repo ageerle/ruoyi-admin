@@ -1,8 +1,11 @@
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+
 import { getPopupContainer } from '@vben/utils';
 
 import dayjs from 'dayjs';
 
-import { type FormSchemaGetter, type VxeGridProps, z } from '#/adapter';
+import { z } from '#/adapter/form';
 
 export const querySchema: FormSchemaGetter = () => [
   {
@@ -65,7 +68,7 @@ export const columns: VxeGridProps['columns'] = [
     fixed: 'right',
     slots: { default: 'action' },
     title: '操作',
-    width: 180,
+    width: 200,
   },
 ];
 
@@ -99,7 +102,7 @@ export const drawerSchema: FormSchemaGetter = () => [
       orientation: 'center',
     },
     fieldName: 'divider1',
-    labelClass: 'w-0',
+    hideLabel: true,
     renderComponentContent: () => ({
       default: () => '基本信息',
     }),
@@ -130,22 +133,34 @@ export const drawerSchema: FormSchemaGetter = () => [
       orientation: 'center',
     },
     fieldName: 'divider2',
-    labelClass: 'w-0',
+    hideLabel: true,
     renderComponentContent: () => ({
       default: () => '管理员信息',
     }),
+    dependencies: {
+      if: (values) => !values?.tenantId,
+      triggerFields: ['tenantId'],
+    },
   },
   {
     component: 'Input',
     fieldName: 'username',
     label: '用户账号',
     rules: 'required',
+    dependencies: {
+      if: (values) => !values?.tenantId,
+      triggerFields: ['tenantId'],
+    },
   },
   {
     component: 'InputPassword',
     fieldName: 'password',
-    label: '密码',
+    label: '用户密码',
     rules: 'required',
+    dependencies: {
+      if: (values) => !values?.tenantId,
+      triggerFields: ['tenantId'],
+    },
   },
   {
     component: 'Divider',
@@ -153,7 +168,7 @@ export const drawerSchema: FormSchemaGetter = () => [
       orientation: 'center',
     },
     fieldName: 'divider3',
-    labelClass: 'w-0',
+    hideLabel: true,
     renderComponentContent: () => ({
       default: () => '租户设置',
     }),
@@ -161,7 +176,6 @@ export const drawerSchema: FormSchemaGetter = () => [
   {
     component: 'Select',
     componentProps: {
-      class: 'w-full',
       getPopupContainer,
     },
     fieldName: 'packageId',
@@ -174,6 +188,7 @@ export const drawerSchema: FormSchemaGetter = () => [
       format: 'YYYY-MM-DD HH:mm:ss',
       showTime: true,
       valueFormat: 'YYYY-MM-DD HH:mm:ss',
+      getPopupContainer,
     },
     defaultValue: defaultExpireTime,
     fieldName: 'expireTime',
@@ -222,7 +237,7 @@ export const drawerSchema: FormSchemaGetter = () => [
       orientation: 'center',
     },
     fieldName: 'divider4',
-    labelClass: 'w-0',
+    hideLabel: true,
     renderComponentContent: () => ({
       default: () => '企业信息',
     }),
@@ -240,13 +255,13 @@ export const drawerSchema: FormSchemaGetter = () => [
   {
     component: 'Textarea',
     fieldName: 'intro',
-    formItemClass: 'items-baseline',
+    formItemClass: 'items-start',
     label: '企业介绍',
   },
   {
     component: 'Textarea',
     fieldName: 'remark',
-    formItemClass: 'items-baseline',
+    formItemClass: 'items-start',
     label: '备注',
   },
 ];

@@ -21,12 +21,12 @@ export function ossConfigInfo(ossConfigId: ID) {
 }
 
 // 添加新的OSS配置
-export function ossConfigAdd(data: any) {
+export function ossConfigAdd(data: Partial<OssConfig>) {
   return requestClient.postWithMsg<void>(Api.root, data);
 }
 
 // 更新现有的OSS配置
-export function ossConfigUpdate(data: any) {
+export function ossConfigUpdate(data: Partial<OssConfig>) {
   return requestClient.putWithMsg<void>(Api.root, data);
 }
 

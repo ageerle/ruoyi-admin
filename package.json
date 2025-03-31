@@ -1,5 +1,5 @@
 {
-  "name": "ruoyi-admin",
+  "name": "ruoyi-ai-admin",
   "version": "2.0.0",
   "private": true,
   "keywords": [
@@ -12,26 +12,27 @@
     "vue admin",
     "vue vben admin",
     "vue vben admin pro",
-    "vue3"
+    "vue3",
+    "ruoyi ai",
+    "ai"
   ],
-  "homepage": "https://gitee.com/ageerle/ruoyi-admin",
-  "bugs": "https://gitee.com/ageerle/ruoyi-admin/issues",
+  "homepage": "https://github.com/vbenjs/vue-vben-admin",
+  "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
   "repository": "vbenjs/vue-vben-admin.git",
   "license": "MIT",
   "author": {
-    "name": "ageerle",
-    "email": "ageerle@163.com",
-    "url": "https://github.com/ageerle"
+    "name": "vben",
+    "email": "ann.vben@gmail.com",
+    "url": "https://github.com/anncwb"
   },
   "type": "module",
   "scripts": {
     "build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 turbo build",
     "build:analyze": "turbo build:analyze",
     "build:antd": "pnpm run build --filter=@vben/web-antd",
-    "build:docker": "./build-local-docker-image.sh",
+    "build:antd:test": "pnpm run build --filter=@vben/web-antd -- --mode test",
+    "build:docker": "./scripts/deploy/build-local-docker-image.sh",
     "build:docs": "pnpm run build --filter=@vben/docs",
-    "build:ele": "pnpm run build --filter=@vben/web-ele",
-    "build:naive": "pnpm run build --filter=@vben/web-naive",
     "build:play": "pnpm run build --filter=@vben/playground",
     "changeset": "pnpm exec changeset",
     "check": "pnpm run check:circular && pnpm run check:dep && pnpm run check:type && pnpm check:cspell",
@@ -44,8 +45,6 @@
     "dev": "turbo-run dev",
     "dev:antd": "pnpm -F @vben/web-antd run dev",
     "dev:docs": "pnpm -F @vben/docs run dev",
-    "dev:ele": "pnpm -F @vben/web-ele run dev",
-    "dev:naive": "pnpm -F @vben/web-naive run dev",
     "dev:play": "pnpm -F @vben/playground run dev",
     "format": "vsh lint --format",
     "lint": "vsh lint",
@@ -57,7 +56,7 @@
     "reinstall": "pnpm clean --del-lock && pnpm install",
     "test:unit": "vitest run --dom",
     "test:e2e": "turbo run test:e2e",
-    "update:deps": "pnpm update --latest --recursive",
+    "update:deps": "npx taze -r -w",
     "version": "pnpm exec changeset version && pnpm install --no-frozen-lockfile"
   },
   "devDependencies": {
@@ -97,9 +96,9 @@
   },
   "engines": {
     "node": ">=20.10.0",
-    "pnpm": ">=9.5.0"
+    "pnpm": ">=9.12.0"
   },
-  "packageManager": "pnpm@9.12.0",
+  "packageManager": "pnpm@9.15.7",
   "pnpm": {
     "peerDependencyRules": {
       "allowedVersions": {
@@ -107,8 +106,10 @@
       }
     },
     "overrides": {
+      "@ast-grep/napi": "catalog:",
       "@ctrl/tinycolor": "catalog:",
       "clsx": "catalog:",
+      "esbuild": "0.24.0",
       "pinia": "catalog:",
       "vue": "catalog:"
     },

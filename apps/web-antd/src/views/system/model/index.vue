@@ -1,28 +1,39 @@
 <script setup lang="ts">
-import type { Recordable } from '@vben/types';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import { ref } from 'vue';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { ModelForm } from '#/api/system/model/model';
 
-import { Page, useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
+import { Page, useVbenModal } from '@vben/common-ui';
+import { getVxePopupContainer } from '@vben/utils';
 
 import { Modal, Popconfirm, Space } from 'ant-design-vue';
-import dayjs from 'dayjs';
 
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter';
-import {modelList,modelRemove,} from '#/api/system/model';
+import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
+import { modelExport, modelList, modelRemove } from '#/api/system/model';
+import { commonDownloadExcel } from '#/utils/file/download';
 
-import modelDrawer from './modal-drawer.vue';
 import { columns, querySchema } from './data';
-
-
-const dictType = ref('');
+import modelModal from './model-modal.vue';
 
 const formOptions: VbenFormProps = {
   commonConfig: {
     labelWidth: 80,
+    componentProps: {
+      allowClear: true,
+    },
   },
   schema: querySchema(),
-  wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+  wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+  // 处理区间选择器RangePicker时间格式 将一个字段映射为两个字段 搜索/导出会用到
+  // 不需要直接删除
+  // fieldMappingTime: [
+  //  [
+  //    'createTime',
+  //    ['params[beginTime]', 'params[endTime]'],
+  //    ['YYYY-MM-DD 00:00:00', 'YYYY-MM-DD 23:59:59'],
+  //  ],
+  // ],
 };
 
 const gridOptions: VxeGridProps = {
@@ -34,6 +45,8 @@ const gridOptions: VxeGridProps = {
     // 点击行选中
     // trigger: 'row',
   },
+  // 需要使用i18n注意这里要改成getter形式 否则切换语言不会刷新
+  // columns: columns(),
   columns,
   height: 'auto',
   keepSource: true,
@@ -41,79 +54,48 @@ const gridOptions: VxeGridProps = {
   proxyConfig: {
     ajax: {
       query: async ({ page }, formValues = {}) => {
-        // 区间选择器处理
-        if (formValues?.createTime) {
-          formValues.params = {
-            beginTime: dayjs(formValues.createTime[0]).format(
-              'YYYY-MM-DD 00:00:00',
-            ),
-            endTime: dayjs(formValues.createTime[1]).format(
-              'YYYY-MM-DD 23:59:59',
-            ),
-          };
-          Reflect.deleteProperty(formValues, 'createTime');
-        } else {
-          Reflect.deleteProperty(formValues, 'params');
-        }
-
-        const params: any = {
+        return await modelList({
           pageNum: page.currentPage,
           pageSize: page.pageSize,
           ...formValues,
-        };
-        if (dictType.value) {
-          params.dictType = dictType.value;
-        }
-
-        return await modelList(params);
+        });
       },
     },
   },
   rowConfig: {
-    isHover: true,
-    keyField: 'dictCode',
+    keyField: 'id',
   },
-  round: true,
-  align: 'center',
-  showOverflow: true,
+  // 表格全局唯一表示 保存列配置需要用到
+  id: 'system-model-index',
 };
 
-const checked = ref(false);
 const [BasicTable, tableApi] = useVbenVxeGrid({
   formOptions,
   gridOptions,
-  gridEvents: {
-    checkboxChange: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-    checkboxAll: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-  },
 });
 
-const [ModelDrawer, drawerApi] = useVbenDrawer({
-  connectedComponent: modelDrawer,
+const [ModelModal, modalApi] = useVbenModal({
+  connectedComponent: modelModal,
 });
 
 function handleAdd() {
-  drawerApi.setData({});
-  drawerApi.open();
+  modalApi.setData({});
+  modalApi.open();
 }
 
-async function handleEdit(record: Recordable<any>) {
-  drawerApi.setData({ id: record.id });
-  drawerApi.open();
+async function handleEdit(row: Required<ModelForm>) {
+  modalApi.setData({ id: row.id });
+  modalApi.open();
 }
 
-async function handleDelete(row: Recordable<any>) {
+async function handleDelete(row: Required<ModelForm>) {
   await modelRemove(row.id);
   await tableApi.query();
 }
 
 function handleMultiDelete() {
   const rows = tableApi.grid.getCheckboxRecords();
-  const ids = rows.map((row: any) => row.id);
+  const ids = rows.map((row: Required<ModelForm>) => row.id);
   Modal.confirm({
     title: '提示',
     okType: 'danger',
@@ -125,28 +107,41 @@ function handleMultiDelete() {
   });
 }
 
-
+function handleDownloadExcel() {
+  commonDownloadExcel(
+    modelExport,
+    '聊天模型数据',
+    tableApi.formApi.form.values,
+    {
+      fieldMappingTime: formOptions.fieldMappingTime,
+    },
+  );
+}
 </script>
 
 <template>
   <Page :auto-content-height="true">
-    <BasicTable>
-      <template #toolbar-actions>
-        <span class="pl-[7px] text-[16px]">系统模型列表</span>
-      </template>
+    <BasicTable table-title="聊天模型列表">
       <template #toolbar-tools>
         <Space>
           <a-button
-            :disabled="!checked"
+            v-access:code="['system:model:export']"
+            @click="handleDownloadExcel"
+          >
+            {{ $t('pages.common.export') }}
+          </a-button>
+          <a-button
+            :disabled="!vxeCheckboxChecked(tableApi)"
             danger
             type="primary"
-            v-access:code="['system:dict:remove']"
+            v-access:code="['system:model:remove']"
             @click="handleMultiDelete"
           >
             {{ $t('pages.common.delete') }}
           </a-button>
           <a-button
             type="primary"
+            v-access:code="['system:model:add']"
             @click="handleAdd"
           >
             {{ $t('pages.common.add') }}
@@ -154,31 +149,30 @@ function handleMultiDelete() {
         </Space>
       </template>
       <template #action="{ row }">
-        <a-button
-          size="small"
-          type="link"
-          v-access:code="['system:dict:edit']"
-          @click="handleEdit(row)"
-        >
-          {{ $t('pages.common.edit') }}
-        </a-button>
-        <Popconfirm
-          placement="left"
-          title="确认删除？"
-          @confirm="handleDelete(row)"
-        >
-          <a-button
-            danger
-            size="small"
-            type="link"
-            v-access:code="['system:dict:remove']"
-            @click.stop=""
+        <Space>
+          <ghost-button
+            v-access:code="['system:model:edit']"
+            @click.stop="handleEdit(row)"
           >
-            {{ $t('pages.common.delete') }}
-          </a-button>
-        </Popconfirm>
+            {{ $t('pages.common.edit') }}
+          </ghost-button>
+          <Popconfirm
+            :get-popup-container="getVxePopupContainer"
+            placement="left"
+            title="确认删除？"
+            @confirm="handleDelete(row)"
+          >
+            <ghost-button
+              danger
+              v-access:code="['system:model:remove']"
+              @click.stop=""
+            >
+              {{ $t('pages.common.delete') }}
+            </ghost-button>
+          </Popconfirm>
+        </Space>
       </template>
     </BasicTable>
-    <ModelDrawer @reload="tableApi.query()" />
+    <ModelModal @reload="tableApi.query()" />
   </Page>
 </template>

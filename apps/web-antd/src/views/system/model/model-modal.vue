@@ -1,0 +1,199 @@
+<!--
+使用antd原生Form生成 详细用法参考ant-design-vue Form组件文档
+vscode默认配置文件会自动格式化/移除未使用依赖
+-->
+<script setup lang="ts">
+import type { RuleObject } from 'ant-design-vue/es/form';
+
+import type { ModelForm } from '#/api/system/model/model';
+
+import { computed, ref } from 'vue';
+
+import { useVbenModal } from '@vben/common-ui';
+import { $t } from '@vben/locales';
+import { cloneDeep, getPopupContainer } from '@vben/utils';
+
+import { Form, FormItem, Input, Select, Textarea } from 'ant-design-vue';
+import { pick } from 'lodash-es';
+
+import { modelAdd, modelInfo, modelUpdate } from '#/api/system/model';
+
+const emit = defineEmits<{ reload: [] }>();
+
+const isUpdate = ref(false);
+const title = computed(() => {
+  return isUpdate.value ? $t('pages.common.edit') : $t('pages.common.add');
+});
+
+/**
+ * 定义默认值 用于reset
+ */
+const defaultValues: Partial<ModelForm> = {
+  id: undefined,
+  category: undefined,
+  modelName: undefined,
+  modelDescribe: undefined,
+  modelPrice: undefined,
+  modelType: undefined,
+  modelShow: undefined,
+  systemPrompt: undefined,
+  apiHost: undefined,
+  apiKey: undefined,
+  remark: undefined,
+};
+
+/**
+ * 表单数据ref
+ */
+const formData = ref(defaultValues);
+
+type AntdFormRules<T> = Partial<Record<keyof T, RuleObject[]>> & {
+  [key: string]: RuleObject[];
+};
+/**
+ * 表单校验规则
+ */
+const formRules = ref<AntdFormRules<ModelForm>>({
+  modelName: [{ required: true, message: '模型名称不能为空' }],
+  modelDescribe: [{ required: true, message: '模型描述不能为空' }],
+  modelPrice: [{ required: true, message: '模型价格不能为空' }],
+  modelType: [{ required: true, message: '计费类型不能为空' }],
+  modelShow: [{ required: true, message: '是否显示不能为空' }],
+  apiHost: [{ required: true, message: '请求地址不能为空' }],
+  apiKey: [{ required: true, message: '密钥不能为空' }],
+});
+
+/**
+ * useForm解构出表单方法
+ */
+const { validate, validateInfos, resetFields } = Form.useForm(
+  formData,
+  formRules,
+);
+
+const [BasicModal, modalApi] = useVbenModal({
+  class: 'w-[550px]',
+  fullscreenButton: false,
+  closeOnClickModal: false,
+  onClosed: handleCancel,
+  onConfirm: handleConfirm,
+  onOpenChange: async (isOpen) => {
+    if (!isOpen) {
+      return null;
+    }
+    modalApi.modalLoading(true);
+
+    const { id } = modalApi.getData() as { id?: number | string };
+    isUpdate.value = !!id;
+
+    if (isUpdate.value && id) {
+      const record = await modelInfo(id);
+      // 只赋值存在的字段
+      const filterRecord = pick(record, Object.keys(defaultValues));
+      formData.value = filterRecord;
+    }
+
+    modalApi.modalLoading(false);
+  },
+});
+
+async function handleConfirm() {
+  try {
+    modalApi.modalLoading(true);
+    await validate();
+    // 可能会做数据处理 使用cloneDeep深拷贝
+    const data = cloneDeep(formData.value);
+    await (isUpdate.value ? modelUpdate(data) : modelAdd(data));
+    emit('reload');
+    await handleCancel();
+  } catch (error) {
+    console.error(error);
+  } finally {
+    modalApi.modalLoading(false);
+  }
+}
+
+async function handleCancel() {
+  modalApi.close();
+  formData.value = defaultValues;
+  resetFields();
+}
+
+const getmodelShow = ref([
+  { label: '隐藏', value: '1' },
+  { label: '显示', value: '0' },
+]);
+
+const getmodelType = ref([
+  { label: 'token计费', value: '1' },
+  { label: '次数计费', value: '2' },
+]);
+</script>
+
+<template>
+  <BasicModal :title="title">
+    <Form :label-col="{ span: 4 }">
+      <FormItem label="模型分类" v-bind="validateInfos.category">
+        <Input
+          v-model:value="formData.category"
+          :placeholder="$t('ui.formRules.required')"
+        />
+      </FormItem>
+      <FormItem label="模型名称" v-bind="validateInfos.modelName">
+        <Input
+          v-model:value="formData.modelName"
+          :placeholder="$t('ui.formRules.required')"
+        />
+      </FormItem>
+      <FormItem label="模型描述" v-bind="validateInfos.modelDescribe">
+        <Input
+          v-model:value="formData.modelDescribe"
+          :placeholder="$t('ui.formRules.required')"
+        />
+      </FormItem>
+      <FormItem label="模型价格" v-bind="validateInfos.modelPrice">
+        <Input
+          v-model:value="formData.modelPrice"
+          :placeholder="$t('ui.formRules.required')"
+        />
+      </FormItem>
+      <FormItem label="计费类型" v-bind="validateInfos.modelType">
+        <Select
+          v-model:value="formData.modelType"
+          :options="getmodelType"
+          :get-popup-container="getPopupContainer"
+          :placeholder="$t('ui.formRules.selectRequired')"
+        />
+      </FormItem>
+
+      <FormItem label="是否显示" v-bind="validateInfos.modelShow">
+        <Select
+          v-model:value="formData.modelShow"
+          :options="getmodelShow"
+          :get-popup-container="getPopupContainer"
+          :placeholder="$t('ui.formRules.selectRequired')"
+        />
+      </FormItem>
+
+      <FormItem label="请求地址" v-bind="validateInfos.apiHost">
+        <Input
+          v-model:value="formData.apiHost"
+          :placeholder="$t('ui.formRules.required')"
+        />
+      </FormItem>
+      <FormItem label="密钥" v-bind="validateInfos.apiKey">
+        <Input
+          v-model:value="formData.apiKey"
+          :placeholder="$t('ui.formRules.required')"
+        />
+      </FormItem>
+      <FormItem label="备注" v-bind="validateInfos.remark">
+        <Textarea
+          v-model:value="formData.remark"
+          :placeholder="$t('ui.formRules.required')"
+          :rows="4"
+        />
+      </FormItem>
+    </Form>
+  </BasicModal>
+</template>

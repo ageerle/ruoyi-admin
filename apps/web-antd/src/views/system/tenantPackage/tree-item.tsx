@@ -1,6 +1,8 @@
+import type { PropType } from 'vue';
+
 import type { Menu } from '#/api/system/menu/model';
 
-import { computed, defineComponent, type PropType } from 'vue';
+import { computed, defineComponent } from 'vue';
 
 import { Tag } from 'ant-design-vue';
 

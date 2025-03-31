@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import type { Recordable } from '@vben/types';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import { ref } from 'vue';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import type { OssConfig } from '#/api/system/oss-config/model';
 
 import { useAccess } from '@vben/access';
-import { Page, useVbenDrawer, type VbenFormProps } from '@vben/common-ui';
+import { Page, useVbenDrawer } from '@vben/common-ui';
+import { getVxePopupContainer } from '@vben/utils';
 
 import { Modal, Popconfirm, Space } from 'ant-design-vue';
-import dayjs from 'dayjs';
 
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter';
+import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
 import {
   ossConfigChangeStatus,
   ossConfigList,
@@ -22,6 +23,12 @@ import ossConfigDrawer from './oss-config-drawer.vue';
 
 const formOptions: VbenFormProps = {
   schema: querySchema(),
+  commonConfig: {
+    labelWidth: 80,
+    componentProps: {
+      allowClear: true,
+    },
+  },
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
 };
 
@@ -40,22 +47,7 @@ const gridOptions: VxeGridProps = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, formValues) => {
-        // 区间选择器处理
-        if (formValues?.createTime) {
-          formValues.params = {
-            beginTime: dayjs(formValues.createTime[0]).format(
-              'YYYY-MM-DD 00:00:00',
-            ),
-            endTime: dayjs(formValues.createTime[1]).format(
-              'YYYY-MM-DD 23:59:59',
-            ),
-          };
-          Reflect.deleteProperty(formValues, 'createTime');
-        } else {
-          Reflect.deleteProperty(formValues, 'params');
-        }
-
+      query: async ({ page }, formValues = {}) => {
         return await ossConfigList({
           pageNum: page.currentPage,
           pageSize: page.pageSize,
@@ -65,26 +57,14 @@ const gridOptions: VxeGridProps = {
     },
   },
   rowConfig: {
-    isHover: true,
     keyField: 'ossConfigId',
   },
-  round: true,
-  align: 'center',
-  showOverflow: true,
+  id: 'system-oss-config-index',
 };
 
-const checked = ref(false);
 const [BasicTable, tableApi] = useVbenVxeGrid({
   formOptions,
   gridOptions,
-  gridEvents: {
-    checkboxChange: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-    checkboxAll: (e: any) => {
-      checked.value = e.records.length > 0;
-    },
-  },
 });
 
 const [OssConfigDrawer, drawerApi] = useVbenDrawer({
@@ -96,19 +76,19 @@ function handleAdd() {
   drawerApi.open();
 }
 
-async function handleEdit(record: Recordable<any>) {
+async function handleEdit(record: OssConfig) {
   drawerApi.setData({ id: record.ossConfigId });
   drawerApi.open();
 }
 
-async function handleDelete(row: Recordable<any>) {
-  await ossConfigRemove(row.ossConfigId);
+async function handleDelete(row: OssConfig) {
+  await ossConfigRemove([row.ossConfigId]);
   await tableApi.query();
 }
 
 function handleMultiDelete() {
   const rows = tableApi.grid.getCheckboxRecords();
-  const ids = rows.map((row: any) => row.ossConfigId);
+  const ids = rows.map((row: OssConfig) => row.ossConfigId);
   Modal.confirm({
     title: '提示',
     okType: 'danger',
@@ -125,14 +105,11 @@ const { hasAccessByCodes } = useAccess();
 
 <template>
   <Page :auto-content-height="true">
-    <BasicTable>
-      <template #toolbar-actions>
-        <span class="pl-[7px] text-[16px]">oss配置列表</span>
-      </template>
+    <BasicTable table-title="oss配置列表">
       <template #toolbar-tools>
         <Space>
           <a-button
-            :disabled="!checked"
+            :disabled="!vxeCheckboxChecked(tableApi)"
             danger
             type="primary"
             v-access:code="['system:ossConfig:remove']"
@@ -158,29 +135,28 @@ const { hasAccessByCodes } = useAccess();
         />
       </template>
       <template #action="{ row }">
-        <a-button
-          size="small"
-          type="link"
-          v-access:code="['system:ossConfig:edit']"
-          @click="handleEdit(row)"
-        >
-          {{ $t('pages.common.edit') }}
-        </a-button>
-        <Popconfirm
-          placement="left"
-          title="确认删除？"
-          @confirm="handleDelete(row)"
-        >
-          <a-button
-            danger
-            size="small"
-            type="link"
-            v-access:code="['system:ossConfig:remove']"
-            @click.stop=""
+        <Space>
+          <ghost-button
+            v-access:code="['system:ossConfig:edit']"
+            @click="handleEdit(row)"
           >
-            {{ $t('pages.common.delete') }}
-          </a-button>
-        </Popconfirm>
+            {{ $t('pages.common.edit') }}
+          </ghost-button>
+          <Popconfirm
+            :get-popup-container="getVxePopupContainer"
+            placement="left"
+            title="确认删除？"
+            @confirm="handleDelete(row)"
+          >
+            <ghost-button
+              danger
+              v-access:code="['system:ossConfig:remove']"
+              @click.stop=""
+            >
+              {{ $t('pages.common.delete') }}
+            </ghost-button>
+          </Popconfirm>
+        </Space>
       </template>
     </BasicTable>
     <OssConfigDrawer @reload="tableApi.query()" />

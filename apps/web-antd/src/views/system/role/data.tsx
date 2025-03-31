@@ -1,4 +1,5 @@
-import type { FormSchemaGetter, VxeGridProps } from '#/adapter';
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
 
 import { DictEnum } from '@vben/constants';
 import { getPopupContainer } from '@vben/utils';
@@ -16,6 +17,7 @@ export const authScopeOptions = [
   { color: 'orange', label: '本部门数据权限', value: '3' },
   { color: 'cyan', label: '本部门及以下数据权限', value: '4' },
   { color: 'error', label: '仅本人数据权限', value: '5' },
+  { color: 'default', label: '部门及以下或本人数据权限', value: '6' },
 ];
 
 export const querySchema: FormSchemaGetter = () => [
@@ -130,6 +132,7 @@ export const drawerSchema: FormSchemaGetter = () => [
     componentProps: {
       allowClear: false,
       options: getDictOptions(DictEnum.SYS_NORMAL_DISABLE),
+      getPopupContainer,
     },
     defaultValue: '0',
     fieldName: 'status',
@@ -138,16 +141,26 @@ export const drawerSchema: FormSchemaGetter = () => [
     rules: 'required',
   },
   {
+    component: 'Radio',
+    dependencies: {
+      show: () => false,
+      triggerFields: [''],
+    },
+    fieldName: 'menuCheckStrictly',
+    label: '菜单权限',
+  },
+  {
     component: 'Input',
     defaultValue: [],
     fieldName: 'menuIds',
     label: '菜单权限',
+    formItemClass: 'col-span-2',
   },
   {
     component: 'Textarea',
     defaultValue: '',
     fieldName: 'remark',
-    formItemClass: 'items-baseline',
+    formItemClass: 'col-span-2',
     label: '备注',
   },
 ];
@@ -206,7 +219,6 @@ export const authModalSchemas: FormSchemaGetter = () => [
       triggerFields: ['dataScope'],
     },
     fieldName: 'deptIds',
-    formItemClass: 'items-baseline',
     help: '更改后立即生效',
     label: '部门权限',
   },

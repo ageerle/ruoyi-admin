@@ -5,6 +5,7 @@ import { computed } from 'vue';
 
 import { $t } from '@vben/locales';
 
+import NumberFieldItem from '../number-field-item.vue';
 import SelectItem from '../select-item.vue';
 import SwitchItem from '../switch-item.vue';
 
@@ -17,11 +18,15 @@ defineProps<{ disabled?: boolean }>();
 const tabbarEnable = defineModel<boolean>('tabbarEnable');
 const tabbarShowIcon = defineModel<boolean>('tabbarShowIcon');
 const tabbarPersist = defineModel<boolean>('tabbarPersist');
-const tabbarDragable = defineModel<boolean>('tabbarDragable');
+const tabbarDraggable = defineModel<boolean>('tabbarDraggable');
+const tabbarWheelable = defineModel<boolean>('tabbarWheelable');
 const tabbarStyleType = defineModel<string>('tabbarStyleType');
 const tabbarShowMore = defineModel<boolean>('tabbarShowMore');
-const tabbarShowRefresh = defineModel<boolean>('tabbarShowRefresh');
 const tabbarShowMaximize = defineModel<boolean>('tabbarShowMaximize');
+const tabbarMaxCount = defineModel<number>('tabbarMaxCount');
+const tabbarMiddleClickToClose = defineModel<boolean>(
+  'tabbarMiddleClickToClose',
+);
 
 const styleItems = computed((): SelectOption[] => [
   {
@@ -51,17 +56,34 @@ const styleItems = computed((): SelectOption[] => [
   <SwitchItem v-model="tabbarPersist" :disabled="!tabbarEnable">
     {{ $t('preferences.tabbar.persist') }}
   </SwitchItem>
-  <SwitchItem v-model="tabbarDragable" :disabled="!tabbarEnable">
-    {{ $t('preferences.tabbar.dragable') }}
+  <NumberFieldItem
+    v-model="tabbarMaxCount"
+    :disabled="!tabbarEnable"
+    :max="30"
+    :min="0"
+    :step="5"
+    :tip="$t('preferences.tabbar.maxCountTip')"
+  >
+    {{ $t('preferences.tabbar.maxCount') }}
+  </NumberFieldItem>
+  <SwitchItem v-model="tabbarDraggable" :disabled="!tabbarEnable">
+    {{ $t('preferences.tabbar.draggable') }}
+  </SwitchItem>
+  <SwitchItem
+    v-model="tabbarWheelable"
+    :disabled="!tabbarEnable"
+    :tip="$t('preferences.tabbar.wheelableTip')"
+  >
+    {{ $t('preferences.tabbar.wheelable') }}
+  </SwitchItem>
+  <SwitchItem v-model="tabbarMiddleClickToClose" :disabled="!tabbarEnable">
+    {{ $t('preferences.tabbar.middleClickClose') }}
   </SwitchItem>
   <SwitchItem v-model="tabbarShowIcon" :disabled="!tabbarEnable">
     {{ $t('preferences.tabbar.icon') }}
   </SwitchItem>
   <SwitchItem v-model="tabbarShowMore" :disabled="!tabbarEnable">
     {{ $t('preferences.tabbar.showMore') }}
-  </SwitchItem>
-  <SwitchItem v-model="tabbarShowRefresh" :disabled="!tabbarEnable">
-    {{ $t('preferences.tabbar.showRefresh') }}
   </SwitchItem>
   <SwitchItem v-model="tabbarShowMaximize" :disabled="!tabbarEnable">
     {{ $t('preferences.tabbar.showMaximize') }}

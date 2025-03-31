@@ -4,7 +4,7 @@ import type { UpdatePasswordParam } from '#/api/system/profile/model';
 import { Modal } from 'ant-design-vue';
 import { omit } from 'lodash-es';
 
-import { useVbenForm, z } from '#/adapter';
+import { useVbenForm, z } from '#/adapter/form';
 import { userUpdatePassword } from '#/api/system/profile';
 import { useAuthStore } from '#/store';
 
@@ -67,7 +67,7 @@ const [BasicForm, formApi] = useVbenForm({
     },
   ],
   submitButtonOptions: {
-    text: '修改密码',
+    content: '修改密码',
   },
 });
 

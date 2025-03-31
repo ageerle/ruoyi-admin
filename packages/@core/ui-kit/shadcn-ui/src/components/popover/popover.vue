@@ -5,6 +5,8 @@ import type {
   PopoverRootProps,
 } from 'radix-vue';
 
+import type { ClassType } from '@vben-core/typings';
+
 import { computed } from 'vue';
 
 import { useForwardPropsEmits } from 'radix-vue';
@@ -13,11 +15,11 @@ import {
   PopoverContent,
   Popover as PopoverRoot,
   PopoverTrigger,
-} from '../ui/popover';
+} from '../../ui';
 
 interface Props extends PopoverRootProps {
-  class?: any;
-  contentClass?: any;
+  class?: ClassType;
+  contentClass?: ClassType;
   contentProps?: PopoverContentProps;
 }
 
@@ -46,7 +48,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
       <PopoverContent
         :class="contentClass"
-        class="side-content z-[1000]"
+        class="side-content z-popup"
         v-bind="contentProps"
       >
         <slot></slot>

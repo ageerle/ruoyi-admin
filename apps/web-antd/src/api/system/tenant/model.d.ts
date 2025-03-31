@@ -9,7 +9,7 @@ export interface Tenant {
   id: number;
   intro: string;
   licenseNumber?: any;
-  packageId?: string;
+  packageId: string;
   remark?: string;
   status: string;
   tenantId: string;

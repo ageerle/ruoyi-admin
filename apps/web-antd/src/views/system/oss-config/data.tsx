@@ -1,8 +1,11 @@
+import type { FormSchemaGetter } from '#/adapter/form';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+
 import { DictEnum } from '@vben/constants';
 
 import { Tag } from 'ant-design-vue';
 
-import { type FormSchemaGetter, type VxeGridProps, z } from '#/adapter';
+import { z } from '#/adapter/form';
 import { getDictOptions } from '#/utils/dict';
 
 const accessPolicyOptions = [
@@ -97,7 +100,7 @@ export const drawerSchema: FormSchemaGetter = () => [
       orientation: 'center',
     },
     fieldName: 'divider1',
-    labelClass: 'w-0',
+    hideLabel: true,
     renderComponentContent: () => ({
       default: () => '基本信息',
     }),
@@ -127,12 +130,18 @@ export const drawerSchema: FormSchemaGetter = () => [
     label: '自定义域名',
   },
   {
+    component: 'Input',
+    fieldName: 'tip',
+    label: '占位作为提示使用',
+    hideLabel: true,
+  },
+  {
     component: 'Divider',
     componentProps: {
       orientation: 'center',
     },
     fieldName: 'divider2',
-    labelClass: 'w-0',
+    hideLabel: true,
     renderComponentContent: () => ({
       default: () => '认证信息',
     }),
@@ -155,7 +164,7 @@ export const drawerSchema: FormSchemaGetter = () => [
       orientation: 'center',
     },
     fieldName: 'divider3',
-    labelClass: 'w-0',
+    hideLabel: true,
     renderComponentContent: () => ({
       default: () => '其他信息',
     }),
@@ -204,7 +213,7 @@ export const drawerSchema: FormSchemaGetter = () => [
   {
     component: 'Textarea',
     fieldName: 'remark',
-    formItemClass: 'items-baseline',
+    formItemClass: 'items-start',
     label: '备注',
   },
 ];

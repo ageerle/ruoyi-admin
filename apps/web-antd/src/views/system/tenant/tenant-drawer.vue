@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import { computed, h, ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { cloneDeep } from '@vben/utils';
 
-import { Tag } from 'ant-design-vue';
-
-import { useVbenForm } from '#/adapter';
-import { clientAdd, clientUpdate } from '#/api/system/client';
-import { tenantInfo } from '#/api/system/tenant';
+import { useVbenForm } from '#/adapter/form';
+import { tenantAdd, tenantInfo, tenantUpdate } from '#/api/system/tenant';
 import { packageSelectList } from '#/api/system/tenant-package';
+import { useTenantStore } from '#/store/tenant';
 
 import { drawerSchema } from './data';
 
@@ -25,6 +23,9 @@ const [BasicForm, formApi] = useVbenForm({
   commonConfig: {
     formItemClass: 'col-span-2',
     labelWidth: 100,
+    componentProps: {
+      class: 'w-full',
+    },
   },
   schema: drawerSchema(),
   showDefaultActions: false,
@@ -34,18 +35,14 @@ const [BasicForm, formApi] = useVbenForm({
 async function setupPackageSelect() {
   const tenantPackageList = await packageSelectList();
   const options = tenantPackageList.map((item) => ({
-    label: h('div', { class: 'flex items-center gap-[6px]' }, [
-      h('span', null, item.packageName),
-      h(Tag, { color: 'processing' }, () => `${item.menuIds.length}个菜单项`),
-    ]),
-    title: item.packageName,
+    label: item.packageName,
     value: item.packageId,
   }));
   formApi.updateSchema([
     {
       componentProps: {
-        optionFilterProp: 'title',
-        optionLabelProp: 'title',
+        optionFilterProp: 'label',
+        optionLabelProp: 'label',
         options,
         showSearch: true,
       },
@@ -70,10 +67,19 @@ const [BasicDrawer, drawerApi] = useVbenDrawer({
       const record = await tenantInfo(id);
       await formApi.setValues(record);
     }
+    formApi.updateSchema([
+      {
+        fieldName: 'packageId',
+        componentProps: {
+          disabled: isUpdate.value,
+        },
+      },
+    ]);
     drawerApi.drawerLoading(false);
   },
 });
 
+const tenantStore = useTenantStore();
 async function handleConfirm() {
   try {
     drawerApi.drawerLoading(true);
@@ -82,9 +88,11 @@ async function handleConfirm() {
       return;
     }
     const data = cloneDeep(await formApi.getValues());
-    await (isUpdate.value ? clientUpdate(data) : clientAdd(data));
+    await (isUpdate.value ? tenantUpdate(data) : tenantAdd(data));
     emit('reload');
     await handleCancel();
+    // 重新加载租户信息
+    tenantStore.initTenant();
   } catch (error) {
     console.error(error);
   } finally {

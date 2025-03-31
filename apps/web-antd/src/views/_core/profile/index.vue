@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { UserProfile } from '#/api/system/profile/model';
 
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
 import { useUserStore } from '@vben/stores';
@@ -9,6 +9,7 @@ import { useUserStore } from '@vben/stores';
 import { userProfile } from '#/api/system/profile';
 import { useAuthStore } from '#/store';
 
+import { emitter } from './mitt';
 import ProfilePanel from './profile-panel.vue';
 import SettingPanel from './setting-panel.vue';
 
@@ -32,6 +33,9 @@ async function handleUploadFinish() {
   const userInfo = await authStore.fetchUserInfo();
   userStore.setUserInfo(userInfo);
 }
+
+onMounted(() => emitter.on('updateProfile', loadProfile));
+onUnmounted(() => emitter.off('updateProfile'));
 </script>
 
 <template>
@@ -44,7 +48,6 @@ async function handleUploadFinish() {
         v-if="profile"
         :profile="profile"
         class="flex-1 overflow-hidden"
-        @reload="loadProfile"
       />
     </div>
   </Page>

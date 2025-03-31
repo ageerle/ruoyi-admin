@@ -13,7 +13,7 @@ defineProps<{ triggerClass?: string }>();
 </script>
 
 <template>
-  <Tooltip :delay-duration="300" side="right">
+  <Tooltip :delay-duration="300" side="top">
     <template #trigger>
       <slot name="trigger">
         <CircleHelp

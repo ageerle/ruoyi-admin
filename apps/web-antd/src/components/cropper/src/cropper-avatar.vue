@@ -1,18 +1,14 @@
 <script lang="ts" setup>
-import {
-  computed,
-  type CSSProperties,
-  type PropType,
-  ref,
-  unref,
-  watch,
-  watchEffect,
-} from 'vue';
+import type { ButtonProps } from 'ant-design-vue';
+
+import type { CSSProperties, PropType } from 'vue';
+
+import { computed, ref, unref, watch, watchEffect } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 import { $t as t } from '@vben/locales';
 
-import { type ButtonProps, message } from 'ant-design-vue';
+import { message } from 'ant-design-vue';
 
 import cropperModal from './cropper-modal.vue';
 

@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import { useVbenModal, type VbenFormProps } from '@vben/common-ui';
+import type { VbenFormProps } from '@vben/common-ui';
 
-import { useVbenVxeGrid, type VxeGridProps } from '#/adapter';
-import { importTable, readyToGenList } from '#/api/tool/gen';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+
+import { useVbenModal } from '@vben/common-ui';
+
+import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import {
+  getDataSourceNames,
+  importTable,
+  readyToGenList,
+} from '#/api/tool/gen';
 
 const emit = defineEmits<{ reload: [] }>();
 
@@ -51,6 +59,7 @@ const gridOptions: VxeGridProps = {
     {
       title: '表描述',
       field: 'tableComment',
+      align: 'left',
     },
     {
       title: '创建时间',
@@ -63,11 +72,11 @@ const gridOptions: VxeGridProps = {
   ],
   keepSource: true,
   size: 'small',
+  minHeight: 400,
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, formValues) => {
-        console.log(page);
+      query: async ({ page }, formValues = {}) => {
         return await readyToGenList({
           pageNum: page.currentPage,
           pageSize: page.pageSize,
@@ -77,12 +86,11 @@ const gridOptions: VxeGridProps = {
     },
   },
   rowConfig: {
-    isHover: true,
     keyField: 'tableId',
   },
-  round: true,
-  align: 'center',
-  showOverflow: true,
+  toolbarConfig: {
+    enabled: false,
+  },
 };
 
 const [BasicTable, tableApi] = useVbenVxeGrid({ formOptions, gridOptions });
@@ -93,6 +101,16 @@ const [BasicModal, modalApi] = useVbenModal({
       tableApi.grid.clearCheckboxRow();
       return null;
     }
+    const ret = await getDataSourceNames();
+    const dataSourceOptions = ret.map((item) => ({ label: item, value: item }));
+    tableApi.formApi.updateSchema([
+      {
+        fieldName: 'dataName',
+        componentProps: {
+          options: dataSourceOptions,
+        },
+      },
+    ]);
   },
   onConfirm: handleSubmit,
 });
@@ -106,10 +124,8 @@ async function handleSubmit() {
       return;
     }
     modalApi.modalLoading(true);
-    // const data = await validate();
-    // const dataSource = data.dataName;
-    // TODO: 这里为写死
-    await importTable(tables.join(','), 'master');
+    const { dataName } = await tableApi.formApi.getValues();
+    await importTable(tables.join(','), dataName);
     emit('reload');
     modalApi.close();
   } catch (error) {

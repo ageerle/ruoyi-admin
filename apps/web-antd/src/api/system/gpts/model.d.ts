@@ -89,6 +89,11 @@ export interface GptsForm extends BaseEntity {
   info?: string;
 
   /**
+   * 模型名称
+   */
+  modelName?: string;
+
+  /**
    * 作者id
    */
   authorId?: number | string;
@@ -119,6 +124,11 @@ export interface GptsForm extends BaseEntity {
   remark?: string;
 
   /**
+   * 系统角色定义
+   */
+  systemPrompt?: string;
+
+  /**
    * 更新IP
    */
   updateIp?: string;
@@ -144,6 +154,11 @@ export interface GptsQuery extends PageQuery {
    * gpts描述
    */
   info?: string;
+
+  /**
+   * 模型名称
+   */
+  modelName?: string;
 
   /**
    * 作者id

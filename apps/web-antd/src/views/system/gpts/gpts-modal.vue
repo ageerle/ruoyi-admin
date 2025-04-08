@@ -41,6 +41,8 @@ const defaultValues: Partial<GptsForm> = {
   type: undefined,
   remark: undefined,
   updateIp: undefined,
+  modelName: undefined,
+  systemPrompt: undefined,
 };
 
 /**
@@ -59,14 +61,21 @@ const formRules = ref<AntdFormRules<GptsForm>>({
   name: [{ required: true, message: 'gpts应用名称不能为空' }],
   logo: [{ required: true, message: 'gpts图标不能为空' }],
   info: [{ required: true, message: 'gpts描述不能为空' }],
+  modelName: [{ required: true, message: '模型名称不能为空' }],
   authorId: [{ required: true, message: '作者id不能为空' }],
   authorName: [{ required: true, message: '作者名称不能为空' }],
   useCnt: [{ required: true, message: '点赞不能为空' }],
   bad: [{ required: true, message: '差评不能为空' }],
   type: [{ required: true, message: '类型不能为空' }],
   remark: [{ required: true, message: '备注不能为空' }],
-  updateIp: [{ required: true, message: '更新IP不能为空' }],
+  systemPrompt: [{ required: false }],
+  updateIp: [{ required: false }],
 });
+
+const typeModel = ref([
+  { label: 'LLM模型', value: 'chat' },
+  { label: '向量模型', value: 'vector' },
+]);
 
 /**
  * useForm解构出表单方法
@@ -152,6 +161,12 @@ async function handleCancel() {
           :placeholder="$t('ui.formRules.required')"
         />
       </FormItem>
+      <FormItem label="模型名称" v-bind="validateInfos.modelName">
+        <Input
+          v-model:value="formData.modelName"
+          :placeholder="$t('ui.formRules.required')"
+        />
+      </FormItem>
       <FormItem label="作者id" v-bind="validateInfos.authorId">
         <Input
           v-model:value="formData.authorId"
@@ -179,7 +194,7 @@ async function handleCancel() {
       <FormItem label="类型" v-bind="validateInfos.type">
         <Select
           v-model:value="formData.type"
-          :options="[]"
+          :options="typeModel"
           :get-popup-container="getPopupContainer"
           :placeholder="$t('ui.formRules.selectRequired')"
         />
@@ -187,6 +202,13 @@ async function handleCancel() {
       <FormItem label="备注" v-bind="validateInfos.remark">
         <Textarea
           v-model:value="formData.remark"
+          :placeholder="$t('ui.formRules.required')"
+          :rows="4"
+        />
+      </FormItem>
+      <FormItem label="系统角色定义" v-bind="validateInfos.systemPrompt">
+        <Textarea
+          v-model:value="formData.systemPrompt"
           :placeholder="$t('ui.formRules.required')"
           :rows="4"
         />

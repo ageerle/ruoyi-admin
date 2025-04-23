@@ -299,7 +299,7 @@ onMounted(() => {
 async function getConfig() {
   try {
     const res: ConfigResponseItem[] = await listConfig();
-    res.forEach((item) => {
+    res.rows.forEach((item) => {
       if (tabsData.value[item.category]) {
         tabsData.value[item.category].forEach((items: ConfigItem) => {
           if (items.configName === item.configName) {
@@ -348,11 +348,11 @@ const tabList = ref([
     label: '系统配置',
     data: tabsData.value.sys,
   },
-  {
-    key: '7',
-    label: 'stripe支付',
-    data: tabsData.value.stripe,
-  },
+  // {
+  //   key: '7',
+  //   label: 'stripe支付',
+  //   data: tabsData.value.stripe,
+  // },
 ]);
 
 const formData = ref<Record<string, boolean | string>>({});

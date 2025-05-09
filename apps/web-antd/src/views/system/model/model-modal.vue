@@ -50,6 +50,7 @@ const formData = ref(defaultValues);
 type AntdFormRules<T> = Partial<Record<keyof T, RuleObject[]>> & {
   [key: string]: RuleObject[];
 };
+
 /**
  * 表单校验规则
  */
@@ -181,12 +182,14 @@ const getmodelType = ref([
           :placeholder="$t('ui.formRules.required')"
         />
       </FormItem>
+
       <FormItem label="密钥" v-bind="validateInfos.apiKey">
         <Input
           v-model:value="formData.apiKey"
           :placeholder="$t('ui.formRules.required')"
         />
       </FormItem>
+
       <FormItem label="备注" v-bind="validateInfos.remark">
         <Textarea
           v-model:value="formData.remark"

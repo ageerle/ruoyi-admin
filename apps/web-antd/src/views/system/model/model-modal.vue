@@ -38,6 +38,7 @@ const defaultValues: Partial<ModelForm> = {
   modelShow: undefined,
   systemPrompt: undefined,
   apiHost: undefined,
+  apiUrl: undefined,
   apiKey: undefined,
   remark: undefined,
 };
@@ -61,6 +62,7 @@ const formRules = ref<AntdFormRules<ModelForm>>({
   modelShow: [{ required: true, message: '是否显示不能为空' }],
   apiHost: [{ required: true, message: '请求地址不能为空' }],
   apiKey: [{ required: true, message: '密钥不能为空' }],
+  apiUrl: [{ required: true, message: '请求后缀不能为空' }],
 });
 
 /**
@@ -178,6 +180,12 @@ const getmodelType = ref([
       <FormItem label="请求地址" v-bind="validateInfos.apiHost">
         <Input
           v-model:value="formData.apiHost"
+          :placeholder="$t('ui.formRules.required')"
+        />
+      </FormItem>
+      <FormItem label="请求后缀" v-bind="validateInfos.apiUrl">
+        <Input
+          v-model:value="formData.apiUrl"
           :placeholder="$t('ui.formRules.required')"
         />
       </FormItem>

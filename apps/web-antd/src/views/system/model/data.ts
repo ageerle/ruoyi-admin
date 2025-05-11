@@ -63,10 +63,7 @@ export const columns: VxeGridProps['columns'] = [
     title: '请求地址',
     field: 'apiHost',
   },
-  {
-    title: '请求后缀',
-    field: 'apiUrl',
-  },
+
   {
     title: '密钥',
     field: 'apiKey',

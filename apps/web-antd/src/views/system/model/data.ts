@@ -64,6 +64,10 @@ export const columns: VxeGridProps['columns'] = [
     field: 'apiHost',
   },
   {
+    title: '请求后缀',
+    field: 'apiUrl',
+  },
+  {
     title: '密钥',
     field: 'apiKey',
     width: '300px',

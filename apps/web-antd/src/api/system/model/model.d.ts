@@ -104,6 +104,11 @@ export interface ModelForm extends BaseEntity {
   apiHost?: string;
 
   /**
+   * 请求后缀
+   */
+  apiUrl?: string;
+
+  /**
    * 密钥
    */
   apiKey?: string;

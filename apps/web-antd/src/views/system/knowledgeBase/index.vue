@@ -91,12 +91,12 @@ const defaultFormData = {
   share: 0,
   kname: '',
   knowledgeSeparator: '',
-  retrieveLimit: 100,
-  textBlockSize: 100,
-  overlapChar: 100,
-  vector: 'weaviate',
+  retrieveLimit: 5,
+  textBlockSize: 300,
+  overlapChar: 30,
+  vectorModelName: 'weaviate',
   questionSeparator: '',
-  vectorModel: 'text-embedding-3-small',
+  embeddingModelName: 'baai/bge-m3',
   description: '',
 };
 const formData = ref({ ...defaultFormData });
@@ -107,6 +107,8 @@ const getVector = ref([
 
 const getVectorModel = ref([
   { label: 'text-embedding-3-small', value: 'text-embedding-3-small' },
+  { label: 'quentinz/bge-large-zh-v1.5', value: 'quentinz/bge-large-zh-v1.5' },
+  { label: 'baai/bge-m3', value: 'baai/bge-m3' },
 ]);
 
 onMounted(() => {
@@ -337,7 +339,6 @@ const handleSubmit = () => {
         <FormItem
           label="分隔符"
           name="knowledgeSeparator"
-          :rules="[{ required: true, message: '请输入分隔符' }]"
         >
           <Input v-model:value="formData.knowledgeSeparator" />
         </FormItem>
@@ -364,7 +365,6 @@ const handleSubmit = () => {
         <FormItem
           label="重叠字符"
           name="overlapChar"
-          :rules="[{ required: true, message: '请输入重叠字符' }]"
         >
           <InputNumber
             v-model:value="formData.overlapChar"
@@ -373,21 +373,21 @@ const handleSubmit = () => {
         </FormItem>
         <FormItem
           label="向量库"
-          name="vector"
+          name="vectorModelName"
           :rules="[{ required: true, message: '请选择向量库' }]"
         >
-          <Select v-model:value="formData.vector" :options="getVector" />
+          <Select v-model:value="formData.vectorModelName" :options="getVector" />
         </FormItem>
         <FormItem label="提问分割符" name="questionSeparator">
           <Input v-model:value="formData.questionSeparator" />
         </FormItem>
         <FormItem
           label="向量模型"
-          name="vectorModel"
+          name="embeddingModelName"
           :rules="[{ required: true, message: '请选择向量模型' }]"
         >
           <Select
-            v-model:value="formData.vectorModel"
+            v-model:value="formData.embeddingModelName"
             :options="getVectorModel"
           />
         </FormItem>

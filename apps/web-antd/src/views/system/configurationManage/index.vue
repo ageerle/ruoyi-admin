@@ -28,12 +28,11 @@ interface ConfigItem {
 
 interface TabsData {
   chat: ConfigItem[];
-  mj: ConfigItem[];
+  mail: ConfigItem[];
   pay: ConfigItem[];
   review: ConfigItem[];
-  weixin: ConfigItem[];
   sys: ConfigItem[];
-  stripe: ConfigItem[];
+  weaviate: ConfigItem[];
 }
 
 interface ConfigResponseItem {
@@ -60,61 +59,54 @@ const tabsData: Ref<TabsData> = ref({
       id: '',
     },
   ],
-  mj: [
+  mail: [
     {
-      category: 'mj',
-      configName: 'imagine',
+      category: 'mail',
+      configName: 'host',
       configValue: '',
-      configDict: '文生图',
+      configDict: '主机地址',
       id: '',
     },
     {
-      category: 'mj',
-      configName: 'blend',
+      category: 'mail',
+      configName: 'port',
       configValue: '',
-      configDict: '图生图',
+      configDict: '主机端口',
       id: '',
     },
     {
-      category: 'mj',
-      configName: 'describe',
+      category: 'mail',
+      configName: 'from',
       configValue: '',
-      configDict: '图生文',
+      configDict: '发送方',
       id: '',
     },
     {
-      category: 'mj',
-      configName: 'change',
+      category: 'mail',
+      configName: 'user',
       configValue: '',
-      configDict: '变化价格',
+      configDict: '用户名',
       id: '',
     },
     {
-      category: 'mj',
-      configName: 'upsample',
+      category: 'mail',
+      configName: 'pass',
       configValue: '',
-      configDict: '放大价格',
+      configDict: '授权码',
       id: '',
     },
     {
-      category: 'mj',
-      configName: 'inpaint',
+      category: 'mail',
+      configName: 'mailTitle',
       configValue: '',
-      configDict: '局部重绘',
+      configDict: '邮箱标题',
       id: '',
     },
     {
-      category: 'mj',
-      configName: 'faceSwapping',
+      category: 'mail',
+      configName: 'mailModel',
       configValue: '',
-      configDict: '换脸价格',
-      id: '',
-    },
-    {
-      category: 'mj',
-      configName: 'shorten',
-      configValue: '',
-      configDict: '提示词分析',
+      configDict: '邮箱模板',
       id: '',
     },
   ],
@@ -171,40 +163,26 @@ const tabsData: Ref<TabsData> = ref({
       id: '',
     },
   ],
-  weixin: [
+  weaviate: [
     {
-      category: 'weixin',
-      configName: 'appId',
+      category: 'weaviate',
+      configName: 'protocol',
       configValue: '',
-      configDict: '应用ID',
+      configDict: '协议',
       id: '',
     },
     {
-      category: 'weixin',
-      configName: 'appSecret',
+      category: 'weaviate',
+      configName: 'host',
       configValue: '',
-      configDict: '应用密钥',
+      configDict: '地址',
       id: '',
     },
     {
-      category: 'weixin',
-      configName: 'mchId',
+      category: 'weaviate',
+      configName: 'classname',
       configValue: '',
-      configDict: '商户ID',
-      id: '',
-    },
-    {
-      category: 'weixin',
-      configName: 'notifyUrl',
-      configValue: '',
-      configDict: '回调地址',
-      id: '',
-    },
-    {
-      category: 'weixin',
-      configName: 'enabled',
-      configValue: '',
-      configDict: '开启支付',
+      configDict: '分类名称',
       id: '',
     },
   ],
@@ -235,57 +213,6 @@ const tabsData: Ref<TabsData> = ref({
       configName: 'customImage',
       configValue: '',
       configDict: '客服二维码',
-      id: '',
-    },
-    {
-      category: 'sys',
-      configName: 'model',
-      configValue: '',
-      configDict: '系统模型',
-      id: '',
-    },
-  ],
-  stripe: [
-    {
-      category: 'stripe',
-      configName: 'success',
-      configValue: '',
-      configDict: '成功回调',
-      id: '',
-    },
-    {
-      category: 'stripe',
-      configName: 'cancel',
-      configValue: '',
-      configDict: '取消回调',
-      id: '',
-    },
-    {
-      category: 'stripe',
-      configName: 'key',
-      configValue: '',
-      configDict: '支付密钥',
-      id: '',
-    },
-    {
-      category: 'stripe',
-      configName: 'secret',
-      configValue: '',
-      configDict: '回调密钥',
-      id: '',
-    },
-    {
-      category: 'stripe',
-      configName: 'prompt',
-      configValue: '',
-      configDict: '提示语',
-      id: '',
-    },
-    {
-      category: 'stripe',
-      configName: 'enabled',
-      configValue: '',
-      configDict: '开启支付',
       id: '',
     },
   ],
@@ -325,8 +252,8 @@ const tabList = ref([
   },
   {
     key: '2',
-    label: '绘图费用',
-    data: tabsData.value.mj,
+    label: '邮箱配置',
+    data: tabsData.value.mail,
   },
   {
     key: '3',
@@ -340,19 +267,14 @@ const tabList = ref([
   },
   {
     key: '5',
-    label: '微信配置',
-    data: tabsData.value.weixin,
-  },
-  {
-    key: '6',
     label: '系统配置',
     data: tabsData.value.sys,
   },
-  // {
-  //   key: '7',
-  //   label: 'stripe支付',
-  //   data: tabsData.value.stripe,
-  // },
+  {
+    key: '6',
+    label: '向量库配置',
+    data: tabsData.value.weaviate,
+  },
 ]);
 
 const formData = ref<Record<string, boolean | string>>({});
@@ -381,7 +303,7 @@ function getTabName() {
       break;
     }
     case '2': {
-      name = 'mj';
+      name = 'mail';
 
       break;
     }
@@ -396,12 +318,12 @@ function getTabName() {
       break;
     }
     case '5': {
-      name = 'weixin';
+      name = 'sys';
 
       break;
     }
     case '6': {
-      name = 'sys';
+      name = 'weaviate';
 
       break;
     }

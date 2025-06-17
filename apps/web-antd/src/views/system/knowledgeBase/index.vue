@@ -149,11 +149,8 @@ const handleAdd = () => {
 
 // 删除
 const handleDelete = (record) => {
-  knowledgeDelete(record.kid).then((res) => {
-    if (res.code === 0) {
-      message.success('删除成功');
-      getList();
-    }
+  knowledgeDelete(record.id).then((res) => {
+    getList();
   });
 };
 
@@ -181,7 +178,6 @@ const fileColumns = [
 // 附件删除
 const handleDeleteFile = (record) => {
   knowledgeFileDelete(record.docId).then((res) => {
-    message.success('删除成功');
     getDetail(kid.value);
   });
 };

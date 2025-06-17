@@ -16,7 +16,7 @@ export function knowledgeList() {
 
 // 删除
 export function knowledgeDelete(id: any) {
-  return requestClient.post<any>(`${Api.knowledgeDelete}/${id}`);
+  return requestClient.deleteWithMsg<any>(`${Api.knowledgeDelete}/${id}`);
 }
 
 // 新增
@@ -31,7 +31,7 @@ export function knowledgeDetail(id: any) {
 
 // 附件删除
 export function knowledgeFileDelete(id: any) {
-  return requestClient.post<any>(`${Api.knowledgeFileDelete}/${id}`);
+  return requestClient.deleteWithMsg<any>(`${Api.knowledgeFileDelete}/${id}`);
 }
 
 // 知识片段列表

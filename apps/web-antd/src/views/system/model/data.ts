@@ -26,6 +26,11 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '模型分类',
     field: 'category',
+    slots: {
+      default: ({ row }) => {
+        return renderDict(row.category, DictEnum.CHAT_MODEL_CATEGORY);
+      },
+    },
   },
   {
     title: '模型名称',

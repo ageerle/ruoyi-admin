@@ -16,4 +16,5 @@ export enum DictEnum {
   WF_BUSINESS_STATUS = 'wf_business_status', // 业务状态
   WF_FORM_TYPE = 'wf_form_type', // 表单类型
   WF_TASK_STATUS = 'wf_task_status', // 任务状态
+  CHAT_MODEL_CATEGORY = 'chat_model_category', // 模型分类
 }

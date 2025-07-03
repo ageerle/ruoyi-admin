@@ -129,15 +129,31 @@ const getmodelType = ref([
   { label: 'token计费', value: '1' },
   { label: '次数计费', value: '2' },
 ]);
+
+const getModelCategory = ref([
+  { label: '本地部署模型-ollama', value: 'ollama' },
+  { label: '中转模型-chat', value: 'chat' },
+  { label: 'DIFY-dify', value: 'dify' },
+  { label: '扣子-coze', value: 'coze' },
+  { label: '智谱清言-zhipu', value: 'zhipu' },
+  { label: '深度求索-deepseek', value: 'deepseek' },
+  { label: '通义千问-qianwen', value: 'qianwen' },
+  { label: '知识库向量模型-vector', value: 'vector' },
+  { label: '图片识别模型-image', value: 'image' },
+  { label: 'FASTGPT-fastgpt', value: 'fastgpt' },
+]);
+
 </script>
 
 <template>
   <BasicModal :title="title">
     <Form :label-col="{ span: 4 }">
       <FormItem label="模型分类" v-bind="validateInfos.category">
-        <Input
+        <Select
           v-model:value="formData.category"
-          :placeholder="$t('ui.formRules.required')"
+          :options="getModelCategory"
+          :get-popup-container="getPopupContainer"
+          :placeholder="$t('ui.formRules.selectRequired')"
         />
       </FormItem>
       <FormItem label="模型名称" v-bind="validateInfos.modelName">

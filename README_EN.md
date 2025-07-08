@@ -1,6 +1,8 @@
 # RuoYi AI Admin
 
-A modern enterprise-level admin management system built on the Vben Admin framework, featuring comprehensive permission management, system monitoring, workflow engine, and other enterprise-grade functional modules.
+> English Documentation | [中文文档](./README.md)
+
+A modern enterprise-level admin management system built on the Vben Admin framework, featuring comprehensive permission management, system monitoring and other enterprise-grade functional modules.
 
 ## ✨ Features
 
@@ -8,7 +10,6 @@ A modern enterprise-level admin management system built on the Vben Admin framew
 - 🛠️ **Rich Components**: Integrated with Ant Design Vue component library
 - 🔐 **Permission Management**: Complete RBAC permission control system
 - 📊 **System Monitoring**: Real-time system status monitoring
-- 🔄 **Workflow Engine**: Support for complex business process management
 - 📱 **Responsive Design**: Perfect adaptation to various device screens
 
 ## 🚀 Tech Stack

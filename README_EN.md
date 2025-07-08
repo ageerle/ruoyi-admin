@@ -38,7 +38,7 @@ A modern enterprise-level admin management system built on the Vben Admin framew
 
 ### 1. Clone the project
 ```bash
-git clone https://gitee.com/ageerle/ruoyi-admin
+git clone https://github.com/ageerle/ruoyi-admin
 cd ruoyi-admin
 ```
 

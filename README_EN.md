@@ -70,7 +70,6 @@ pnpm run build:antd
 ruoyi-admin/
 ├── apps/                    # Applications directory
 │   ├── web-antd/           # Ant Design Vue version
-│   └── backend-mock/       # Backend mock service
 ├── packages/               # Shared packages
 │   ├── @core/             # Core package
 │   ├── constants/         # Constants definition

@@ -70,7 +70,6 @@ pnpm run build:antd
 ruoyi-admin/
 ├── apps/                    # 应用目录
 │   ├── web-antd/           # Ant Design Vue 版本
-│   └── backend-mock/       # 后端模拟服务
 ├── packages/               # 共享包
 │   ├── @core/             # 核心包
 │   ├── constants/         # 常量定义

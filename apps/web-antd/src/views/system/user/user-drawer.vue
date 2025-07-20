@@ -12,6 +12,7 @@ import { Tag } from 'ant-design-vue';
 import { useVbenForm } from '#/adapter/form';
 import { findUserInfo, userAdd, userUpdate } from '#/api/system/user';
 import { authScopeOptions } from '#/views/system/role/data';
+import KnowledgeRolePicker from './knowledge-role-picker.vue';
 
 import { drawerSchema } from './data';
 
@@ -21,6 +22,14 @@ const isUpdate = ref(false);
 const title = computed(() => {
   return isUpdate.value ? $t('pages.common.edit') : $t('pages.common.add');
 });
+
+/**
+ * 角色类别选择器
+ * role: 角色
+ * roleGroup: 角色组
+ */
+const kroleGroupType = ref('role');
+const kroleGroupIds = ref<String[]>([]);
 
 const [BasicForm, formApi] = useVbenForm({
   commonConfig: {
@@ -107,6 +116,8 @@ const [BasicDrawer, drawerApi] = useVbenDrawer({
     ]);
 
     if (user) {
+      kroleGroupIds.value = user.kroleGroupIds ? user.kroleGroupIds?.split(",") : [];
+      kroleGroupType.value = user.kroleGroupType ? user.kroleGroupType : 'role';
       await Promise.all([
         // 添加基础信息
         formApi.setValues(user),
@@ -127,6 +138,9 @@ async function handleConfirm() {
       return;
     }
     const data = cloneDeep(await formApi.getValues());
+    data.kroleGroupIds = kroleGroupIds.value.join(',');
+    data.kroleGroupType = kroleGroupType.value;
+
     await (isUpdate.value ? userUpdate(data) : userAdd(data));
     emit('reload');
     await handleCancel();
@@ -145,6 +159,11 @@ async function handleCancel() {
 
 <template>
   <BasicDrawer :close-on-click-modal="false" :title="title" class="w-[600px]">
-    <BasicForm />
+    <BasicForm>
+      <template #kroleGroupType="slotProps">
+        <KnowledgeRolePicker v-bind="slotProps" v-model:krole-group-type="kroleGroupType"
+          v-model:krole-group-ids="kroleGroupIds" />
+      </template>
+    </BasicForm>
   </BasicDrawer>
 </template>

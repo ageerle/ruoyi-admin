@@ -1,0 +1,51 @@
+{
+  "apiUrl": "http://localhost:6039/dev/schemaField/getByTableName",
+  "theme": "default",
+  "appId": "admin",
+  "appSecret": "123456",
+  "templates": [
+    {
+      "name": "API接口模板",
+      "selected": true,
+      "templateFile": "api.art",
+      "targetPath": "apps/web-antd/src/api/<{schemaGroupCode}>/<{tableCamelName}>",
+      "targetFileName": "index.ts"
+    },
+    {
+      "name": "列表页面模板",
+      "selected": true,
+      "templateFile": "index.art",
+      "targetPath": "apps/web-antd/src/views/<{schemaGroupCode}>/<{tableCamelName}>",
+      "targetFileName": "index.vue"
+    },
+    {
+      "name": "数据配置模板",
+      "selected": true,
+      "templateFile": "data.art",
+      "targetPath": "apps/web-antd/src/views/<{schemaGroupCode}>/<{tableCamelName}>",
+      "targetFileName": "data.tsx",
+      "data": true
+    },
+    {
+      "name": "表单模态框模板",
+      "selected": true,
+      "templateFile": "modal.art",
+      "targetPath": "apps/web-antd/src/views/<{schemaGroupCode}>/<{tableCamelName}>",
+      "targetFileName": "<{tableCamelName}>-modal.vue"
+    },
+    {
+      "name": "详情模态框模板",
+      "selected": true,
+      "templateFile": "info-modal.art",
+      "targetPath": "apps/web-antd/src/views/<{schemaGroupCode}>/<{tableCamelName}>",
+      "targetFileName": "<{tableCamelName}>-info-modal.vue"
+    },
+    {
+      "name": "类型定义模板",
+      "selected": true,
+      "templateFile": "types.art",
+      "targetPath": "apps/web-antd/src/api/<{schemaGroupCode}>/<{tableCamelName}>",
+      "targetFileName": "types.ts"
+    }
+  ]
+}

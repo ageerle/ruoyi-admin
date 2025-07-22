@@ -202,68 +202,28 @@ export const querySchema: FormSchemaGetter = () => [
   {
     fieldName: 'schemaId',
     label: '数据模型',
-    component: 'Select',
+    component: 'ApiSelect',
     componentProps: {
-      placeholder: '请选择数据模型',
+      api: schemaList,
+      immediate: true,
       showSearch: true,
       allowClear: true,
-      options: [],
-      api: async () => {
-        try {
-          const response = await schemaList({pageSize: 1000});
-          return response.rows?.map(item => ({
-            label: `${item.code}-${item.name}`,
-            value: item.id,
-          })) || [];
-        } catch (error) {
-          console.error('加载数据模型选项失败:', error);
-          return [];
-        }
+      placeholder: '请选择数据模型',
+      // 处理返回的数据结构
+      afterFetch: (data: any) => {
+        // 检查返回的数据结构
+        const schemas = data?.rows || data || [];
+        return schemas.map((item: any) => ({
+          label: `${item.name}-${item.tableName}`,
+          value: item.id,
+        }));
       },
-      filterOption: (input: string, option: any) => {
-        return option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+      onError: (error: any) => {
+        console.error('API调用失败:', error);
       },
     },
     colProps: {
       span: 8,
-    },
-  },
-  {
-    fieldName: 'name',
-    label: '字段名称',
-    component: 'Input',
-    colProps: {
-      span: 8,
-    },
-  },
-  {
-    fieldName: 'code',
-    label: '字段编码',
-    component: 'Input',
-    colProps: {
-      span: 8,
-    },
-  },
-  {
-    fieldName: 'type',
-    label: '字段类型',
-    component: 'Select',
-    componentProps: {
-      options: [
-        {label: 'varchar', value: 'varchar'},
-        {label: 'char', value: 'char'},
-        {label: 'text', value: 'text'},
-        {label: 'int', value: 'int'},
-        {label: 'bigint', value: 'bigint'},
-        {label: 'decimal', value: 'decimal'},
-        {label: 'datetime', value: 'datetime'},
-        {label: 'date', value: 'date'},
-        {label: 'timestamp', value: 'timestamp'},
-        {label: 'tinyint', value: 'tinyint'},
-      ],
-    },
-    colProps: {
-      span: 8,
-    },
-  },
+    }
+  }
 ];

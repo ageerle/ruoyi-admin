@@ -1,4 +1,4 @@
-import { requestClient } from '#/api/request';
+import {requestClient} from '#/api/request';
 
 export namespace SchemaGroupApi {
   /** 模型分组信息 */
@@ -14,7 +14,8 @@ export namespace SchemaGroupApi {
   }
 
   /** 表单数据类型 */
-  export interface SchemaGroupForm extends SchemaGroupInfo {}
+  export interface SchemaGroupForm extends SchemaGroupInfo {
+  }
 
   /** 分页查询参数 */
   export interface PageParams {
@@ -43,14 +44,7 @@ export namespace SchemaGroupApi {
  * 分页查询模型分组列表
  */
 export async function devSchemaGroupPage(params: SchemaGroupApi.PageParams) {
-  return requestClient.get<SchemaGroupApi.PageResult>('/dev/schemaGroup/list', { params });
-}
-
-/**
- * 查询模型分组列表
- */
-export async function devSchemaGroupList(params?: any) {
-  return requestClient.get<SchemaGroupApi.SchemaGroupInfo[]>('/dev/schemaGroup/list', { params });
+  return requestClient.get<SchemaGroupApi.PageResult>('/dev/schemaGroup/list', {params});
 }
 
 /**

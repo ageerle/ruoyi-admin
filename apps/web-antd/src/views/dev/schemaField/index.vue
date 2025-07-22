@@ -43,28 +43,21 @@
 </template>
 
 <script setup lang="ts">
-import type { VbenFormProps } from '@vben/common-ui';
+import type {VbenFormProps} from '@vben/common-ui';
+import {Page, useVbenModal} from '@vben/common-ui';
 
-import type { VxeGridProps } from '#/adapter/vxe-table';
+import type {VxeGridProps} from '#/adapter/vxe-table';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import {$t} from '@vben/locales';
+import {getVxePopupContainer} from '@vben/utils';
 
-import { Page, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { getVxePopupContainer } from '@vben/utils';
+import {message, Popconfirm, Space} from 'ant-design-vue';
+import {deleteSchemaField, getSchemaFieldList} from '#/api/dev/schemaField';
 
-import { message, Modal, Popconfirm, Space } from 'ant-design-vue';
-
-import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
-import {
-  addSchemaField,
-  batchUpdateSchemaFieldConfig,
-  deleteSchemaField,
-  getSchemaFieldList
-} from '#/api/dev/schemaField';
-
-import { columns, querySchema } from './data';
+import {columns, querySchema} from './data';
 import SchemaFieldModal from './schema-field-modal.vue';
 
-import { onMounted, ref, watch } from 'vue';
+import {onMounted, ref, watch} from 'vue';
 
 interface Props {
   schemaId?: number;
@@ -123,16 +116,15 @@ const gridOptions: VxeGridProps = {
   ],
   proxyConfig: {
     ajax: {
-      query: async ({ page }, formValues = {}) => {
+      query: async ({page}, formValues = {}) => {
         const searchSchemaId = formValues?.schemaId || props.schemaId;
         try {
-          const response = await getSchemaFieldList({
+          return await getSchemaFieldList({
             pageNum: page.currentPage,
             pageSize: page.pageSize,
             schemaId: searchSchemaId,
             ...formValues,
           });
-          return response;
         } catch (error) {
           console.error('获取字段列表失败:', error);
           message.error('获取字段列表失败');
@@ -194,71 +186,6 @@ async function handleDelete(record: any) {
   }
 }
 
-// 批量删除字段
-function handleMultiDelete() {
-  const rows = tableApi.grid.getCheckboxRecords();
-  const ids = rows.map((row: any) => row.id);
-  Modal.confirm({
-    title: '提示',
-    okType: 'danger',
-    content: `确认删除选中的${ids.length}条记录吗？`,
-    onOk: async () => {
-      await deleteSchemaField(ids);
-      await tableApi.query();
-    },
-  });
-}
-
-// 保存配置
-async function handleSave() {
-  const $table = tableApi.grid;
-  if (!$table) return;
-
-  const formData = tableApi.formApi?.form?.values || {};
-  const currentSchemaId = formData?.schemaId || props.schemaId;
-
-  if (!currentSchemaId) {
-    message.warning('请先选择数据模型');
-    return;
-  }
-
-  const updateRecords = $table.getUpdateRecords();
-  const insertRecords = $table.getInsertRecords();
-
-  if (updateRecords.length === 0 && insertRecords.length === 0) {
-    message.info('没有需要保存的数据');
-    return;
-  }
-
-  saving.value = true;
-  try {
-    // 处理新增记录
-    for (const record of insertRecords) {
-      await addSchemaField({
-        ...record,
-        schemaId: currentSchemaId,
-      });
-    }
-
-    // 处理更新记录
-    if (updateRecords.length > 0) {
-      await batchUpdateSchemaFieldConfig(updateRecords);
-    }
-
-    message.success('保存成功');
-    await tableApi.query();
-  } catch (error) {
-    console.error('保存失败:', error);
-    message.error('保存失败');
-  } finally {
-    saving.value = false;
-  }
-}
-
-// 刷新
-function handleRefresh() {
-  tableApi.query();
-}
 
 // 监听schemaId变化
 watch(() => props.schemaId, (newSchemaId) => {
@@ -276,9 +203,3 @@ onMounted(() => {
   }
 });
 </script>
-
-<style scoped>
-.mr-1 {
-  margin-right: 4px;
-}
-</style>

@@ -1,10 +1,12 @@
-import type { FormSchemaGetter } from '#/adapter/form';
-import type { VxeGridProps } from '#/adapter/vxe-table';
+import type {FormSchemaGetter} from '#/adapter/form';
+import type {VxeGridProps} from '#/adapter/vxe-table';
 
-import { DictEnum } from '@vben/constants';
+import {DictEnum} from '@vben/constants';
 
-import { renderDict } from '#/utils/render';
+import {renderDict} from '#/utils/render';
+import {getDataNames} from '#/api/dev/schema';
 
+// 创建一个异步函数来获取表名选项
 export const querySchema: FormSchemaGetter = () => [
   {
     component: 'Input',
@@ -17,9 +19,28 @@ export const querySchema: FormSchemaGetter = () => [
     label: '模型编码',
   },
   {
-    component: 'Input',
+    component: 'ApiSelect',
     fieldName: 'tableName',
     label: '表名',
+    componentProps: {
+      api: getDataNames,
+      immediate: true,
+      showSearch: true,
+      placeholder: '请选择表名',
+      // 直接处理返回的字符串数组
+      afterFetch: (data: any) => {
+
+        // 检查返回的数据结构
+        const tableNames = data?.data || data || [];
+        return tableNames.map((tableName: string) => ({
+          label: tableName,
+          value: tableName,
+        }));
+      },
+      onError: (error: any) => {
+        console.error('API调用失败:', error);
+      },
+    },
   },
   {
     component: 'Select',
@@ -27,18 +48,19 @@ export const querySchema: FormSchemaGetter = () => [
     label: '状态',
     componentProps: {
       options: [
-        { label: '正常', value: '0' },
-        { label: '停用', value: '1' },
+        {label: '正常', value: '0'},
+        {label: '停用', value: '1'},
       ],
     },
   },
 ];
 
 export const columns: VxeGridProps['columns'] = [
-  { type: 'checkbox', width: 60 },
+  {type: 'checkbox', width: 60},
   {
     title: '主键',
     field: 'id',
+    visible: false,
   },
   {
     title: '模型名称',
@@ -61,8 +83,8 @@ export const columns: VxeGridProps['columns'] = [
     field: 'status',
     width: 120,
     slots: {
-      default: ({ row }) => {
-        return renderDict(row.status, DictEnum.COMMON_STATUS);
+      default: ({row}) => {
+        return renderDict(row.status, DictEnum.STATUS_TYPE);
       },
     },
   },
@@ -73,7 +95,7 @@ export const columns: VxeGridProps['columns'] = [
   {
     field: 'action',
     fixed: 'right',
-    slots: { default: 'action' },
+    slots: {default: 'action'},
     title: '操作',
     width: 180,
   },

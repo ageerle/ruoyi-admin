@@ -46,29 +46,24 @@
         </Space>
       </template>
     </BasicTable>
-    <SchemaGroupModal @reload="tableApi.query()" />
+    <SchemaGroupModal @reload="tableApi.query()"/>
   </Page>
 </template>
 
 <script setup lang="ts">
-import type { VbenFormProps } from '@vben/common-ui';
+import type {VbenFormProps} from '@vben/common-ui';
+import {Page, useVbenModal} from '@vben/common-ui';
 
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { SchemaGroupForm } from '#/api/dev/schemaGroup';
+import type {VxeGridProps} from '#/adapter/vxe-table';
+import {useVbenVxeGrid, vxeCheckboxChecked} from '#/adapter/vxe-table';
+import type {SchemaGroupForm} from '#/api/dev/schemaGroup';
+import {devSchemaGroupDel, devSchemaGroupPage,} from '#/api/dev/schemaGroup';
+import {$t} from '@vben/locales';
+import {getVxePopupContainer} from '@vben/utils';
 
-import { Page, useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { getVxePopupContainer } from '@vben/utils';
+import {Modal, Popconfirm, Space} from 'ant-design-vue';
 
-import { Modal, Popconfirm, Space } from 'ant-design-vue';
-
-import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
-import {
-  devSchemaGroupPage,
-  devSchemaGroupDel,
-} from '#/api/dev/schemaGroup';
-
-import { columns, querySchema } from './data';
+import {columns, querySchema} from './data';
 import schemaGroupModal from './schemaGroup-modal.vue';
 
 const formOptions: VbenFormProps = {
@@ -95,7 +90,7 @@ const gridOptions: VxeGridProps = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, formValues = {}) => {
+      query: async ({page}, formValues = {}) => {
         return await devSchemaGroupPage({
           current: page.currentPage,
           size: page.pageSize,
@@ -126,12 +121,12 @@ function handleAdd() {
 }
 
 async function handleEdit(row: Required<SchemaGroupForm>) {
-  modalApi.setData({ id: row.id });
+  modalApi.setData({id: row.id});
   modalApi.open();
 }
 
 async function handleDelete(row: Required<SchemaGroupForm>) {
-  await devSchemaGroupDel({ ids: [row.id] });
+  await devSchemaGroupDel({ids: [row.id]});
   await tableApi.query();
 }
 
@@ -143,7 +138,7 @@ function handleMultiDelete() {
     okType: 'danger',
     content: `确认删除选中的${ids.length}条记录吗？`,
     onOk: async () => {
-      await devSchemaGroupDel({ ids });
+      await devSchemaGroupDel({ids});
       await tableApi.query();
     },
   });

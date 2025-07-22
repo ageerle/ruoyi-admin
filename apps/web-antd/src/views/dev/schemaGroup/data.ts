@@ -1,5 +1,5 @@
-import type { FormSchemaGetter } from '#/adapter/form';
-import type { VxeGridProps } from '#/adapter/vxe-table';
+import type {FormSchemaGetter} from '#/adapter/form';
+import type {VxeGridProps} from '#/adapter/vxe-table';
 
 export const querySchema: FormSchemaGetter = () => [
   {
@@ -15,10 +15,11 @@ export const querySchema: FormSchemaGetter = () => [
 ];
 
 export const columns: VxeGridProps['columns'] = [
-  { type: 'checkbox', width: 60 },
+  {type: 'checkbox', width: 60},
   {
     title: '主键',
     field: 'id',
+    visible: false
   },
   {
     title: '分组名称',
@@ -31,26 +32,19 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '图标',
     field: 'icon',
-    width: 80,
   },
   {
     title: '排序',
     field: 'sort',
-    width: 80,
   },
   {
     title: '备注',
     field: 'remark',
   },
   {
-    title: '更新时间',
-    field: 'updateTime',
-    width: 180,
-  },
-  {
     field: 'action',
     fixed: 'right',
-    slots: { default: 'action' },
+    slots: {default: 'action'},
     title: '操作',
     width: 180,
   },

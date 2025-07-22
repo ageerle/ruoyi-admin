@@ -1,23 +1,19 @@
 <script setup lang="ts">
-import type { RuleObject } from 'ant-design-vue/es/form';
+import type {RuleObject} from 'ant-design-vue/es/form';
 
-import type { Schema } from '#/api/dev/schema/model';
+import type {Schema} from '#/api/dev/schema/model';
 
-import { computed, ref } from 'vue';
+import {computed, ref} from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { cloneDeep, getPopupContainer } from '@vben/utils';
+import {useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
+import {cloneDeep, getPopupContainer} from '@vben/utils';
 
-import { Form, FormItem, Input, InputNumber, Select, Textarea } from 'ant-design-vue';
-import { pick } from 'lodash-es';
+import {Form, FormItem, Input, InputNumber, Select, Textarea} from 'ant-design-vue';
+import {pick} from 'lodash-es';
 
-import {
-  schemaAdd,
-  schemaInfo,
-  schemaUpdate,
-} from '#/api/dev/schema';
-import { devSchemaGroupSelect } from '#/api/dev/schemaGroup';
+import {getDataNames, schemaAdd, schemaInfo, schemaUpdate,} from '#/api/dev/schema';
+import {devSchemaGroupSelect} from '#/api/dev/schemaGroup';
 
 const emit = defineEmits<{ reload: [] }>();
 
@@ -47,6 +43,7 @@ const defaultValues: Partial<Schema> = {
  */
 const formData = ref(defaultValues);
 const schemaGroupOptions = ref<Array<{ label: string; value: number }>>([]);
+const tableNameOptions = ref<Array<{ label: string; value: string }>>([]);
 
 type AntdFormRules<T> = Partial<Record<keyof T, RuleObject[]>> & {
   [key: string]: RuleObject[];
@@ -55,16 +52,16 @@ type AntdFormRules<T> = Partial<Record<keyof T, RuleObject[]>> & {
  * 表单校验规则
  */
 const formRules = ref<AntdFormRules<Schema>>({
-  name: [{ required: true, message: '模型名称不能为空' }],
-  code: [{ required: true, message: '模型编码不能为空' }],
-  tableName: [{ required: true, message: '表名不能为空' }],
-  schemaGroupId: [{ required: true, message: '请选择分组' }],
+  name: [{required: true, message: '模型名称不能为空'}],
+  code: [{required: true, message: '模型编码不能为空'}],
+  tableName: [{required: true, message: '表名不能为空'}],
+  schemaGroupId: [{required: true, message: '请选择分组'}],
 });
 
 /**
  * useForm解构出表单方法
  */
-const { validate, validateInfos, resetFields } = Form.useForm(
+const {validate, validateInfos, resetFields} = Form.useForm(
   formData,
   formRules,
 );
@@ -82,6 +79,19 @@ async function loadSchemaGroups() {
   }
 }
 
+// 获取数据表名选项
+async function loadTableNames() {
+  try {
+    const data = await getDataNames();
+    tableNameOptions.value = data.map((name: string) => ({
+      label: name,
+      value: name,
+    }));
+  } catch (error) {
+    console.error('获取数据表名列表失败:', error);
+  }
+}
+
 const [BasicModal, modalApi] = useVbenModal({
   class: 'w-[600px]',
   fullscreenButton: false,
@@ -95,8 +105,9 @@ const [BasicModal, modalApi] = useVbenModal({
     modalApi.modalLoading(true);
 
     await loadSchemaGroups();
+    await loadTableNames();
 
-    const { id } = modalApi.getData() as { id?: number | string };
+    const {id} = modalApi.getData() as { id?: number | string };
     isUpdate.value = !!id;
 
     if (isUpdate.value && id) {
@@ -156,9 +167,15 @@ async function handleCancel() {
         />
       </FormItem>
       <FormItem label="表名" v-bind="validateInfos.tableName">
-        <Input
+        <Select
           v-model:value="formData.tableName"
+          :options="tableNameOptions"
+          :get-popup-container="getPopupContainer"
           :placeholder="$t('ui.formRules.required')"
+          show-search
+          :filter-option="(input: string, option: any) => {
+            return option.label.toLowerCase().includes(input.toLowerCase());
+          }"
         />
       </FormItem>
       <FormItem label="表注释">

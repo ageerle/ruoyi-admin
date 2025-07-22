@@ -57,7 +57,8 @@
     "test:unit": "vitest run --dom",
     "test:e2e": "turbo run test:e2e",
     "update:deps": "npx taze -r -w",
-    "version": "pnpm exec changeset version && pnpm install --no-frozen-lockfile"
+    "version": "pnpm exec changeset version && pnpm install --no-frozen-lockfile",
+    "generate": "node ./scripts/generate/main.mjs"
   },
   "devDependencies": {
     "@changesets/changelog-github": "catalog:",

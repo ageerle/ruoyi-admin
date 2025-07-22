@@ -1,20 +1,16 @@
 <script setup lang="ts">
-import type { RuleObject } from 'ant-design-vue/es/form';
-import type { SchemaGroupForm } from '#/api/dev/schemaGroup';
+import type {RuleObject} from 'ant-design-vue/es/form';
+import type {SchemaGroupForm} from '#/api/dev/schemaGroup';
+import {devSchemaGroupDetail, devSchemaGroupSaveOrUpdate,} from '#/api/dev/schemaGroup';
 
-import { computed, ref } from 'vue';
+import {computed, ref} from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { cloneDeep, getPopupContainer } from '@vben/utils';
+import {useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
+import {cloneDeep} from '@vben/utils';
 
-import { Form, FormItem, Input, InputNumber, Textarea } from 'ant-design-vue';
-import { pick } from 'lodash-es';
-
-import {
-  devSchemaGroupSaveOrUpdate,
-  devSchemaGroupDetail,
-} from '#/api/dev/schemaGroup';
+import {Form, FormItem, Input, InputNumber, Textarea} from 'ant-design-vue';
+import {pick} from 'lodash-es';
 
 const emit = defineEmits<{ reload: [] }>();
 
@@ -47,14 +43,14 @@ type AntdFormRules<T> = Partial<Record<keyof T, RuleObject[]>> & {
  * 表单校验规则
  */
 const formRules = ref<AntdFormRules<SchemaGroupForm>>({
-  name: [{ required: true, message: '分组名称不能为空' }],
-  code: [{ required: true, message: '唯一编码不能为空' }],
+  name: [{required: true, message: '分组名称不能为空'}],
+  code: [{required: true, message: '唯一编码不能为空'}],
 });
 
 /**
  * useForm解构出表单方法
  */
-const { validate, validateInfos, resetFields } = Form.useForm(
+const {validate, validateInfos, resetFields} = Form.useForm(
   formData,
   formRules,
 );
@@ -71,11 +67,11 @@ const [BasicModal, modalApi] = useVbenModal({
     }
     modalApi.modalLoading(true);
 
-    const { id } = modalApi.getData() as { id?: number | string };
+    const {id} = modalApi.getData() as { id?: number | string };
     isUpdate.value = !!id;
 
     if (isUpdate.value && id) {
-      const record = await devSchemaGroupDetail({ id: String(id) });
+      const record = await devSchemaGroupDetail({id: String(id)});
       // 只赋值存在的字段
       formData.value = pick(record, Object.keys(defaultValues));
     }

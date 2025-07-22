@@ -1,14 +1,15 @@
-import type { SchemaInfo as Schema, SchemaQueryParams as SchemaQueryParam } from './schema/types';
+import type {SchemaInfo as Schema, SchemaQueryParams as SchemaQueryParam} from './schema/types';
 
-import type { ID, IDS, PageQuery, PageResult } from '#/api/common';
+import type {ID, IDS, PageQuery, PageResult} from '#/api/common';
 
-import { commonExport } from '#/api/helper';
-import { requestClient } from '#/api/request';
+import {commonExport} from '#/api/helper';
+import {requestClient} from '#/api/request';
 
 enum Api {
   root = '/dev/schema',
   list = '/dev/schema/list',
   export = '/dev/schema/export',
+  getDataNames = '/dev/schema/getDataNames',
 }
 
 /**
@@ -17,7 +18,7 @@ enum Api {
  * @returns Schema列表
  */
 export function schemaList(params?: PageQuery & SchemaQueryParam) {
-  return requestClient.get<PageResult<Schema>>(Api.list, { params });
+  return requestClient.get<PageResult<Schema>>(Api.list, {params});
 }
 
 /**
@@ -66,15 +67,9 @@ export function schemaExport(data: Partial<SchemaQueryParam>) {
 }
 
 /**
- * 保存或更新null
- * @param data null数据
- * @param isUpdate 是否更新
- * @returns void
+ * 获取数据表名列表
+ * @returns 数据表名列表
  */
-export function schemaSaveOrUpdate(data: Partial<Schema>, isUpdate: boolean) {
-  if (isUpdate) {
-    return schemaUpdate(data);
-  } else {
-    return schemaAdd(data);
-  }
+export function getDataNames() {
+  return requestClient.get<string[]>(Api.getDataNames);
 }

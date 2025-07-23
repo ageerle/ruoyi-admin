@@ -154,13 +154,13 @@ async function handleCancel() {
           placeholder="请选择分组"
         />
       </FormItem>
-      <FormItem label="模型名称" v-bind="validateInfos.name">
+      <FormItem label="菜单名称" v-bind="validateInfos.name">
         <Input
           v-model:value="formData.name"
           :placeholder="$t('ui.formRules.required')"
         />
       </FormItem>
-      <FormItem label="模型编码" v-bind="validateInfos.code">
+      <FormItem label="菜单目录" v-bind="validateInfos.code">
         <Input
           v-model:value="formData.code"
           :placeholder="$t('ui.formRules.required')"

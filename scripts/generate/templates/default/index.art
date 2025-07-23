@@ -43,13 +43,16 @@ const formOptions: VbenFormProps = {
     },
   },
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
-  schema: querySchema(),<{each columns}><{if $value.javaType == 'Date' && $value.queryType == 'BETWEEN'}>
+  schema: querySchema(),<{each columns}><{if ($value.javaType == 'Date' || $value.htmlType == 'time') && ($value.queryType == 'BETWEEN' || $value.component == 'RangePicker')}>
   // 日期选择格式化
   fieldMappingTime: [
     [
       '<{$value.javaField}>',
-      ['params[begin<{capitalize($value.javaField)}>]', 'params[end<{capitalize($value.javaField)}>]'],
-      ['YYYY-MM-DD 00:00:00', 'YYYY-MM-DD 23:59:59'],
+      ['params[begin<{capitalize($value.javaField)}>]', 'params[end<{capitalize($value.javaField)}>]'],<{if $value.htmlType == 'datetime'}>
+      ['YYYY-MM-DD 00:00:00', 'YYYY-MM-DD 23:59:59'],<{else if $value.htmlType == 'date'}>
+      ['YYYY-MM-DD', 'YYYY-MM-DD'],<{else if $value.htmlType == 'time'}>
+      ['HH:mm:ss', 'HH:mm:ss'],<{else}>
+      ['YYYY-MM-DD 00:00:00', 'YYYY-MM-DD 23:59:59'],<{/if}>
     ],
   ],<{/if}><{/each}>
 };
@@ -121,7 +124,9 @@ function handleMultiDelete() {
 
 function handleDownloadExcel() {
   const formValues = tableApi.formApi.form.values;
-  commonDownloadExcel(<{tableCamelName}>Export, '<{functionName}>数据', formValues);
+  commonDownloadExcel(<{tableCamelName}>Export, '<{functionName}>数据', formValues, {
+    fieldMappingTime: formOptions.fieldMappingTime,
+  });
 }
 </script>
 

@@ -166,6 +166,7 @@ const title = computed(() => {
 const defaultValues: Partial<SchemaFieldForm> = {
   id: undefined,
   schemaId: undefined,
+  schemaName: undefined,
   name: undefined,
   code: undefined,
   type: 'varchar',
@@ -250,7 +251,9 @@ const htmlTypeOptions = [
   {label: '下拉框', value: 'select'},
   {label: '单选框', value: 'radio'},
   {label: '复选框', value: 'checkbox'},
-  {label: '日期控件', value: 'datetime'},
+  {label: '日期时间控件', value: 'datetime'},
+  {label: '日期控件', value: 'date'},
+  {label: '时间控件', value: 'time'},
   {label: '图片上传', value: 'imageUpload'},
   {label: '文件上传', value: 'fileUpload'},
   {label: '富文本控件', value: 'editor'},

@@ -81,6 +81,9 @@ const gridOptions: VxeGridProps = {
   rowConfig: {
     keyField: 'roleId',
   },
+  toolbarConfig: {
+    search: true,
+  },
   id: 'system-role-index',
 };
 

@@ -14,6 +14,12 @@ export const columns: VxeGridProps['columns'] = [
     field: 'schemaId',
     visible: false,
   },
+
+  {
+    title: '模型名称',
+    field: 'schemaName',
+    visible: false,
+  },
   {
     title: '字段编码',
     field: 'code',
@@ -150,6 +156,9 @@ export const columns: VxeGridProps['columns'] = [
         {label: '复选框', value: 'checkbox'},
         {label: '单选框', value: 'radio'},
         {label: '日期控件', value: 'datetime'},
+        {label: '日期时间控件', value: 'datetime'},
+        {label: '日期控件', value: 'date'},
+        {label: '时间控件', value: 'time'},
         {label: '上传控件', value: 'upload'},
         {label: '富文本', value: 'editor'},
       ],

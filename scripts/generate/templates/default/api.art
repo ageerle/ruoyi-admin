@@ -1,4 +1,4 @@
-import type { <{className}>Info as <{className}>, <{className}>QueryParams as <{className}>QueryParam } from './<{tableCamelName}>/types';
+import type { <{className}>Info as <{className}>, <{className}>QueryParams as <{className}>QueryParam } from './types';
 
 import type { ID, IDS, PageQuery, PageResult } from '#/api/common';
 

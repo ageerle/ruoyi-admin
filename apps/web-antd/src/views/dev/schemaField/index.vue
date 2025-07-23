@@ -57,7 +57,7 @@ import {deleteSchemaField, getSchemaFieldList} from '#/api/dev/schemaField';
 import {columns, querySchema} from './data';
 import SchemaFieldModal from './schema-field-modal.vue';
 
-import {onMounted, ref, watch} from 'vue';
+import {onMounted, watch} from 'vue';
 
 interface Props {
   schemaId?: number;
@@ -67,7 +67,6 @@ const props = withDefaults(defineProps<Props>(), {
   schemaId: undefined,
 });
 
-const saving = ref(false);
 
 const formOptions: VbenFormProps = {
   commonConfig: {

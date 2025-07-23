@@ -36,6 +36,7 @@ export interface SchemaField {
 export interface SchemaFieldForm {
   id?: number;
   schemaId?: number;
+  schemaName?: string;
   name?: string;
   code?: string;
   type?: string;

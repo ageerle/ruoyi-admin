@@ -16,9 +16,39 @@ import { renderDict } from '#/utils/render';<{if ext.customFormComponentList && 
 export const querySchema: FormSchemaGetter = () => [
 <{each columns}><{if $value.isQuery == '1'}>
   {
-    component: '<{if $value.htmlType == 'input'}>Input<{else if $value.htmlType == 'select'}>Select<{else if $value.htmlType == 'radio'}>RadioGroup<{else if $value.htmlType == 'checkbox'}>CheckboxGroup<{else if $value.htmlType == 'datetime'}>DatePicker<{else if $value.htmlType == 'textarea'}>Textarea<{else}>Input<{/if}>',
+    component: '<{$value.component || 'Input'}>',
     fieldName: '<{$value.javaField}>',
-    label: '<{$value.columnComment}>',
+    label: '<{$value.columnComment}>',<{if $value.dictType}>
+    componentProps: {
+      options: DictEnum.<{$value.dictType}>,
+    },<{else if $value.htmlType == 'radio'}>
+    componentProps: {
+      options: [
+        { label: '是', value: '1' },
+        { label: '否', value: '0' },
+      ],
+    },<{else if $value.htmlType == 'checkbox'}>
+    componentProps: {
+      options: [
+        { label: '选项1', value: '1' },
+        { label: '选项2', value: '2' },
+      ],
+    },<{else if $value.htmlType == 'datetime'}>
+    componentProps: {<{if $value.component == 'RangePicker'}>
+      showTime: true,<{else}>
+      showTime: true,<{/if}>
+      format: 'YYYY-MM-DD HH:mm:ss',
+      valueFormat: 'YYYY-MM-DD HH:mm:ss',
+    },<{else if $value.htmlType == 'date'}>
+    componentProps: {
+      format: 'YYYY-MM-DD',
+      valueFormat: 'YYYY-MM-DD',
+    },<{else if $value.htmlType == 'time'}>
+    componentProps: {<{if $value.component == 'RangePicker'}>
+      picker: 'time',<{/if}>
+      format: 'HH:mm:ss',
+      valueFormat: 'HH:mm:ss',
+    },<{/if}>
   },
 <{/if}><{/each}>
 ];
@@ -50,12 +80,37 @@ export const columns: VxeGridProps['columns'] = [
 export const modalSchema: FormSchemaGetter = () => [
 <{each columns}><{if $value.isInsert == '1' && $value.isPk != '1'}>
   {
-    component: '<{if $value.htmlType == 'input'}>Input<{else if $value.htmlType == 'select'}>Select<{else if $value.htmlType == 'radio'}>RadioGroup<{else if $value.htmlType == 'checkbox'}>CheckboxGroup<{else if $value.htmlType == 'datetime'}>DatePicker<{else if $value.htmlType == 'textarea'}>Textarea<{else}>Input<{/if}>',
     fieldName: '<{$value.javaField}>',
+    component: '<{$value.component || 'Input'}>',
     label: '<{$value.columnComment}>',<{if $value.isRequired == '1'}>
     rules: 'required',<{/if}><{if $value.dictType}>
     componentProps: {
       options: DictEnum.<{$value.dictType}>,
+    },<{else if $value.htmlType == 'radio'}>
+    componentProps: {
+      options: [
+        { label: '是', value: '1' },
+        { label: '否', value: '0' },
+      ],
+    },<{else if $value.htmlType == 'checkbox'}>
+    componentProps: {
+      options: [
+        { label: '选项1', value: '1' },
+        { label: '选项2', value: '2' },
+      ],
+    },<{else if $value.htmlType == 'datetime'}>
+    componentProps: {
+      showTime: true,
+      format: 'YYYY-MM-DD HH:mm:ss',
+      valueFormat: 'YYYY-MM-DD HH:mm:ss',
+    },<{else if $value.htmlType == 'date'}>
+    componentProps: {
+      format: 'YYYY-MM-DD',
+      valueFormat: 'YYYY-MM-DD',
+    },<{else if $value.htmlType == 'time'}>
+    componentProps: {
+      format: 'HH:mm:ss',
+      valueFormat: 'HH:mm:ss',
     },<{/if}>
   },
 <{/if}><{/each}>];

@@ -11,12 +11,12 @@ export const querySchema: FormSchemaGetter = () => [
   {
     component: 'Input',
     fieldName: 'name',
-    label: '模型名称',
+    label: '菜单名称',
   },
   {
     component: 'Input',
     fieldName: 'code',
-    label: '模型编码',
+    label: '菜单目录',
   },
   {
     component: 'ApiSelect',
@@ -63,11 +63,11 @@ export const columns: VxeGridProps['columns'] = [
     visible: false,
   },
   {
-    title: '模型名称',
+    title: '菜单名称',
     field: 'name',
   },
   {
-    title: '模型编码',
+    title: '菜单目录',
     field: 'code',
   },
   {
@@ -112,13 +112,13 @@ export const drawerSchema: FormSchemaGetter = () => [
   {
     component: 'Input',
     fieldName: 'name',
-    label: '模型名称',
+    label: '菜单名称',
   },
 
   {
     component: 'Input',
     fieldName: 'code',
-    label: '模型编码',
+    label: '菜单目录',
   },
 
   {

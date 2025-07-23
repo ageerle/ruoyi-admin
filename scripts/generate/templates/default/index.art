@@ -2,9 +2,7 @@
 import type { VbenFormProps } from '@vben/common-ui';
 
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { <{className}>Info } from '#/api/<{schemaGroupCode}>/<{tableCamelName}>/types/<{className}>Info';
-
-import { ref } from 'vue';
+import type { <{className}>Info } from '#/api/<{schemaGroupCode}>/<{tableCamelName}>/types';
 
 import { Page, useVbenModal } from '@vben/common-ui';
 import { $t } from '@vben/locales';

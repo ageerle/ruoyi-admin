@@ -6,28 +6,24 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '序号',
     type: 'seq',
-    width: 60,
     fixed: 'left',
     visible: false,
   },
   {
     title: '模型ID',
     field: 'schemaId',
-    width: 80,
     visible: false,
   },
   {
-    title: '字段名称',
-    field: 'name',
-    width: 120,
+    title: '字段编码',
+    field: 'code',
     editRender: {
       name: 'VxeInput',
     },
   },
   {
-    title: '字段编码',
-    field: 'code',
-    width: 120,
+    title: '字段描述',
+    field: 'name',
     editRender: {
       name: 'VxeInput',
     },
@@ -35,7 +31,6 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '字段类型',
     field: 'type',
-    width: 100,
     editRender: {
       name: 'VxeSelect',
       options: [
@@ -53,17 +48,8 @@ export const columns: VxeGridProps['columns'] = [
     },
   },
   {
-    title: '字段注释',
-    field: 'comment',
-    width: 150,
-    editRender: {
-      name: 'VxeInput',
-    },
-  },
-  {
     title: '字段长度',
     field: 'length',
-    width: 100,
     editRender: {
       name: 'VxeInput',
       props: {
@@ -74,7 +60,6 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '主键',
     field: 'isPk',
-    width: 80,
     editRender: {
       name: 'VxeSwitch',
       props: {
@@ -86,7 +71,6 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '必填',
     field: 'isRequired',
-    width: 80,
     editRender: {
       name: 'VxeSwitch',
       props: {
@@ -98,7 +82,6 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '列表显示',
     field: 'isList',
-    width: 100,
     editRender: {
       name: 'VxeSwitch',
       props: {
@@ -110,7 +93,6 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '查询字段',
     field: 'isQuery',
-    width: 100,
     editRender: {
       name: 'VxeSwitch',
       props: {
@@ -122,7 +104,6 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '插入字段',
     field: 'isInsert',
-    width: 100,
     editRender: {
       name: 'VxeSwitch',
       props: {
@@ -134,7 +115,6 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '编辑字段',
     field: 'isEdit',
-    width: 100,
     editRender: {
       name: 'VxeSwitch',
       props: {
@@ -146,7 +126,6 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '查询方式',
     field: 'queryType',
-    width: 100,
     editRender: {
       name: 'VxeSelect',
       options: [
@@ -162,7 +141,6 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: 'HTML类型',
     field: 'htmlType',
-    width: 120,
     editRender: {
       name: 'VxeSelect',
       options: [
@@ -180,22 +158,10 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '字典类型',
     field: 'dictType',
-    width: 120,
     editRender: {
       name: 'VxeInput',
     },
-  },
-  {
-    title: '排序',
-    field: 'sort',
-    width: 80,
-    editRender: {
-      name: 'VxeInput',
-      props: {
-        type: 'number',
-      },
-    },
-  },
+  }
 ];
 
 export const querySchema: FormSchemaGetter = () => [

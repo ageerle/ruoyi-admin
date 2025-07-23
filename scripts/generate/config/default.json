@@ -34,13 +34,6 @@
       "targetFileName": "<{tableCamelName}>-modal.vue"
     },
     {
-      "name": "详情模态框模板",
-      "selected": true,
-      "templateFile": "info-modal.art",
-      "targetPath": "apps/web-antd/src/views/<{schemaGroupCode}>/<{tableCamelName}>",
-      "targetFileName": "<{tableCamelName}>-info-modal.vue"
-    },
-    {
       "name": "类型定义模板",
       "selected": true,
       "templateFile": "types.art",

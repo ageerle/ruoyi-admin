@@ -79,7 +79,6 @@ const gridOptions: VxeGridProps = {
   },
   rowConfig: {<{if pkColumn}>
     keyField: '<{pkColumn.javaField}>',<{/if}>
-    height: 50,
   },
   id: '<{schemaGroupCode}>-<{tableCamelName}>-index',
 };

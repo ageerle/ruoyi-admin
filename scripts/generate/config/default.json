@@ -1,5 +1,5 @@
 {
-  "apiUrl": "http://localhost:6039/dev/schemaField/getByTableName",
+  "apiUrl": "http://localhost:6039/tool/gen/getByTableName",
   "theme": "default",
   "appId": "admin",
   "appSecret": "123456",

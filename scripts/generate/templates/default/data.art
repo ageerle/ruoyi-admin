@@ -86,7 +86,7 @@ export const modalSchema: FormSchemaGetter = () => [
     },
   <{/if}>
 
-  <{if $value.isInsert == '1'}>
+  <{if $value.isInsert == '1' && $value.isPk != '1'}>
     {
       fieldName: '<{$value.javaField}>',
       component: '<{$value.component || 'Input'}>',

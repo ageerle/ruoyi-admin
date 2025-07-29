@@ -78,39 +78,50 @@ export const columns: VxeGridProps['columns'] = [
 ];
 
 export const modalSchema: FormSchemaGetter = () => [
-<{each columns}><{if $value.isInsert == '1' && $value.isPk != '1'}>
-  {
-    fieldName: '<{$value.javaField}>',
-    component: '<{$value.component || 'Input'}>',
-    label: '<{$value.columnComment}>',<{if $value.isRequired == '1'}>
-    rules: 'required',<{/if}><{if $value.dictType}>
-    componentProps: {
-      options: DictEnum.<{$value.dictType}>,
-    },<{else if $value.htmlType == 'radio'}>
-    componentProps: {
-      options: [
-        { label: '是', value: '1' },
-        { label: '否', value: '0' },
-      ],
-    },<{else if $value.htmlType == 'checkbox'}>
-    componentProps: {
-      options: [
-        { label: '选项1', value: '1' },
-        { label: '选项2', value: '2' },
-      ],
-    },<{else if $value.htmlType == 'datetime'}>
-    componentProps: {
-      showTime: true,
-      format: 'YYYY-MM-DD HH:mm:ss',
-      valueFormat: 'YYYY-MM-DD HH:mm:ss',
-    },<{else if $value.htmlType == 'date'}>
-    componentProps: {
-      format: 'YYYY-MM-DD',
-      valueFormat: 'YYYY-MM-DD',
-    },<{else if $value.htmlType == 'time'}>
-    componentProps: {
-      format: 'HH:mm:ss',
-      valueFormat: 'HH:mm:ss',
-    },<{/if}>
-  },
-<{/if}><{/each}>];
+<{each columns}>
+
+  <{if $value.isPk == '1'}>
+    {
+      fieldName: '<{$value.javaField}>'
+    },
+  <{/if}>
+
+  <{if $value.isInsert == '1'}>
+    {
+      fieldName: '<{$value.javaField}>',
+      component: '<{$value.component || 'Input'}>',
+      label: '<{$value.columnComment}>',<{if $value.isRequired == '1'}>
+      rules: 'required',<{/if}><{if $value.dictType}>
+      componentProps: {
+        options: DictEnum.<{$value.dictType}>,
+      },<{else if $value.htmlType == 'radio'}>
+      componentProps: {
+        options: [
+          { label: '是', value: '1' },
+          { label: '否', value: '0' },
+        ],
+      },<{else if $value.htmlType == 'checkbox'}>
+      componentProps: {
+        options: [
+          { label: '选项1', value: '1' },
+          { label: '选项2', value: '2' },
+        ],
+      },<{else if $value.htmlType == 'datetime'}>
+      componentProps: {
+        showTime: true,
+        format: 'YYYY-MM-DD HH:mm:ss',
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+      },<{else if $value.htmlType == 'date'}>
+      componentProps: {
+        format: 'YYYY-MM-DD',
+        valueFormat: 'YYYY-MM-DD',
+      },<{else if $value.htmlType == 'time'}>
+      componentProps: {
+        format: 'HH:mm:ss',
+        valueFormat: 'HH:mm:ss',
+      },<{/if}>
+    },
+  <{/if}>
+
+<{/each}>
+];

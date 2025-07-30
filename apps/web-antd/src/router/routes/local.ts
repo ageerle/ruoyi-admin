@@ -17,15 +17,15 @@ const localRoutes: RouteRecordStringComponent[] = [
     path: '/profile',
   },
   {
-    component: '/system/oss-config/index',
+    component: '/operator/oss-config/index',
     meta: {
-      activePath: '/system/oss',
+      activePath: '/operator/oss',
       icon: 'ant-design:setting-outlined',
       title: 'oss配置',
       hideInMenu: true,
     },
     name: 'OssConfig',
-    path: '/system/oss-config',
+    path: '/operator/oss-config',
   },
   {
     component: '/system/role-assign/index',

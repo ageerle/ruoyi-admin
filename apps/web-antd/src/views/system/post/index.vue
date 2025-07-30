@@ -14,7 +14,7 @@ import { Modal, Popconfirm, Space } from 'ant-design-vue';
 import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
 import { postExport, postList, postRemove } from '#/api/system/post';
 import { commonDownloadExcel } from '#/utils/file/download';
-import DeptTree from '#/views/system/user/dept-tree.vue';
+import DeptTree from '#/views/operator/user/dept-tree.vue';
 
 import { columns, querySchema } from './data';
 import postDrawer from './post-drawer.vue';

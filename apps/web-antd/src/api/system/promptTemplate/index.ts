@@ -61,5 +61,5 @@ export function templateUpdate(data: TemplateForm) {
  * @returns void
  */
 export function templateRemove(id: ID | IDS) {
-  return requestClient.deleteWithMsg<void>(`/system/template/${id}`);
+  return requestClient.deleteWithMsg<void>(`/system/promptTemplate/${id}`);
 }

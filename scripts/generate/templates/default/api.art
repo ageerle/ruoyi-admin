@@ -1,0 +1,144 @@
+import type { <{className}>Info as <{className}>, <{className}>QueryParams as <{className}>QueryParam } from './types';
+
+import type { ID, IDS, PageQuery, PageResult } from '#/api/common';
+
+import { commonExport } from '#/api/helper';
+import { requestClient } from '#/api/request';
+
+enum Api {
+  root = '/<{schemaGroupCode}>/<{tableCamelName}>',
+  list = '/<{schemaGroupCode}>/<{tableCamelName}>/list',<{if isTree}>
+  tree = '/<{schemaGroupCode}>/<{tableCamelName}>/tree',<{/if}>
+  export = '/<{schemaGroupCode}>/<{tableCamelName}>/export',<{if ext.hasImport}>
+  import = '/<{schemaGroupCode}>/<{tableCamelName}>/importData',
+  importTemplate = '/<{schemaGroupCode}>/<{tableCamelName}>/importTemplate',<{/if}><{if ext.statusField}>
+  statusChange = '/<{schemaGroupCode}>/<{tableCamelName}>/changeStatus',<{/if}>
+}
+
+/**
+ * 获取<{remark}>列表
+ * @param params 查询参数
+ * @returns <{className}>列表
+ */
+export function <{tableCamelName}>List(params?: PageQuery & <{className}>QueryParam) {
+  return requestClient.get<PageResult<<{className}>>>(Api.list, { params });
+}<{if isTree}>
+
+/**
+ * 获取<{remark}>树形列表
+ * @param params 查询参数
+ * @returns <{className}>树形列表
+ */
+export function <{tableCamelName}>Tree(params?: <{className}>QueryParam) {
+  return requestClient.get<<{className}>[]>(Api.tree, { params });
+}<{/if}>
+
+/**
+ * 获取<{remark}>详情
+ * @param id <{remark}>ID
+ * @returns <{className}>详情
+ */
+export function <{tableCamelName}>Info(id: ID) {
+  return requestClient.get<<{className}>>(`${Api.root}/${id}`);
+}
+
+/**
+ * 新增<{remark}>
+ * @param data <{remark}>数据
+ * @returns void
+ */
+export function <{tableCamelName}>Add(data: Partial<<{className}>>) {
+  return requestClient.postWithMsg<void>(Api.root, data);
+}
+
+/**
+ * 更新<{remark}>
+ * @param data <{remark}>数据
+ * @returns void
+ */
+export function <{tableCamelName}>Update(data: Partial<<{className}>>) {
+  return requestClient.putWithMsg<void>(Api.root, data);
+}
+
+/**
+ * 删除<{remark}>
+ * @param ids <{remark}>ID数组
+ * @returns void
+ */
+export function <{tableCamelName}>Remove(ids: IDS) {
+  return requestClient.deleteWithMsg<void>(`${Api.root}/${ids}`);
+}<{if ext.statusField}>
+
+/**
+ * 更新<{remark}>状态
+ * @param data 状态数据
+ * @returns void
+ */
+export function <{tableCamelName}>StatusChange(data: { <{ext.statusField}>: string | number; <{pkColumn.javaField}>: ID }) {
+  return requestClient.putWithMsg<void>(Api.statusChange, data);
+}<{/if}>
+
+/**
+ * 导出<{remark}>
+ * @param data 查询参数
+ * @returns blob
+ */
+export function <{tableCamelName}>Export(data: Partial<<{className}>QueryParam>) {
+  return commonExport(Api.export, data);
+}<{if ext.hasImport}>
+
+/**
+ * 导入<{remark}>
+ * @param data 导入数据
+ * @returns void
+ */
+export function <{tableCamelName}>Import(data: FormData) {
+  return requestClient.post(
+    Api.import,
+    data,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      isTransformResponse: false,
+    },
+  );
+}
+
+/**
+ * 下载<{remark}>导入模板
+ * @returns blob
+ */
+export function <{tableCamelName}>ImportTemplate() {
+  return requestClient.post(
+    Api.importTemplate,
+    {},
+    {
+      isTransformResponse: false,
+      responseType: 'blob',
+    },
+  );
+}<{/if}>
+
+/**
+ * 保存或更新<{remark}>
+ * @param data <{remark}>数据
+ * @param isUpdate 是否更新
+ * @returns void
+ */
+export function <{tableCamelName}>SaveOrUpdate(data: Partial<<{className}>>, isUpdate: boolean) {
+  if (isUpdate) {
+    return <{tableCamelName}>Update(data);
+  } else {
+    return <{tableCamelName}>Add(data);
+  }
+}<{each ext.customApiList || [] }>
+
+/**
+ * <{$value.name}>
+ * @param data 参数
+ * @returns
+ */
+export function <{urlToCamelCase($value.url)}>(data?: any) {
+  return requestClient.<{$value.method}>({ url: '<{$value.url}>', <{if $value.method=='get'}>params<{else}>data<{/if}>: data });
+}<{/each}>

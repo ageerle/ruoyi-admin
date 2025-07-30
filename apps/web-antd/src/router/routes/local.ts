@@ -28,17 +28,6 @@ const localRoutes: RouteRecordStringComponent[] = [
     path: '/system/oss-config',
   },
   {
-    component: '/tool/gen/edit-gen',
-    meta: {
-      activePath: '/tool/gen',
-      icon: 'tabler:code',
-      title: '生成配置',
-      hideInMenu: true,
-    },
-    name: 'GenConfig',
-    path: '/code-gen/edit/:tableId',
-  },
-  {
     component: '/system/role-assign/index',
     meta: {
       activePath: '/system/role',
@@ -48,32 +37,7 @@ const localRoutes: RouteRecordStringComponent[] = [
     },
     name: 'RoleAssign',
     path: '/system/role-assign/:roleId',
-  },
-  {
-    component: '/workflow/components/flow-designer',
-    meta: {
-      activePath: '/workflow/processDefinition',
-      icon: 'fluent-mdl2:flow',
-      title: '流程设计',
-      hideInMenu: true,
-    },
-    name: 'WorkflowDesigner',
-    path: '/workflow/designer',
-  },
-  /**
-   * 需要添加iframe路由 同目录的./workflow-iframe.ts
-   */
-  {
-    component: 'workflow/leave/leave-form',
-    meta: {
-      icon: 'flat-color-icons:leave',
-      title: '请假申请',
-      activePath: '/demo/leave',
-      hideInMenu: true,
-    },
-    name: 'WorkflowLeaveIndex',
-    path: '/workflow/leaveEdit/index',
-  },
+  }
 ];
 
 /**

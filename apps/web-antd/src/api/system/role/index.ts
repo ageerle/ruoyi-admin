@@ -1,4 +1,4 @@
-import type { User } from '../user/model';
+import type { User } from '#/api/operator/user/model';
 import type { DeptResp, Role } from './model';
 
 import type { ID, IDS, PageQuery, PageResult } from '#/api/common';

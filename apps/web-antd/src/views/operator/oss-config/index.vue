@@ -2,7 +2,7 @@
 import type { VbenFormProps } from '@vben/common-ui';
 
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { OssConfig } from '#/api/system/oss-config/model';
+import type { OssConfig } from '#/api/operator/oss-config/model';
 
 import { useAccess } from '@vben/access';
 import { Page, useVbenDrawer } from '@vben/common-ui';
@@ -15,7 +15,7 @@ import {
   ossConfigChangeStatus,
   ossConfigList,
   ossConfigRemove,
-} from '#/api/system/oss-config';
+} from '#/api/operator/oss-config';
 import { TableSwitch } from '#/components/table';
 
 import { columns, querySchema } from './data';

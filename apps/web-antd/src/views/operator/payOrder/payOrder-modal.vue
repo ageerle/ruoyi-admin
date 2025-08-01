@@ -5,7 +5,7 @@ vscode默认配置文件会自动格式化/移除未使用依赖
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form';
 
-import type { PayOrderForm } from '#/api/system/payOrder/model';
+import type { PayOrderForm } from '#/api/operator/payOrder/model';
 
 import { computed, ref } from 'vue';
 
@@ -20,7 +20,7 @@ import {
   payOrderAdd,
   payOrderInfo,
   payOrderUpdate,
-} from '#/api/system/payOrder';
+} from '#/api/operator/payOrder';
 
 const emit = defineEmits<{ reload: [] }>();
 

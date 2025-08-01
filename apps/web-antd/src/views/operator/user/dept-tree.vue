@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { PropType } from 'vue';
 
-import type { DeptTree } from '#/api/system/user/model';
+import type { DeptTree } from '#/api/operator/user/model';
 
 import { onMounted, ref } from 'vue';
 
 import { SyncOutlined } from '@ant-design/icons-vue';
 import { Empty, InputSearch, Skeleton, Tree } from 'ant-design-vue';
 
-import { getDeptTree } from '#/api/system/user';
+import { getDeptTree } from '#/api/operator/user';
 
 defineOptions({ inheritAttrs: false });
 

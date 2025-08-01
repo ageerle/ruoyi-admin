@@ -16,7 +16,7 @@ import {
   Tabs,
 } from 'ant-design-vue';
 
-import { addConfig, listConfig } from '#/api/system/configurationManage';
+import { addConfig, listConfig } from '#/api/operator/configurationManage';
 
 interface ConfigItem {
   category: string;

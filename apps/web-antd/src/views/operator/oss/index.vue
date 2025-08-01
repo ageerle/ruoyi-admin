@@ -3,7 +3,7 @@ import type { VbenFormProps } from '@vben/common-ui';
 
 import type { VxeGridProps } from '#/adapter/vxe-table';
 import type { PageQuery } from '#/api/common';
-import type { OssFile } from '#/api/system/oss/model';
+import type { OssFile } from '#/api/operator/oss/model';
 
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -29,7 +29,7 @@ import {
   vxeCheckboxChecked,
 } from '#/adapter/vxe-table';
 import { configInfoByKey } from '#/api/system/config';
-import { ossDownload, ossList, ossRemove } from '#/api/system/oss';
+import { ossDownload, ossList, ossRemove } from '#/api/operator/oss';
 import { calculateFileSize } from '#/utils/file';
 import { downloadByData } from '#/utils/file/download';
 

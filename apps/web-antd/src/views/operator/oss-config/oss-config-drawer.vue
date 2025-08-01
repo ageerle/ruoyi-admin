@@ -12,7 +12,7 @@ import {
   ossConfigAdd,
   ossConfigInfo,
   ossConfigUpdate,
-} from '#/api/system/oss-config';
+} from '#/api/operator/oss-config';
 
 import { drawerSchema } from './data';
 

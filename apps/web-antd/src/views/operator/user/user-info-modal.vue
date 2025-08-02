@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { User } from '#/api/system/user/model';
+import type { User } from '#/api/operator/user/model';
 
 import { useVbenModal } from '@vben/common-ui';
 
-import { findUserInfo } from '#/api/system/user';
+import { findUserInfo } from '#/api/operator/user';
 import { Description, useDescription } from '#/components/description';
 
 import { descSchema } from './info';

@@ -2,7 +2,7 @@
 import type { VbenFormProps } from '@vben/common-ui';
 
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { PayOrderForm } from '#/api/system/payOrder/model';
+import type { PayOrderForm } from '#/api/operator/payOrder/model';
 
 import { Page, useVbenModal } from '@vben/common-ui';
 import { getVxePopupContainer } from '@vben/utils';
@@ -14,7 +14,7 @@ import {
   payOrderExport,
   payOrderList,
   payOrderRemove,
-} from '#/api/system/payOrder';
+} from '#/api/operator/payOrder';
 import { commonDownloadExcel } from '#/utils/file/download';
 
 import { columns, querySchema } from './data';

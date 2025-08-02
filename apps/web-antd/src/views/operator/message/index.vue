@@ -2,7 +2,7 @@
 import type { VbenFormProps } from '@vben/common-ui';
 
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { MessageForm } from '#/api/system/message/model';
+import type { MessageForm } from '#/api/operator/message/model';
 
 import { Page, useVbenModal } from '@vben/common-ui';
 import { getVxePopupContainer } from '@vben/utils';
@@ -14,7 +14,7 @@ import {
   messageExport,
   messageList,
   messageRemove,
-} from '#/api/system/message';
+} from '#/api/operator/message';
 import { commonDownloadExcel } from '#/utils/file/download';
 
 import { columns, querySchema } from './data';

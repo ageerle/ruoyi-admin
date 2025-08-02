@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form';
 
-import type { TemplateForm } from '#/api/system/promptTemplate/model';
+import type { TemplateForm } from '#/api/operator/promptTemplate/model';
 
 import { computed, ref } from 'vue';
 
@@ -16,7 +16,7 @@ import {
   templateAdd,
   templateInfo,
   templateUpdate,
-} from '#/api/system/promptTemplate';
+} from '#/api/operator/promptTemplate';
 
 const emit = defineEmits<{ reload: [] }>();
 

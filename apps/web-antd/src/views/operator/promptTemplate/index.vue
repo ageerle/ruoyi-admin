@@ -2,7 +2,7 @@
 import type { VbenFormProps } from '@vben/common-ui';
 
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { TemplateForm } from '#/api/system/promptTemplate/model';
+import type { TemplateForm } from '#/api/operator/promptTemplate/model';
 
 import { Page, useVbenModal } from '@vben/common-ui';
 import { $t } from '@vben/locales';
@@ -15,7 +15,7 @@ import {
   templateExport,
   templateList,
   templateRemove,
-} from '#/api/system/promptTemplate';
+} from '#/api/operator/promptTemplate';
 import { commonDownloadExcel } from '#/utils/file/download';
 
 import { columns, querySchema } from './data';

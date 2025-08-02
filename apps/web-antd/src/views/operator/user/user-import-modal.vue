@@ -8,7 +8,7 @@ import { ExcelIcon, InBoxIcon } from '@vben/icons';
 
 import { Modal, Switch, Upload } from 'ant-design-vue';
 
-import { downloadImportTemplate, userImportData } from '#/api/system/user';
+import { downloadImportTemplate, userImportData } from '#/api/operator/user';
 import { commonDownloadExcel } from '#/utils/file/download';
 
 const emit = defineEmits<{ reload: [] }>();

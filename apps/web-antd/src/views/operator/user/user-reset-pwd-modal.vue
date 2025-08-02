@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { ResetPwdParam, User } from '#/api/system/user/model';
+import type { ResetPwdParam, User } from '#/api/operator/user/model';
 
 import { useVbenModal, z } from '@vben/common-ui';
 
 import { useVbenForm } from '#/adapter/form';
-import { userResetPassword } from '#/api/system/user';
+import { userResetPassword } from '#/api/operator/user';
 import { Description, useDescription } from '#/components/description';
 
 const emit = defineEmits<{ reload: [] }>();

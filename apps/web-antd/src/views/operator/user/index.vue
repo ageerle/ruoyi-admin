@@ -2,7 +2,7 @@
 import type { VbenFormProps } from '@vben/common-ui';
 
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { User } from '#/api/system/user/model';
+import type { User } from '#/api/operator/user/model';
 
 import { ref } from 'vue';
 
@@ -28,7 +28,7 @@ import {
   userList,
   userRemove,
   userStatusChange,
-} from '#/api/system/user';
+} from '#/api/operator/user';
 import { TableSwitch } from '#/components/table';
 import { commonDownloadExcel } from '#/utils/file/download';
 

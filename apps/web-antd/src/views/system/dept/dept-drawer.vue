@@ -15,7 +15,7 @@ import {
   deptNodeList,
   deptUpdate,
 } from '#/api/system/dept';
-import { listUserByDeptId } from '#/api/system/user';
+import { listUserByDeptId } from '#/api/operator/user';
 
 import { drawerSchema } from './data';
 

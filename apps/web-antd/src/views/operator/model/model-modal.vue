@@ -5,7 +5,7 @@ vscode默认配置文件会自动格式化/移除未使用依赖
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form';
 
-import type { ModelForm } from '#/api/system/model/model';
+import type { ModelForm } from '#/api/operator/model/model';
 
 import { computed, ref } from 'vue';
 
@@ -16,7 +16,7 @@ import { cloneDeep, getPopupContainer } from '@vben/utils';
 import { Form, FormItem, Input, Select, Textarea } from 'ant-design-vue';
 import { pick } from 'lodash-es';
 
-import { modelAdd, modelInfo, modelUpdate } from '#/api/system/model';
+import { modelAdd, modelInfo, modelUpdate } from '#/api/operator/model';
 
 const emit = defineEmits<{ reload: [] }>();
 

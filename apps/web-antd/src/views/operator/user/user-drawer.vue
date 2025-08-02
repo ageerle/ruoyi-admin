@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Role } from '#/api/system/user/model';
+import type { Role } from '#/api/operator/user/model';
 
 import { computed, h, ref } from 'vue';
 
@@ -10,7 +10,7 @@ import { cloneDeep } from '@vben/utils';
 import { Tag } from 'ant-design-vue';
 
 import { useVbenForm } from '#/adapter/form';
-import { findUserInfo, userAdd, userUpdate } from '#/api/system/user';
+import { findUserInfo, userAdd, userUpdate } from '#/api/operator/user';
 import { authScopeOptions } from '#/views/system/role/data';
 
 import { drawerSchema } from './data';

@@ -29,7 +29,7 @@ import {
   knowledgeDetail,
   knowledgeFileDelete,
   knowledgeFragmentList,
-} from '#/api/system/knowledgeBase';
+} from '#/api/operator/knowledgeBase';
 
 import { useAppConfig } from '@vben/hooks';
 import { useAccessStore } from '@vben/stores';

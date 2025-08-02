@@ -4,7 +4,7 @@ import type { VbenFormProps } from '@vben/common-ui';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 import type { KnowledgeRoleGroup } from '#/api/operator/knowledgeRole/knowledge-role-group-model';
 
-import { onMounted, ref, watchEffect } from 'vue';
+import { ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 import { getVxePopupContainer } from '@vben/utils';
@@ -98,6 +98,8 @@ async function handleEdit(record: KnowledgeRoleGroup) {
 async function handleDelete(row: KnowledgeRoleGroup) {
   await knowledgeRoleGroupRemove([row.id]);
   await tableApi.query();
+  emitter.emit('rowClick', "");
+  lastGroupId.value = "";
 }
 
 function handleMultiDelete() {

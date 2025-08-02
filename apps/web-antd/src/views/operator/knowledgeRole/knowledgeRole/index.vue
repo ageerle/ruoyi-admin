@@ -18,7 +18,6 @@ import { emitter } from '../mitt';
 import { columns, querySchema } from './data';
 import knowledgeRoleDrawer from './knowledge-role-drawer.vue';
 import { knowledgeRoleList, knowledgeRoleRemove } from '#/api/operator/knowledgeRole/knowledge-role';
-import { optionOptions } from 'ant-design-vue/es/vc-mentions/src/Option';
 
 const groupId = ref('');
 
@@ -56,9 +55,8 @@ const gridOptions: VxeGridProps = {
         };
         if (groupId.value) {
           params.groupId = groupId.value;
+          return await knowledgeRoleList(params);
         }
-
-        return await knowledgeRoleList(params);
       },
     },
   },

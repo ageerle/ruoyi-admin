@@ -54,6 +54,8 @@ const [BasicDrawer, drawerApi] = useVbenDrawer({
       const record = await knowledgeRoleInfo(id);
       knowledgeIds.value = record.knowledgeIds ? record.knowledgeIds : [];
       await formApi.setValues(record);
+    } else {
+      knowledgeIds.value = [];
     }
     drawerApi.drawerLoading(false);
   },

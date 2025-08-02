@@ -7,7 +7,7 @@ import { addFullName, cloneDeep } from '@vben/utils';
 
 import { useVbenForm } from '#/adapter/form';
 import { postAdd, postInfo, postUpdate } from '#/api/system/post';
-import { getDeptTree } from 'src/api/operator/user';
+import { getDeptTree } from '#/api/operator/user';
 
 import { drawerSchema } from './data';
 

@@ -3,11 +3,16 @@ import { computed, ref } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
 import { $t } from '@vben/locales';
-import { addFullName, cloneDeep } from '@vben/utils';
+import { cloneDeep } from '@vben/utils';
+
+import { Alert } from 'ant-design-vue';
 
 import { useVbenForm } from '#/adapter/form';
-import { postAdd, postInfo, postUpdate } from '#/api/system/post';
-import { getDeptTree } from '#/api/operator/user';
+import {
+  ossConfigAdd,
+  ossConfigInfo,
+  ossConfigUpdate,
+} from '#/api/operator/oss-config';
 
 import { drawerSchema } from './data';
 
@@ -20,35 +25,13 @@ const title = computed(() => {
 
 const [BasicForm, formApi] = useVbenForm({
   commonConfig: {
-    formItemClass: 'col-span-2',
-    componentProps: {
-      class: 'w-full',
-    },
-    labelWidth: 80,
+    formItemClass: 'col-span-3',
+    labelWidth: 100,
   },
   schema: drawerSchema(),
   showDefaultActions: false,
-  wrapperClass: 'grid-cols-2',
+  wrapperClass: 'grid-cols-3',
 });
-
-async function setupDeptSelect() {
-  const deptTree = await getDeptTree();
-  // 选中后显示在输入框的值 即父节点 / 子节点
-  addFullName(deptTree, 'label', ' / ');
-  formApi.updateSchema([
-    {
-      componentProps: {
-        fieldNames: { label: 'label', value: 'id' },
-        treeData: deptTree,
-        treeDefaultExpandAll: true,
-        treeLine: { showLeafIcon: false },
-        // 选中后显示在输入框的值
-        treeNodeLabelProp: 'fullName',
-      },
-      fieldName: 'deptId',
-    },
-  ]);
-}
 
 const [BasicDrawer, drawerApi] = useVbenDrawer({
   onCancel: handleCancel,
@@ -60,11 +43,8 @@ const [BasicDrawer, drawerApi] = useVbenDrawer({
     drawerApi.drawerLoading(true);
     const { id } = drawerApi.getData() as { id?: number | string };
     isUpdate.value = !!id;
-    // 初始化
-    await setupDeptSelect();
-    // 更新 && 赋值
     if (isUpdate.value && id) {
-      const record = await postInfo(id);
+      const record = await ossConfigInfo(id);
       await formApi.setValues(record);
     }
     drawerApi.drawerLoading(false);
@@ -74,12 +54,16 @@ const [BasicDrawer, drawerApi] = useVbenDrawer({
 async function handleConfirm() {
   try {
     drawerApi.drawerLoading(true);
+    /**
+     * 这里解构出来的values只能获取到自定义校验参数的值
+     * 需要自行调用formApi.getValues()获取表单值
+     */
     const { valid } = await formApi.validate();
     if (!valid) {
       return;
     }
     const data = cloneDeep(await formApi.getValues());
-    await (isUpdate.value ? postUpdate(data) : postAdd(data));
+    await (isUpdate.value ? ossConfigUpdate(data) : ossConfigAdd(data));
     emit('reload');
     await handleCancel();
   } catch (error) {
@@ -96,7 +80,23 @@ async function handleCancel() {
 </script>
 
 <template>
-  <BasicDrawer :close-on-click-modal="false" :title="title" class="w-[600px]">
-    <BasicForm />
+  <BasicDrawer :close-on-click-modal="false" :title="title" class="w-[650px]">
+    <BasicForm>
+      <template #tip>
+        <div class="ml-7 w-full">
+          <Alert
+            message="私有桶使用自定义域名无法预览, 但可以正常上传/下载"
+            show-icon
+            type="warning"
+          />
+        </div>
+      </template>
+    </BasicForm>
   </BasicDrawer>
 </template>
+
+<style lang="scss" scoped>
+:deep(.ant-divider) {
+  margin: 8px 0;
+}
+</style>

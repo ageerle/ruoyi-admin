@@ -2,7 +2,7 @@
 import type { VbenFormProps } from '@vben/common-ui';
 
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { User } from '#/api/system/user/model';
+import type { User } from '#/api/operator/user/model';
 
 import { useRoute } from 'vue-router';
 

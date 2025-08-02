@@ -17,26 +17,15 @@ const localRoutes: RouteRecordStringComponent[] = [
     path: '/profile',
   },
   {
-    component: '/system/oss-config/index',
+    component: '/operator/oss-config/index',
     meta: {
-      activePath: '/system/oss',
+      activePath: '/operator/oss',
       icon: 'ant-design:setting-outlined',
       title: 'oss配置',
       hideInMenu: true,
     },
     name: 'OssConfig',
-    path: '/system/oss-config',
-  },
-  {
-    component: '/tool/gen/edit-gen',
-    meta: {
-      activePath: '/tool/gen',
-      icon: 'tabler:code',
-      title: '生成配置',
-      hideInMenu: true,
-    },
-    name: 'GenConfig',
-    path: '/code-gen/edit/:tableId',
+    path: '/operator/oss-config',
   },
   {
     component: '/system/role-assign/index',
@@ -48,32 +37,7 @@ const localRoutes: RouteRecordStringComponent[] = [
     },
     name: 'RoleAssign',
     path: '/system/role-assign/:roleId',
-  },
-  {
-    component: '/workflow/components/flow-designer',
-    meta: {
-      activePath: '/workflow/processDefinition',
-      icon: 'fluent-mdl2:flow',
-      title: '流程设计',
-      hideInMenu: true,
-    },
-    name: 'WorkflowDesigner',
-    path: '/workflow/designer',
-  },
-  /**
-   * 需要添加iframe路由 同目录的./workflow-iframe.ts
-   */
-  {
-    component: 'workflow/leave/leave-form',
-    meta: {
-      icon: 'flat-color-icons:leave',
-      title: '请假申请',
-      activePath: '/demo/leave',
-      hideInMenu: true,
-    },
-    name: 'WorkflowLeaveIndex',
-    path: '/workflow/leaveEdit/index',
-  },
+  }
 ];
 
 /**

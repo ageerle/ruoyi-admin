@@ -15,7 +15,7 @@ import { message, Modal, Upload } from 'ant-design-vue';
 import { isArray, isFunction, isObject, isString, uniqueId } from 'lodash-es';
 
 import { uploadApi } from '#/api';
-import { ossInfo } from '#/api/system/oss';
+import { ossInfo } from '#/api/operator/oss';
 
 import { checkImageFileType, defaultImageAccept } from './helper';
 import { UploadResultStatus } from './typing';

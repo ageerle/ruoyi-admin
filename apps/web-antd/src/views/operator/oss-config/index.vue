@@ -2,43 +2,34 @@
 import type { VbenFormProps } from '@vben/common-ui';
 
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { Post } from '#/api/system/post/model';
+import type { OssConfig } from '#/api/operator/oss-config/model';
 
-import { ref } from 'vue';
-
+import { useAccess } from '@vben/access';
 import { Page, useVbenDrawer } from '@vben/common-ui';
 import { getVxePopupContainer } from '@vben/utils';
 
 import { Modal, Popconfirm, Space } from 'ant-design-vue';
 
 import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
-import { postExport, postList, postRemove } from '#/api/system/post';
-import { commonDownloadExcel } from '#/utils/file/download';
-import DeptTree from '#/views/operator/user/dept-tree.vue';
+import {
+  ossConfigChangeStatus,
+  ossConfigList,
+  ossConfigRemove,
+} from '#/api/operator/oss-config';
+import { TableSwitch } from '#/components/table';
 
 import { columns, querySchema } from './data';
-import postDrawer from './post-drawer.vue';
+import ossConfigDrawer from './oss-config-drawer.vue';
 
-// 左边部门用
-const selectDeptId = ref<string[]>([]);
 const formOptions: VbenFormProps = {
+  schema: querySchema(),
   commonConfig: {
     labelWidth: 80,
     componentProps: {
       allowClear: true,
     },
   },
-  schema: querySchema(),
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
-  handleReset: async () => {
-    selectDeptId.value = [];
-
-    const { formApi, reload } = tableApi;
-    await formApi.resetForm();
-    const formValues = formApi.form.values;
-    formApi.setLatestSubmissionValues(formValues);
-    await reload(formValues);
-  },
 };
 
 const gridOptions: VxeGridProps = {
@@ -47,7 +38,8 @@ const gridOptions: VxeGridProps = {
     highlight: true,
     // 翻页时保留选中状态
     reserve: true,
-    trigger: 'cell',
+    // 点击行选中
+    // trigger: 'row',
   },
   columns,
   height: 'auto',
@@ -56,14 +48,7 @@ const gridOptions: VxeGridProps = {
   proxyConfig: {
     ajax: {
       query: async ({ page }, formValues = {}) => {
-        // 部门树选择处理
-        if (selectDeptId.value.length === 1) {
-          formValues.belongDeptId = selectDeptId.value[0];
-        } else {
-          Reflect.deleteProperty(formValues, 'belongDeptId');
-        }
-
-        return await postList({
+        return await ossConfigList({
           pageNum: page.currentPage,
           pageSize: page.pageSize,
           ...formValues,
@@ -72,9 +57,9 @@ const gridOptions: VxeGridProps = {
     },
   },
   rowConfig: {
-    keyField: 'postId',
+    keyField: 'ossConfigId',
   },
-  id: 'system-post-index',
+  id: 'system-oss-config-index',
 };
 
 const [BasicTable, tableApi] = useVbenVxeGrid({
@@ -82,8 +67,8 @@ const [BasicTable, tableApi] = useVbenVxeGrid({
   gridOptions,
 });
 
-const [PostDrawer, drawerApi] = useVbenDrawer({
-  connectedComponent: postDrawer,
+const [OssConfigDrawer, drawerApi] = useVbenDrawer({
+  connectedComponent: ossConfigDrawer,
 });
 
 function handleAdd() {
@@ -91,95 +76,89 @@ function handleAdd() {
   drawerApi.open();
 }
 
-async function handleEdit(record: Post) {
-  drawerApi.setData({ id: record.postId });
+async function handleEdit(record: OssConfig) {
+  drawerApi.setData({ id: record.ossConfigId });
   drawerApi.open();
 }
 
-async function handleDelete(row: Post) {
-  await postRemove([row.postId]);
+async function handleDelete(row: OssConfig) {
+  await ossConfigRemove([row.ossConfigId]);
   await tableApi.query();
 }
 
 function handleMultiDelete() {
   const rows = tableApi.grid.getCheckboxRecords();
-  const ids = rows.map((row: Post) => row.postId);
+  const ids = rows.map((row: OssConfig) => row.ossConfigId);
   Modal.confirm({
     title: '提示',
     okType: 'danger',
     content: `确认删除选中的${ids.length}条记录吗？`,
     onOk: async () => {
-      await postRemove(ids);
+      await ossConfigRemove(ids);
       await tableApi.query();
     },
   });
 }
 
-function handleDownloadExcel() {
-  commonDownloadExcel(postExport, '岗位信息', tableApi.formApi.form.values);
-}
+const { hasAccessByCodes } = useAccess();
 </script>
 
 <template>
-  <Page :auto-content-height="true" content-class="flex gap-[8px] w-full">
-    <DeptTree
-      v-model:select-dept-id="selectDeptId"
-      class="w-[260px]"
-      @reload="() => tableApi.reload()"
-      @select="() => tableApi.reload()"
-    />
-    <BasicTable class="flex-1 overflow-hidden" table-title="岗位列表">
+  <Page :auto-content-height="true">
+    <BasicTable table-title="oss配置列表">
       <template #toolbar-tools>
         <Space>
-          <a-button
-            v-access:code="['system:post:export']"
-            @click="handleDownloadExcel"
-          >
-            {{ $t('pages.common.export') }}
-          </a-button>
           <a-button
             :disabled="!vxeCheckboxChecked(tableApi)"
             danger
             type="primary"
-            v-access:code="['system:post:remove']"
+            v-access:code="['system:ossConfig:remove']"
             @click="handleMultiDelete"
           >
             {{ $t('pages.common.delete') }}
           </a-button>
           <a-button
             type="primary"
-            v-access:code="['system:post:add']"
+            v-access:code="['system:ossConfig:add']"
             @click="handleAdd"
           >
             {{ $t('pages.common.add') }}
           </a-button>
         </Space>
       </template>
+      <template #status="{ row }">
+        <TableSwitch
+          v-model="row.status"
+          :api="() => ossConfigChangeStatus(row)"
+          :disabled="!hasAccessByCodes(['system:ossConfig:edit'])"
+          :reload="() => tableApi.query()"
+        />
+      </template>
       <template #action="{ row }">
         <Space>
-          <GhostButton
-            v-access:code="['system:post:edit']"
+          <ghost-button
+            v-access:code="['system:ossConfig:edit']"
             @click="handleEdit(row)"
           >
             {{ $t('pages.common.edit') }}
-          </GhostButton>
+          </ghost-button>
           <Popconfirm
             :get-popup-container="getVxePopupContainer"
             placement="left"
             title="确认删除？"
             @confirm="handleDelete(row)"
           >
-            <GhostButton
+            <ghost-button
               danger
-              v-access:code="['system:post:remove']"
+              v-access:code="['system:ossConfig:remove']"
               @click.stop=""
             >
               {{ $t('pages.common.delete') }}
-            </GhostButton>
+            </ghost-button>
           </Popconfirm>
         </Space>
       </template>
     </BasicTable>
-    <PostDrawer @reload="tableApi.query()" />
+    <OssConfigDrawer @reload="tableApi.query()" />
   </Page>
 </template>

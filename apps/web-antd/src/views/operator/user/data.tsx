@@ -159,7 +159,8 @@ export const drawerSchema: FormSchemaGetter = () => [
     component: 'Input',
     fieldName: 'kroleGroupType',
     help: '选择角色组将自动关联角色组下所有角色',
-    label: '角色',
+    label: '知识库角色',
+    labelWidth: 100,
   },
   {
     component: 'Select',

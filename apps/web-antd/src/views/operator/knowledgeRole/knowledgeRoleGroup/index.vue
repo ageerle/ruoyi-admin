@@ -4,7 +4,7 @@ import type { VbenFormProps } from '@vben/common-ui';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 import type { KnowledgeRoleGroup } from '#/api/operator/knowledgeRole/knowledge-role-group-model';
 
-import { ref } from 'vue';
+import { onMounted, ref, watchEffect } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 import { getVxePopupContainer } from '@vben/utils';
@@ -51,6 +51,12 @@ const gridOptions: VxeGridProps = {
           ...formValues,
         });
       },
+      querySuccess: ({ response: { rows } }) => {
+        if (rows.length) {
+          emitter.emit('rowClick', rows[0].id);
+          lastGroupId.value = rows[0].id;
+        }
+      }
     },
   },
   rowConfig: {
@@ -72,7 +78,7 @@ const [BasicTable, tableApi] = useVbenVxeGrid({
       }
       emitter.emit('rowClick', row.id);
       lastGroupId.value = row.id;
-    },
+    }
   },
 });
 const [KnowledgeRoleGroupModal, modalApi] = useVbenModal({

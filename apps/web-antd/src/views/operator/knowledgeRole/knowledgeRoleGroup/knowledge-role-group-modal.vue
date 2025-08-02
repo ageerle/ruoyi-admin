@@ -8,7 +8,7 @@ import { cloneDeep } from '@vben/utils';
 import { useVbenForm } from '#/adapter/form';
 
 import { modalSchema } from './data';
-import { knowledgeRoleGroupAdd, knowledgeRoleGroupInfo, knowledgeRoleGroupUpdate } from '#/api/system/knowledgeRole/knowledge-role-group';
+import { knowledgeRoleGroupAdd, knowledgeRoleGroupInfo, knowledgeRoleGroupUpdate } from '#/api/operator/knowledgeRole/knowledge-role-group';
 
 const emit = defineEmits<{ reload: [] }>();
 

@@ -2,11 +2,12 @@
 import type { VbenFormProps } from '@vben/common-ui';
 
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { KnowledgeRoleGroup } from '#/api/system/knowledgeRole/knowledge-role-group-model';
+import type { PageQuery } from '#/api/common';
+import type { KnowledgeRole } from '#/api/operator/knowledgeRole/knowledge-role-model';
 
 import { ref } from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
+import { useVbenDrawer } from '@vben/common-ui';
 import { getVxePopupContainer } from '@vben/utils';
 
 import { Modal, Popconfirm, Space } from 'ant-design-vue';
@@ -15,12 +16,15 @@ import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
 
 import { emitter } from '../mitt';
 import { columns, querySchema } from './data';
-import knowledgeRoleGroupModal from './knowledge-role-group-modal.vue';
-import { knowledgeRoleGroupList, knowledgeRoleGroupRemove } from '#/api/system/knowledgeRole/knowledge-role-group';
+import knowledgeRoleDrawer from './knowledge-role-drawer.vue';
+import { knowledgeRoleList, knowledgeRoleRemove } from '#/api/operator/knowledgeRole/knowledge-role';
+import { optionOptions } from 'ant-design-vue/es/vc-mentions/src/Option';
+
+const groupId = ref('');
 
 const formOptions: VbenFormProps = {
   commonConfig: {
-    labelWidth: 70,
+    labelWidth: 80,
     componentProps: {
       allowClear: true,
     },
@@ -45,97 +49,97 @@ const gridOptions: VxeGridProps = {
   proxyConfig: {
     ajax: {
       query: async ({ page }, formValues = {}) => {
-        return await knowledgeRoleGroupList({
+        const params: PageQuery = {
           pageNum: page.currentPage,
           pageSize: page.pageSize,
           ...formValues,
-        });
+        };
+        if (groupId.value) {
+          params.groupId = groupId.value;
+        }
+
+        return await knowledgeRoleList(params);
       },
     },
   },
   rowConfig: {
     keyField: 'id',
   },
-  id: 'knowledge-role-group-index',
+  id: 'knowledge-role-index',
 };
-
-const lastGroupId = ref('');
 
 const [BasicTable, tableApi] = useVbenVxeGrid({
   formOptions,
   gridOptions,
-  gridEvents: {
-    cellClick: (e) => {
-      const { row } = e;
-      if (lastGroupId.value === row.id) {
-        return;
-      }
-      emitter.emit('rowClick', row.id);
-      lastGroupId.value = row.id;
-    },
-  },
 });
-const [KnowledgeRoleGroupModal, modalApi] = useVbenModal({
-  connectedComponent: knowledgeRoleGroupModal,
+
+const [KnowledgeRoleDrawer, drawerApi] = useVbenDrawer({
+  connectedComponent: knowledgeRoleDrawer
 });
 
 function handleAdd() {
-  modalApi.setData({});
-  modalApi.open();
+  drawerApi.setData({ groupId: groupId.value });
+  drawerApi.open();
 }
 
-async function handleEdit(record: KnowledgeRoleGroup) {
-  modalApi.setData({ id: record.id });
-  modalApi.open();
+async function handleEdit(record: KnowledgeRole) {
+  drawerApi.setData(record);
+  drawerApi.open();
 }
 
-async function handleDelete(row: KnowledgeRoleGroup) {
-  await knowledgeRoleGroupRemove([row.id]);
+async function handleDelete(row: KnowledgeRole) {
+  await knowledgeRoleRemove([row.id]);
   await tableApi.query();
 }
 
 function handleMultiDelete() {
   const rows = tableApi.grid.getCheckboxRecords();
-  const ids = rows.map((row: KnowledgeRoleGroup) => row.id);
+  const ids = rows.map((row: KnowledgeRole) => row.id);
   Modal.confirm({
     title: '提示',
     okType: 'danger',
     content: `确认删除选中的${ids.length}条记录吗？`,
     onOk: async () => {
-      await knowledgeRoleGroupRemove(ids);
+      await knowledgeRoleRemove(ids);
       await tableApi.query();
     },
   });
 }
+
+emitter.on('rowClick', async (value) => {
+  groupId.value = value;
+
+  await tableApi.query();
+});
 </script>
 
 <template>
   <div>
-    <BasicTable id="knowledge-role-group" table-title="知识库角色组">
+    <BasicTable id="knowledge-role" table-title="知识库角色列表">
       <template #toolbar-tools>
         <Space>
           <a-button :disabled="!vxeCheckboxChecked(tableApi)" danger type="primary" @click="handleMultiDelete">
             {{ $t('pages.common.delete') }}
           </a-button>
-          <a-button type="primary" @click="handleAdd">
+          <a-button :disabled="groupId === ''" type="primary" @click="handleAdd">
             {{ $t('pages.common.add') }}
           </a-button>
         </Space>
       </template>
       <template #action="{ row }">
         <Space>
-          <ghost-button @click.stop=" handleEdit(row)">
+          <ghost-button @click="handleEdit(row)">
             {{ $t('pages.common.edit') }}
           </ghost-button>
-          <Popconfirm :get-popup-container="(node) => getVxePopupContainer(node, 'knowledge-role-group')
+          <Popconfirm :get-popup-container="(node) => getVxePopupContainer(node, 'knowledge-role')
             " placement="left" title="确认删除？" @confirm="handleDelete(row)">
-            <ghost-button danger v-access:code="['system:dict:remove']" @click.stop="">
+            <ghost-button danger @click.stop="">
               {{ $t('pages.common.delete') }}
             </ghost-button>
           </Popconfirm>
         </Space>
       </template>
     </BasicTable>
-    <KnowledgeRoleGroupModal @reload="tableApi.query()" />
+    <KnowledgeRoleDrawer @reload="tableApi.query()" />
   </div>
 </template>

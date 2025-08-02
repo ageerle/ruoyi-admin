@@ -3,7 +3,7 @@
 import { onMounted, ref, type PropType } from 'vue';
 import { Select, } from 'ant-design-vue';
 import type { SelectProps } from 'ant-design-vue';
-import { knowledgeList } from '#/api/system/knowledgeBase';
+import { knowledgeList } from '#/api/operator/knowledgeBase';
 
 /**
  * 需要禁止透传

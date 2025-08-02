@@ -7,8 +7,8 @@ import { computed, onMounted, ref } from 'vue';
 
 import { RadioGroup, Select } from 'ant-design-vue';
 
-import { knowledgeRoleList } from '#/api/system/knowledgeRole/knowledge-role';
-import { knowledgeRoleGroupList } from '#/api/system/knowledgeRole/knowledge-role-group';
+import { knowledgeRoleList } from '#/api/operator/knowledgeRole/knowledge-role';
+import { knowledgeRoleGroupList } from '#/api/operator/knowledgeRole/knowledge-role-group';
 
 /**
  * 需要禁止透传

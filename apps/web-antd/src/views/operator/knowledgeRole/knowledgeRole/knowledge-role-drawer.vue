@@ -8,7 +8,7 @@ import { cloneDeep } from '@vben/utils';
 import { useVbenForm } from '#/adapter/form';
 
 import { drawerSchema } from './data';
-import { knowledgeRoleAdd, knowledgeRoleInfo, knowledgeRoleUpdate } from '#/api/system/knowledgeRole/knowledge-role';
+import { knowledgeRoleAdd, knowledgeRoleInfo, knowledgeRoleUpdate } from '#/api/operator/knowledgeRole/knowledge-role';
 import KnowledgePicker from './knowledge-picker.vue';
 
 const emit = defineEmits<{ reload: [] }>();

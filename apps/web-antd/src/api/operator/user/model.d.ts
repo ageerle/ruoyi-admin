@@ -66,6 +66,8 @@ export interface User {
   roleIds?: string[];
   postIds?: number[];
   roleId: string;
+  kroleGroupIds?: string;
+  kroleGroupType?: string;
 }
 
 export interface Post {

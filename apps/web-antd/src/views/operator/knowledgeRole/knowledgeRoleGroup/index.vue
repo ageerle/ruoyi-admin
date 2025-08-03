@@ -51,6 +51,12 @@ const gridOptions: VxeGridProps = {
           ...formValues,
         });
       },
+      querySuccess: ({ response: { rows } }) => {
+        if (rows.length) {
+          emitter.emit('rowClick', rows[0].id);
+          lastGroupId.value = rows[0].id;
+        }
+      }
     },
   },
   rowConfig: {
@@ -72,7 +78,7 @@ const [BasicTable, tableApi] = useVbenVxeGrid({
       }
       emitter.emit('rowClick', row.id);
       lastGroupId.value = row.id;
-    },
+    }
   },
 });
 const [KnowledgeRoleGroupModal, modalApi] = useVbenModal({
@@ -92,6 +98,8 @@ async function handleEdit(record: KnowledgeRoleGroup) {
 async function handleDelete(row: KnowledgeRoleGroup) {
   await knowledgeRoleGroupRemove([row.id]);
   await tableApi.query();
+  emitter.emit('rowClick', "");
+  lastGroupId.value = "";
 }
 
 function handleMultiDelete() {

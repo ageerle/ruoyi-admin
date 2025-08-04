@@ -75,7 +75,6 @@ const getOptions = () => {
 }
 
 onMounted(async () => {
-  console.log(kroleGroupType.value, kroleGroupIds.value, 123123)
   getOptions();
 });
 </script>

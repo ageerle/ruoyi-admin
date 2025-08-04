@@ -39,7 +39,6 @@ const { apiURL, clientId } = useAppConfig(
   import.meta.env.PROD,
 );
 const accessStore = useAccessStore();
-console.log(apiURL, 'apiURL');
 const uploadUrl = `${apiURL}/knowledge/attach/upload`;
 // 使用upload组件只能这样上传
 let kid = ref('');

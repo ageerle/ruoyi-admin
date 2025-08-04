@@ -149,7 +149,7 @@ function handleMultiDelete() {
 
 const router = useRouter();
 function handleToSettings() {
-  router.push('/system/oss-config');
+  router.push('/operator/oss-config');
 }
 
 const preview = ref(false);

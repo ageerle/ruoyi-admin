@@ -59,7 +59,7 @@ const gridOptions: VxeGridProps = {
   rowConfig: {
     keyField: 'ossConfigId',
   },
-  id: 'system-oss-config-index',
+  id: 'operator-oss-config-index',
 };
 
 const [BasicTable, tableApi] = useVbenVxeGrid({

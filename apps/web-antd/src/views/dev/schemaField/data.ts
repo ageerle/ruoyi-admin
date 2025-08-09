@@ -73,6 +73,9 @@ export const columns: VxeGridProps['columns'] = [
         closeValue: '0',
       },
     },
+    formatter: ({cellValue}) => {
+      return cellValue === '1' || cellValue === 1 ? '是' : '否';
+    },
   },
   {
     title: '必填',
@@ -83,6 +86,9 @@ export const columns: VxeGridProps['columns'] = [
         openValue: '1',
         closeValue: '0',
       },
+    },
+    formatter: ({cellValue}) => {
+      return cellValue === '1' || cellValue === 1 ? '是' : '否';
     },
   },
   {
@@ -95,6 +101,9 @@ export const columns: VxeGridProps['columns'] = [
         closeValue: '0',
       },
     },
+    formatter: ({cellValue}) => {
+      return cellValue === '1' || cellValue === 1 ? '是' : '否';
+    },
   },
   {
     title: '查询字段',
@@ -105,6 +114,9 @@ export const columns: VxeGridProps['columns'] = [
         openValue: '1',
         closeValue: '0',
       },
+    },
+    formatter: ({cellValue}) => {
+      return cellValue === '1' || cellValue === 1 ? '是' : '否';
     },
   },
   {
@@ -117,6 +129,9 @@ export const columns: VxeGridProps['columns'] = [
         closeValue: '0',
       },
     },
+    formatter: ({cellValue}) => {
+      return cellValue === '1' || cellValue === 1 ? '是' : '否';
+    },
   },
   {
     title: '编辑字段',
@@ -127,6 +142,9 @@ export const columns: VxeGridProps['columns'] = [
         openValue: '1',
         closeValue: '0',
       },
+    },
+    formatter: ({cellValue}) => {
+      return cellValue === '1' || cellValue === 1 ? '是' : '否';
     },
   },
   {

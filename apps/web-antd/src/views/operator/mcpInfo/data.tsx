@@ -29,10 +29,10 @@ export const querySchema: FormSchemaGetter = () => [
   {
     component: 'RadioGroup',
     fieldName: 'status',
-    label: '是否启用',
+    label: '是否在线',
     componentProps: {
       options: [
-        { label: '是1', value: true },
+        { label: '是', value: true },
         { label: '否', value: false },
       ],
     },
@@ -70,14 +70,14 @@ export const columns: VxeGridProps['columns'] = [
     title: 'Env',
     field: 'env',
   },
-
+{
+    title: '说明',
+    field: 'description',
+  },
   {
-    title: '是否启用',
+    title: '是否在线',
     field: 'status',
-    formatter: ({ status }) => {
-      // 确保 status 有值
-      return status === true ? '否' : '是';
-    },
+
   },
 
   {
@@ -90,7 +90,11 @@ export const columns: VxeGridProps['columns'] = [
 ];
 
 export const modalSchema: FormSchemaGetter = () => [
-
+    {
+      fieldName: 'mcpId',
+      visible: false,
+      formItemClass: 'col-span-2',
+    },
     {
       fieldName: 'serverName',
       component: 'Input',
@@ -129,6 +133,12 @@ export const modalSchema: FormSchemaGetter = () => [
       label: 'Env',
       formItemClass: 'col-span-2',
     },
+    {
+      fieldName: 'description',
+      component: 'Textarea',
+      label: '说明',
+      formItemClass: 'col-span-2',
+    },
 
     {
       fieldName: 'status',
@@ -142,7 +152,7 @@ export const modalSchema: FormSchemaGetter = () => [
           { label: '否', value: false },
         ],
       },
-    },
+     },
 
 
 

@@ -56,8 +56,8 @@ import {Page, useVbenModal} from '@vben/common-ui';
 
 import type {VxeGridProps} from '#/adapter/vxe-table';
 import {useVbenVxeGrid, vxeCheckboxChecked} from '#/adapter/vxe-table';
-import type {SchemaGroupForm} from '#/api/dev/schemaGroup';
-import {devSchemaGroupDel, devSchemaGroupPage,} from '#/api/dev/schemaGroup';
+import type {SchemaGroupForm} from '#/api/dev/schemaGroup/schemaGroup';
+import {devSchemaGroupDel, devSchemaGroupPage,} from '#/api/dev/schemaGroup/schemaGroup';
 import {$t} from '@vben/locales';
 import {getVxePopupContainer} from '@vben/utils';
 
@@ -92,8 +92,8 @@ const gridOptions: VxeGridProps = {
     ajax: {
       query: async ({page}, formValues = {}) => {
         return await devSchemaGroupPage({
-          current: page.currentPage,
-          size: page.pageSize,
+          pageNum: page.currentPage,
+          pageSize: page.pageSize,
           ...formValues,
         });
       },

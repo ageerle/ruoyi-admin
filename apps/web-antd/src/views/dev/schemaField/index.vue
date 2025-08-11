@@ -52,7 +52,7 @@ import {$t} from '@vben/locales';
 import {getVxePopupContainer} from '@vben/utils';
 
 import {message, Popconfirm, Space} from 'ant-design-vue';
-import {deleteSchemaField, getSchemaFieldList} from '#/api/dev/schemaField';
+import {deleteSchemaField, getSchemaFieldList} from '#/api/dev/schemaField/schemaField';
 
 import {columns, querySchema} from './data';
 import SchemaFieldModal from './schema-field-modal.vue';

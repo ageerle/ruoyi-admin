@@ -30,8 +30,8 @@ import {
   VxeSelect,
   VxeTooltip,
   VxeUI,
+  VxeSwitch,
   VxeUpload,
-  // VxeSwitch,
   // VxeTextarea,
 } from 'vxe-pc-ui';
 import enUS from 'vxe-pc-ui/lib/language/en-US';
@@ -92,7 +92,7 @@ export function initVxeTable() {
   // VxeUI.component(VxeRadioButton);
   VxeUI.component(VxeRadioGroup);
   VxeUI.component(VxeSelect);
-  // VxeUI.component(VxeSwitch);
+  VxeUI.component(VxeSwitch);
   // VxeUI.component(VxeTextarea);
   VxeUI.component(VxeTooltip);
   VxeUI.component(VxeUpload);

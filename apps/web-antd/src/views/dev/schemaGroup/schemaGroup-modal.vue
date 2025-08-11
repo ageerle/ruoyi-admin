@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type {RuleObject} from 'ant-design-vue/es/form';
-import type {SchemaGroupForm} from '#/api/dev/schemaGroup';
-import {devSchemaGroupDetail, devSchemaGroupSaveOrUpdate,} from '#/api/dev/schemaGroup';
+import type {SchemaGroupForm} from '#/api/dev/schemaGroup/schemaGroup';
+import {devSchemaGroupDetail, devSchemaGroupSaveOrUpdate,} from '#/api/dev/schemaGroup/schemaGroup';
 
 import {computed, ref} from 'vue';
 
@@ -122,14 +122,6 @@ async function handleCancel() {
         <Input
           v-model:value="formData.icon"
           placeholder="请输入图标"
-        />
-      </FormItem>
-      <FormItem label="排序">
-        <InputNumber
-          v-model:value="formData.sort"
-          :min="0"
-          placeholder="请输入排序"
-          class="w-full"
         />
       </FormItem>
       <FormItem label="备注">

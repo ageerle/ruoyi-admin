@@ -9,8 +9,7 @@ import {$t} from '@vben/locales';
 import {getVxePopupContainer} from '@vben/utils';
 
 import {Modal, Popconfirm, Space} from 'ant-design-vue';
-import {schemaExport, schemaList, schemaRemove,} from '#/api/dev/schema';
-import {commonDownloadExcel} from '#/utils/file/download';
+import {schemaList, schemaRemove,} from '#/api/dev/schema/schema';
 
 import {columns, querySchema} from './data';
 import schemaModal from './schema-modal.vue';
@@ -28,7 +27,7 @@ const formOptions: VbenFormProps = {
   },
   schema: querySchema(),
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
-  // 处理区间选择器RangePicker时间格式 将一个字段映射为两个字段 搜索/导出会用到
+  // 处理区间选择器RangePicker时间格式 将一个字段映射为两个字段 搜索会用到
   fieldMappingTime: [
     [
       'createTime',
@@ -85,7 +84,7 @@ const [SchemaModal, modalApi] = useVbenModal({
   connectedComponent: schemaModal,
 });
 
-const [FieldManageModal, fieldModalApi] = useVbenModal({
+const [FieldManageModal] = useVbenModal({
   connectedComponent: () => import('../schemaField/schema-field-modal.vue'),
 });
 
@@ -99,22 +98,14 @@ async function handleEdit(row: Required<SchemaInfo>) {
   modalApi.open();
 }
 
-function handleFieldManage(row: Required<SchemaInfo>) {
-  fieldModalApi.setData({
-    schemaId: row.id,
-    schemaName: row.name,
-  });
-  fieldModalApi.open();
-}
-
 async function handleDelete(row: Required<SchemaInfo>) {
-  await schemaRemove(row.id);
+  await schemaRemove([row.id]);
   await tableApi.query();
 }
 
 function handleMultiDelete() {
   const rows = tableApi.grid.getCheckboxRecords();
-  const ids = rows.map((row: Required<Schema>) => row.id);
+  const ids = rows.map((row: Required<SchemaInfo>) => row.id);
   Modal.confirm({
     title: '提示',
     okType: 'danger',
@@ -126,16 +117,7 @@ function handleMultiDelete() {
   });
 }
 
-function handleDownloadExcel() {
-  commonDownloadExcel(
-    schemaExport,
-    '数据模型数据',
-    tableApi.formApi.form.values,
-    {
-      fieldMappingTime: formOptions.fieldMappingTime,
-    },
-  );
-}
+
 </script>
 
 <template>
@@ -143,12 +125,6 @@ function handleDownloadExcel() {
     <BasicTable table-title="数据模型列表">
       <template #toolbar-tools>
         <Space>
-          <a-button
-            v-access:code="['dev:schema:export']"
-            @click="handleDownloadExcel"
-          >
-            {{ $t('pages.common.export') }}
-          </a-button>
           <a-button
             :disabled="!vxeCheckboxChecked(tableApi)"
             danger

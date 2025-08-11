@@ -10,7 +10,7 @@
           :placeholder="$t('ui.formRules.required')"
         />
       </FormItem>
-      <FormItem label="字段名称" v-bind="validateInfos.name">
+      <FormItem label="字段描述" v-bind="validateInfos.name">
         <Input
           v-model:value="formData.name"
           :placeholder="$t('ui.formRules.required')"
@@ -137,8 +137,8 @@
 <script setup lang="ts">
 import type {RuleObject} from 'ant-design-vue/es/form';
 
-import type {SchemaFieldForm} from '#/api/dev/schemaField';
-import {addSchemaField, updateSchemaField,} from '#/api/dev/schemaField';
+import type {SchemaFieldForm} from '#/api/dev/schemaField/schemaField';
+import {addSchemaField, updateSchemaField,} from '#/api/dev/schemaField/schemaField';
 
 import {computed, onMounted, ref} from 'vue';
 
@@ -148,7 +148,7 @@ import {cloneDeep, getPopupContainer} from '@vben/utils';
 
 import {Form, FormItem, Input, InputNumber, Select, Switch} from 'ant-design-vue';
 import {pick} from 'lodash-es';
-import {schemaList} from '#/api/dev/schema';
+import {schemaList} from '#/api/dev/schema/schema';
 import type {SchemaInfo} from '#/api/dev/schema/types';
 
 const emit = defineEmits<{ reload: [] }>();
@@ -198,7 +198,7 @@ type AntdFormRules<T> = Partial<Record<keyof T, RuleObject[]>> & {
  * 表单校验规则
  */
 const formRules = ref<AntdFormRules<SchemaFieldForm>>({
-  name: [{required: true, message: '字段名称不能为空'}],
+  name: [{required: true, message: '字段描述不能为空'}],
   code: [{required: true, message: '字段编码不能为空'}],
   type: [{required: true, message: '字段类型不能为空'}],
   schemaId: [{required: true, message: '请选择数据模型', trigger: 'change'}],

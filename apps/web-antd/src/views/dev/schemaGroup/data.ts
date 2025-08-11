@@ -34,10 +34,6 @@ export const columns: VxeGridProps['columns'] = [
     field: 'icon',
   },
   {
-    title: '排序',
-    field: 'sort',
-  },
-  {
     title: '备注',
     field: 'remark',
   },

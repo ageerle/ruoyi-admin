@@ -2,13 +2,10 @@
   <BasicModal :title="title">
     <Form :label-col="{ span: 6 }">
       <FormItem label="数据模型" v-bind="validateInfos.schemaId">
-        <Select
-          v-model:value="formData.schemaId"
-          :options="schemaOptions"
-          :field-names="{ label: 'name', value: 'id' }"
-          :get-popup-container="getPopupContainer"
-          :placeholder="$t('ui.formRules.required')"
-        />
+        <Select v-model:value="formData.schemaId" :options="props.schemaOptions"
+                :field-names="{ label: 'name', value: 'id' }"
+                :get-popup-container="getPopupContainer"
+                :placeholder="$t('ui.formRules.required')"/>
       </FormItem>
       <FormItem label="字段描述" v-bind="validateInfos.name">
         <Input
@@ -16,119 +13,65 @@
           :placeholder="$t('ui.formRules.required')"
         />
       </FormItem>
+      <FormItem label="字段名称" v-bind="validateInfos.name">
+        <Input v-model:value="formData.name" :placeholder="$t('ui.formRules.required')"/>
+      </FormItem>
       <FormItem label="字段编码" v-bind="validateInfos.code">
-        <Input
-          v-model:value="formData.code"
-          :placeholder="$t('ui.formRules.required')"
-        />
+        <Input v-model:value="formData.code" :placeholder="$t('ui.formRules.required')"/>
       </FormItem>
       <FormItem label="字段类型" v-bind="validateInfos.type">
-        <Select
-          v-model:value="formData.type"
-          :options="typeOptions"
-          :get-popup-container="getPopupContainer"
-          :placeholder="$t('ui.formRules.required')"
-        />
+        <Select v-model:value="formData.type" :options="typeOptions"
+                :get-popup-container="getPopupContainer"
+                :placeholder="$t('ui.formRules.required')"/>
       </FormItem>
       <FormItem label="字段注释">
-        <Input
-          v-model:value="formData.comment"
-          placeholder="请输入字段注释"
-        />
+        <Input v-model:value="formData.comment" placeholder="请输入字段注释"/>
       </FormItem>
       <FormItem label="字段长度">
-        <InputNumber
-          v-model:value="formData.length"
-          :min="0"
-          placeholder="请输入字段长度"
-          class="w-full"
-        />
+        <InputNumber v-model:value="formData.length" :min="0" placeholder="请输入字段长度"
+                     class="w-full"/>
       </FormItem>
       <FormItem label="小数位数">
-        <InputNumber
-          v-model:value="formData.scale"
-          :min="0"
-          placeholder="请输入小数位数"
-          class="w-full"
-        />
+        <InputNumber v-model:value="formData.scale" :min="0" placeholder="请输入小数位数"
+                     class="w-full"/>
       </FormItem>
       <FormItem label="默认值">
-        <Input
-          v-model:value="formData.defaultValue"
-          placeholder="请输入默认值"
-        />
+        <Input v-model:value="formData.defaultValue" placeholder="请输入默认值"/>
       </FormItem>
       <FormItem label="排序">
-        <InputNumber
-          v-model:value="formData.sort"
-          :min="0"
-          placeholder="请输入排序"
-          class="w-full"
-        />
+        <InputNumber v-model:value="formData.sort" :min="0" placeholder="请输入排序"
+                     class="w-full"/>
       </FormItem>
       <FormItem label="是否主键">
-        <Switch
-          v-model:checked="formData.isPk"
-          checked-value="1"
-          un-checked-value="0"
-        />
+        <Switch v-model:checked="formData.isPk" checked-value="1" un-checked-value="0"/>
       </FormItem>
       <FormItem label="是否必填">
-        <Switch
-          v-model:checked="formData.isRequired"
-          checked-value="1"
-          un-checked-value="0"
-        />
+        <Switch v-model:checked="formData.isRequired" checked-value="1" un-checked-value="0"/>
       </FormItem>
       <FormItem label="列表显示">
-        <Switch
-          v-model:checked="formData.isList"
-          checked-value="1"
-          un-checked-value="0"
-        />
+        <Switch v-model:checked="formData.isList" checked-value="1" un-checked-value="0"/>
       </FormItem>
       <FormItem label="查询显示">
-        <Switch
-          v-model:checked="formData.isQuery"
-          checked-value="1"
-          un-checked-value="0"
-        />
+        <Switch v-model:checked="formData.isQuery" checked-value="1" un-checked-value="0"/>
       </FormItem>
       <FormItem label="插入显示">
-        <Switch
-          v-model:checked="formData.isInsert"
-          checked-value="1"
-          un-checked-value="0"
-        />
+        <Switch v-model:checked="formData.isInsert" checked-value="1" un-checked-value="0"/>
       </FormItem>
       <FormItem label="编辑显示">
-        <Switch
-          v-model:checked="formData.isEdit"
-          checked-value="1"
-          un-checked-value="0"
-        />
+        <Switch v-model:checked="formData.isEdit" checked-value="1" un-checked-value="0"/>
       </FormItem>
       <FormItem label="查询方式">
-        <Select
-          v-model:value="formData.queryType"
-          :options="queryTypeOptions"
-          :get-popup-container="getPopupContainer"
-          placeholder="请选择查询方式"
-        />
+        <Select v-model:value="formData.queryType" :options="queryTypeOptions"
+                :get-popup-container="getPopupContainer"
+                placeholder="请选择查询方式"/>
       </FormItem>
       <FormItem label="显示类型">
-        <Select
-          v-model:value="formData.htmlType"
-          :options="htmlTypeOptions"
-          :get-popup-container="getPopupContainer"
-          placeholder="请选择显示类型"
-        />
+        <Select v-model:value="formData.htmlType" :options="htmlTypeOptions"
+                :get-popup-container="getPopupContainer"
+                placeholder="请选择显示类型"/>
       </FormItem>
       <FormItem label="字典类型">
-        <Input
-          v-model:value="formData.dictType"
-          placeholder="请输入字典类型"
-        />
+        <Input v-model:value="formData.dictType" placeholder="请输入字典类型"/>
       </FormItem>
     </Form>
   </BasicModal>
@@ -140,7 +83,7 @@ import type {RuleObject} from 'ant-design-vue/es/form';
 import type {SchemaFieldForm} from '#/api/dev/schemaField/schemaField';
 import {addSchemaField, updateSchemaField,} from '#/api/dev/schemaField/schemaField';
 
-import {computed, onMounted, ref} from 'vue';
+import {computed, ref} from 'vue';
 
 import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
@@ -152,6 +95,9 @@ import {schemaList} from '#/api/dev/schema/schema';
 import type {SchemaInfo} from '#/api/dev/schema/types';
 
 const emit = defineEmits<{ reload: [] }>();
+const props = defineProps<{
+  schemaOptions: SchemaInfo[]
+}>();
 
 const isUpdate = ref(false);
 const schemaOptions = ref<SchemaInfo[]>([]);

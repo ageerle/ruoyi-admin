@@ -84,7 +84,7 @@ const [SchemaModal, modalApi] = useVbenModal({
   connectedComponent: schemaModal,
 });
 
-const [FieldManageModal] = useVbenModal({
+const [FieldManageModal, fieldModalApi] = useVbenModal({
   connectedComponent: () => import('../schemaField/schema-field-modal.vue'),
 });
 
@@ -131,37 +131,27 @@ function handleMultiDelete() {
             type="primary"
             v-access:code="['dev:schema:remove']"
             @click="handleMultiDelete"
-          >
+          ></a-button>
+          <a-button v-access:code="['dev:schema:export']" @click="handleDownloadExcel">
+            {{ $t('pages.common.export') }}
+          </a-button>
+          <a-button :disabled="!vxeCheckboxChecked(tableApi)" danger type="primary"
+                    v-access:code="['dev:schema:remove']" @click="handleMultiDelete">
             {{ $t('pages.common.delete') }}
           </a-button>
-          <a-button
-            type="primary"
-            v-access:code="['dev:schema:add']"
-            @click="handleAdd"
-          >
+          <a-button type="primary" v-access:code="['dev:schema:add']" @click="handleAdd">
             {{ $t('pages.common.add') }}
           </a-button>
         </Space>
       </template>
       <template #action="{ row }">
         <Space>
-          <ghost-button
-            v-access:code="['dev:schema:edit']"
-            @click.stop="handleEdit(row)"
-          >
+          <ghost-button v-access:code="['dev:schema:edit']" @click.stop="handleEdit(row)">
             {{ $t('pages.common.edit') }}
           </ghost-button>
-          <Popconfirm
-            :get-popup-container="getVxePopupContainer"
-            placement="left"
-            title="确认删除？"
-            @confirm="handleDelete(row)"
-          >
-            <ghost-button
-              danger
-              v-access:code="['dev:schema:remove']"
-              @click.stop=""
-            >
+          <Popconfirm :get-popup-container="getVxePopupContainer" placement="left" title="确认删除？"
+                      @confirm="handleDelete(row)">
+            <ghost-button danger v-access:code="['dev:schema:remove']" @click.stop="">
               {{ $t('pages.common.delete') }}
             </ghost-button>
           </Popconfirm>

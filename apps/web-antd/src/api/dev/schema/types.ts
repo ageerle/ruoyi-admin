@@ -94,3 +94,22 @@ export interface SchemaExportParams extends SchemaQueryParams {
   /** 导出字段 */
   fields?: string[];
 }
+
+
+/**
+ * 前端脚本参数
+ */
+export interface SchemaGenerateParams {
+  /** 表名 */
+  tableName?: string;
+  /** 是否覆盖 */
+  isCover?: boolean;
+  /** 前端/后端 */
+  genType?: string;
+  /** 自定义数据 */
+  data?: string;
+  /** 本地代码路径 */
+  workPath?: string;
+  /** 预览指令 */
+  previewCode?: string;
+}

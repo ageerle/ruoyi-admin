@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type {RuleObject} from 'ant-design-vue/es/form';
 
-import type {SchemaInfo as Schema} from '#/api/dev/schema/types';
-
 import {computed, ref} from 'vue';
 
 import {useVbenModal} from '@vben/common-ui';
@@ -11,9 +9,9 @@ import {cloneDeep, getPopupContainer} from '@vben/utils';
 
 import {Form, FormItem, Input, Select, Textarea} from 'ant-design-vue';
 import {pick} from 'lodash-es';
-
 import {getDataNames, schemaAdd, schemaInfo, schemaUpdate,} from '#/api/dev/schema/schema';
 import {devSchemaGroupSelect} from '#/api/dev/schemaGroup/schemaGroup';
+import type {SchemaInfo} from '#/api/dev/schema/types';
 
 const emit = defineEmits<{ reload: [] }>();
 
@@ -25,7 +23,7 @@ const title = computed(() => {
 /**
  * 定义默认值 用于reset
  */
-const defaultValues: Partial<Schema> = {
+const defaultValues: Partial<SchemaInfo> = {
   id: undefined,
   schemaGroupId: undefined,
   name: undefined,
@@ -47,10 +45,10 @@ type AntdFormRules<T> = Partial<Record<keyof T, RuleObject[]>> & {
 /**
  * 表单校验规则
  */
-const formRules = ref<AntdFormRules<Schema>>({
-  name: [{required: true, message: '模型名称不能为空'}],
-  tableName: [{required: true, message: '表名不能为空'}],
-  schemaGroupId: [{required: true, message: '请选择分组'}],
+const formRules = ref<AntdFormRules<SchemaInfo>>({
+  name: [{ required: true, message: '模型名称不能为空' }],
+  tableName: [{ required: true, message: '表名不能为空' }],
+  schemaGroupId: [{ required: true, message: '请选择分组' }],
 });
 
 /**
@@ -102,7 +100,7 @@ const [BasicModal, modalApi] = useVbenModal({
     await loadSchemaGroups();
     await loadTableNames();
 
-    const {id} = modalApi.getData() as { id?: number | string };
+    const { id } = modalApi.getData() as { id?: number | string };
     isUpdate.value = !!id;
 
     if (isUpdate.value && id) {
@@ -142,36 +140,23 @@ async function handleCancel() {
   <BasicModal :title="title">
     <Form :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }" class="mt-4">
       <FormItem label="分组" v-bind="validateInfos.schemaGroupId">
-        <Select
-          v-model:value="formData.schemaGroupId"
-          :options="schemaGroupOptions"
-          :get-popup-container="getPopupContainer"
-          placeholder="请选择分组"
-        />
+        <Select v-model:value="formData.schemaGroupId" :options="schemaGroupOptions"
+          :get-popup-container="getPopupContainer" placeholder="请选择分组" />
       </FormItem>
       <FormItem label="菜单名称" v-bind="validateInfos.name">
-        <Input
-          v-model:value="formData.name"
-          :placeholder="$t('ui.formRules.required')"
-        />
+        <Input v-model:value="formData.name" :placeholder="$t('ui.formRules.required')" />
+      </FormItem>
+      <FormItem label="菜单目录" v-bind="validateInfos.code">
+        <Input v-model:value="formData.code" :placeholder="$t('ui.formRules.required')" />
       </FormItem>
       <FormItem label="表名" v-bind="validateInfos.tableName">
-        <Select
-          v-model:value="formData.tableName"
-          :options="tableNameOptions"
-          :get-popup-container="getPopupContainer"
-          :placeholder="$t('ui.formRules.required')"
-          show-search
-          :filter-option="(input: string, option: any) => {
+        <Select v-model:value="formData.tableName" :options="tableNameOptions" :get-popup-container="getPopupContainer"
+          :placeholder="$t('ui.formRules.required')" show-search :filter-option="(input: string, option: any) => {
             return option.label.toLowerCase().includes(input.toLowerCase());
-          }"
-        />
+          }" />
       </FormItem>
       <FormItem label="备注">
-        <Textarea
-          v-model:value="formData.remark"
-          placeholder="请输入备注"
-        />
+        <Textarea v-model:value="formData.remark" placeholder="请输入备注"/>
       </FormItem>
     </Form>
   </BasicModal>

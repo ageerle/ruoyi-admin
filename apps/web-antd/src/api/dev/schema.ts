@@ -10,6 +10,8 @@ enum Api {
   list = '/dev/schema/list',
   export = '/dev/schema/export',
   getDataNames = '/dev/schema/getDataNames',
+  batchGenCode= '/tool/gen/batchGenCode',
+  batchGenFrontendCode= '/tool/gen/batchGenFrontendCode',
 }
 
 /**
@@ -53,7 +55,7 @@ export function schemaUpdate(data: Partial<Schema>) {
  * @param ids nullID数组
  * @returns void
  */
-export function schemaRemove(ids: IDS) {
+export function schemaRemove(ids: ID | IDS) {
   return requestClient.deleteWithMsg<void>(`${Api.root}/${ids}`);
 }
 
@@ -72,4 +74,20 @@ export function schemaExport(data: Partial<SchemaQueryParam>) {
  */
 export function getDataNames() {
   return requestClient.get<string[]>(Api.getDataNames);
+}
+
+/**
+ * 生成前端代码
+ * @returns 
+ */
+export function batchGenFrontendCode(workPath:string,previewCode: string) {
+  return requestClient.get<string>(`${Api.batchGenFrontendCode}?workPath=${encodeURIComponent(workPath)}&previewCode=${encodeURIComponent(previewCode)}`);
+}
+
+/**
+ * 生成后端代码
+ * @returns 
+ */
+export function batchGenCode(tableName:string) {
+  return requestClient.get<string>(`${Api.batchGenCode}?tableNameStr=${tableName}`);
 }

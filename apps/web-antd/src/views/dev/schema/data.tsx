@@ -5,6 +5,7 @@ import {DictEnum} from '@vben/constants';
 
 import {renderDict} from '#/utils/render';
 import {getDataNames} from '#/api/dev/schema';
+import { DictTag } from '#/components/dict';
 
 // 创建一个异步函数来获取表名选项
 export const querySchema: FormSchemaGetter = () => [
@@ -84,7 +85,8 @@ export const columns: VxeGridProps['columns'] = [
     width: 120,
     slots: {
       default: ({row}) => {
-        return renderDict(row.status, DictEnum.STATUS_TYPE);
+        // return renderDict(row.status, DictEnum.STATUS_TYPE);
+        return row.status == '0' ?'正常' :'停用'
       },
     },
   },

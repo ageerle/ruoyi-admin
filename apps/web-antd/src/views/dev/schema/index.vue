@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import type {VbenFormProps} from '@vben/common-ui';
-import {Page, useVbenModal} from '@vben/common-ui';
+import type { VbenFormProps } from '@vben/common-ui';
+import { Page, useVbenModal } from '@vben/common-ui';
 
-import type {VxeGridProps} from '#/adapter/vxe-table';
-import {useVbenVxeGrid, vxeCheckboxChecked} from '#/adapter/vxe-table';
-import type {SchemaInfo} from '#/api/dev/schema/types';
-import {$t} from '@vben/locales';
-import {getVxePopupContainer} from '@vben/utils';
+import type { VxeGridProps } from '#/adapter/vxe-table';
+import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
+import type { SchemaInfo } from '#/api/dev/schema/types';
+import { $t } from '@vben/locales';
+import { getVxePopupContainer } from '@vben/utils';
 
-import {Modal, Popconfirm, Space} from 'ant-design-vue';
-import {schemaExport, schemaList, schemaRemove,} from '#/api/dev/schema';
-import {commonDownloadExcel} from '#/utils/file/download';
+import { Modal, Popconfirm, Space } from 'ant-design-vue';
+import { schemaExport, schemaList, schemaRemove, } from '#/api/dev/schema';
+import { commonDownloadExcel } from '#/utils/file/download';
 
-import {columns, querySchema} from './data';
+import { columns, querySchema } from './data';
 import schemaModal from './schema-modal.vue';
 
 defineOptions({
@@ -60,7 +60,7 @@ const gridOptions: VxeGridProps = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({page}, formValues = {}) => {
+      query: async ({ page }, formValues = {}) => {
         return await schemaList({
           pageNum: page.currentPage,
           pageSize: page.pageSize,
@@ -95,7 +95,7 @@ function handleAdd() {
 }
 
 async function handleEdit(row: Required<SchemaInfo>) {
-  modalApi.setData({id: row.id});
+  modalApi.setData({ id: row.id });
   modalApi.open();
 }
 
@@ -114,7 +114,7 @@ async function handleDelete(row: Required<SchemaInfo>) {
 
 function handleMultiDelete() {
   const rows = tableApi.grid.getCheckboxRecords();
-  const ids = rows.map((row: Required<Schema>) => row.id);
+  const ids = rows.map((row: Required<SchemaInfo>) => row.id);
   Modal.confirm({
     title: '提示',
     okType: 'danger',
@@ -143,56 +143,33 @@ function handleDownloadExcel() {
     <BasicTable table-title="数据模型列表">
       <template #toolbar-tools>
         <Space>
-          <a-button
-            v-access:code="['dev:schema:export']"
-            @click="handleDownloadExcel"
-          >
+          <a-button v-access:code="['dev:schema:export']" @click="handleDownloadExcel">
             {{ $t('pages.common.export') }}
           </a-button>
-          <a-button
-            :disabled="!vxeCheckboxChecked(tableApi)"
-            danger
-            type="primary"
-            v-access:code="['dev:schema:remove']"
-            @click="handleMultiDelete"
-          >
+          <a-button :disabled="!vxeCheckboxChecked(tableApi)" danger type="primary"
+            v-access:code="['dev:schema:remove']" @click="handleMultiDelete">
             {{ $t('pages.common.delete') }}
           </a-button>
-          <a-button
-            type="primary"
-            v-access:code="['dev:schema:add']"
-            @click="handleAdd"
-          >
+          <a-button type="primary" v-access:code="['dev:schema:add']" @click="handleAdd">
             {{ $t('pages.common.add') }}
           </a-button>
         </Space>
       </template>
       <template #action="{ row }">
         <Space>
-          <ghost-button
-            v-access:code="['dev:schema:edit']"
-            @click.stop="handleEdit(row)"
-          >
+          <ghost-button v-access:code="['dev:schema:edit']" @click.stop="handleEdit(row)">
             {{ $t('pages.common.edit') }}
           </ghost-button>
-          <Popconfirm
-            :get-popup-container="getVxePopupContainer"
-            placement="left"
-            title="确认删除？"
-            @confirm="handleDelete(row)"
-          >
-            <ghost-button
-              danger
-              v-access:code="['dev:schema:remove']"
-              @click.stop=""
-            >
+          <Popconfirm :get-popup-container="getVxePopupContainer" placement="left" title="确认删除？"
+            @confirm="handleDelete(row)">
+            <ghost-button danger v-access:code="['dev:schema:remove']" @click.stop="">
               {{ $t('pages.common.delete') }}
             </ghost-button>
           </Popconfirm>
         </Space>
       </template>
     </BasicTable>
-    <SchemaModal @reload="tableApi.query()"/>
-    <FieldManageModal/>
+    <SchemaModal @reload="tableApi.query()" />
+    <FieldManageModal />
   </Page>
 </template>

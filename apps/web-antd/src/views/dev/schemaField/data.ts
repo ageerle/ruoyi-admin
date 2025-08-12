@@ -1,8 +1,8 @@
 import type {FormSchemaGetter} from '#/adapter/form';
-import type {VxeGridProps} from '#/adapter/vxe-table';
+import type {VxeGridPropTypes} from '#/adapter/vxe-table';
 import {schemaList} from '#/api/dev/schema';
 
-export const columns: VxeGridProps['columns'] = [
+export const columns: VxeGridPropTypes.Columns = [
   {
     title: '序号',
     type: 'seq',

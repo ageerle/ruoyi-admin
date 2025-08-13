@@ -79,11 +79,10 @@
 
 <script setup lang="ts">
 import type {RuleObject} from 'ant-design-vue/es/form';
+import {computed, onMounted, ref} from 'vue';
 
 import type {SchemaFieldForm} from '#/api/dev/schemaField/schemaField';
 import {addSchemaField, updateSchemaField,} from '#/api/dev/schemaField/schemaField';
-
-import {computed, ref} from 'vue';
 
 import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
@@ -93,6 +92,8 @@ import {Form, FormItem, Input, InputNumber, Select, Switch} from 'ant-design-vue
 import {pick} from 'lodash-es';
 import {schemaList} from '#/api/dev/schema/schema';
 import type {SchemaInfo} from '#/api/dev/schema/types';
+
+// const root = process.cwd()
 
 const emit = defineEmits<{ reload: [] }>();
 const props = defineProps<{
@@ -269,5 +270,6 @@ const loadSchemaOptions = async () => {
 // 组件挂载时加载模型列表
 onMounted(() => {
   loadSchemaOptions();
+  // console.log("root" + root);
 });
 </script>

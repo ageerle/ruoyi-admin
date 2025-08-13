@@ -1,10 +1,10 @@
-import type { User } from '#/api/operator/user/model';
-import type { DeptResp, Role } from './model';
+import type {User} from '#/api/operator/user/model';
+import type {DeptResp, Role} from './model';
 
-import type { ID, IDS, PageQuery, PageResult } from '#/api/common';
+import type {ID, IDS, PageQuery, PageResult} from '#/api/common';
 
-import { commonExport } from '#/api/helper';
-import { requestClient } from '#/api/request';
+import {commonExport} from '#/api/helper';
+import {requestClient} from '#/api/request';
 
 enum Api {
   roleAllocatedList = '/system/role/authUser/allocatedList',
@@ -27,7 +27,7 @@ enum Api {
  * @returns 分页列表
  */
 export function roleList(params?: PageQuery) {
-  return requestClient.get<PageResult<Role>>(Api.roleList, { params });
+  return requestClient.get<PageResult<Role>>(Api.roleList, {params});
 }
 
 /**
@@ -97,7 +97,7 @@ export function roleDataScope(data: any) {
  * @deprecated 全局并没有用到这个方法
  */
 export function roleOptionSelect(params?: any) {
-  return requestClient.get(Api.roleOptionSelect, { params });
+  return requestClient.get(Api.roleOptionSelect, {params});
 }
 
 /**
@@ -106,7 +106,7 @@ export function roleOptionSelect(params?: any) {
  * @returns 分页
  */
 export function roleAllocatedList(params?: PageQuery) {
-  return requestClient.get<PageResult<User>>(Api.roleAllocatedList, { params });
+  return requestClient.get<PageResult<User>>(Api.roleAllocatedList, {params});
 }
 
 /**

@@ -10,8 +10,8 @@ enum Api {
   list = '/dev/schema/list',
   export = '/dev/schema/export',
   getDataNames = '/dev/schema/getDataNames',
-  batchGenCode= '/tool/gen/batchGenCode',
-  batchGenFrontendCode= '/tool/gen/batchGenFrontendCode',
+  batchGenCode = '/tool/gen/batchGenCode',
+  batchGenFrontendCode = '/tool/gen/batchGenFrontendCode',
 }
 
 /**
@@ -78,16 +78,16 @@ export function getDataNames() {
 
 /**
  * 生成前端代码
- * @returns 
+ * @returns
  */
-export function batchGenFrontendCode(workPath:string,previewCode: string) {
+export function batchGenFrontendCode(workPath: string, previewCode: string) {
   return requestClient.get<string>(`${Api.batchGenFrontendCode}?workPath=${encodeURIComponent(workPath)}&previewCode=${encodeURIComponent(previewCode)}`);
 }
 
 /**
  * 生成后端代码
- * @returns 
+ * @returns
  */
-export function batchGenCode(tableName:string) {
+export function batchGenCode(tableName: string) {
   return requestClient.get<string>(`${Api.batchGenCode}?tableNameStr=${tableName}`);
 }

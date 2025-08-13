@@ -2,10 +2,10 @@
 
 // 引入依赖模块
 import yargs from 'yargs';
-import { hideBin } from 'yargs/helpers';
+import {hideBin} from 'yargs/helpers';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 import axios from 'axios';
 import art from 'art-template';
 
@@ -69,7 +69,7 @@ const getMetaData = async (tableName) => {
         appSecret,
       },
     });
-    
+
     if (response.data.code === 200) {
       return response.data.data;
     } else {
@@ -78,7 +78,7 @@ const getMetaData = async (tableName) => {
   } catch (error) {
     console.warn(`⚠️ 无法从API获取元数据: ${error.message}`);
     console.log('🔄 尝试使用本地测试数据...');
-    
+
     // 尝试使用本地测试数据
     try {
       const testDataPath = path.join(__dirname, 'test-data.json');
@@ -98,12 +98,12 @@ const getMetaData = async (tableName) => {
  */
 const getSelectedTemplates = (data) => {
   const selectedTemplates = [];
-  
+
   // 确保ext字段存在
   if (!data.ext) {
     data.ext = {};
   }
-  
+
   templates
     .filter((template) => {
       if (typeof template.selected === 'string') {
@@ -121,22 +121,21 @@ const getSelectedTemplates = (data) => {
       if ((argv.data !== 1 && template.selected) || (argv.data === 1 && template.data)) {
         const templateFile = template.templateFile;
         let mTheme = theme;
-        
+
         // 如果元数据配置有模板主题，则使用元数据的配置
         if (data?.ext?.theme && fs.existsSync(path.join(genDir, 'templates', data?.ext?.theme))) {
           mTheme = data?.ext?.theme;
         }
-        
+
         // 读取模板内容
         const templatePath = path.join(genDir, 'templates', mTheme, templateFile);
         if (fs.existsSync(templatePath)) {
-          const templateContent = fs.readFileSync(templatePath, 'utf-8');
-          template.templateContent = templateContent;
+          template.templateContent = fs.readFileSync(templatePath, 'utf-8');
           selectedTemplates.push(template);
         }
       }
     });
-    
+
   return selectedTemplates;
 };
 
@@ -200,22 +199,22 @@ const appendComponentProps = (data) => {
     if (!column.ext) {
       column.ext = {};
     }
-    
+
     const componentProps = {};
-    
+
     // 组件配置以组件配置+下划线开头
     Object.keys(column.ext || {})
       .filter((key) => key.startsWith(column.component + '_'))
       .forEach((key) => {
         componentProps[key.replace(column.component + '_', '')] = column.ext[key];
       });
-      
+
     column.componentProps = componentProps;
     column.componentProps.placeholder = column.ext?.placeholder || '请输入' + column.remark;
-    
+
     if ([
       'ApiDict',
-      'ApiSelect', 
+      'ApiSelect',
       'Select',
       'AutoComplete',
       'ApiCascader',
@@ -224,7 +223,7 @@ const appendComponentProps = (data) => {
     ].includes(column.component)) {
       column.componentProps.placeholder = column.ext?.placeholder || '请选择' + column.remark;
     }
-    
+
     if (column.component === 'RangePicker') {
       if (column.placeholder) {
         column.componentProps.placeholder = column.ext.placeholder.split(',');
@@ -241,7 +240,7 @@ const appendComponentProps = (data) => {
         column.componentProps.checkedValue = Number(column.componentProps.checkedValue || 1);
       }
     }
-    
+
     column.searchComponentProps = column.componentProps;
   });
 };
@@ -256,8 +255,7 @@ const getTemplateByFileName = (templateFile) => {
   if (template) {
     const templatePath = path.join(genDir, 'templates', theme, templateFile);
     if (fs.existsSync(templatePath)) {
-      const templateContent = fs.readFileSync(templatePath, 'utf-8');
-      template.templateContent = templateContent;
+      template.templateContent = fs.readFileSync(templatePath, 'utf-8');
     }
     return template;
   }
@@ -275,9 +273,9 @@ const _createCustomComponent = (template, column, data) => {
   const targetPath = art.render(template.targetPath, data);
   const targetFileName = column.component + '.vue';
   const targetFile = path.join(rootDir, targetPath, targetFileName);
-  
+
   createDir(path.join(rootDir, targetPath));
-  
+
   if (cover === 2) {
     fs.writeFileSync(targetFile, renderContent);
   } else {
@@ -296,28 +294,28 @@ const createCustomComponent = (data) => {
   if (!data.ext) {
     data.ext = {};
   }
-  
+
   // 获取所有自定义组件列
   const customColumns = data?.columns?.filter(
     (column) => column.ext && column.component === column.ext?.CustomComponent_componentName
   ) || [];
-  
+
   const customFormComponent = getTemplateByFileName('customFormComponent.art');
   const customViewComponent = getTemplateByFileName('customViewComponent.art');
-  
+
   customColumns.forEach((column) => {
     // 确保column的ext字段存在
     if (!column.ext) {
       column.ext = {};
     }
-    
-    const isCreateForm = 
+
+    const isCreateForm =
       (column.ext.addHide !== true && column.ext.addHide !== 1) ||
       (column.ext.editHide !== true && column.ext.editHide !== 1);
-    const isCreateView = 
+    const isCreateView =
       (column.ext.listHide !== true && column.ext.listHide !== 1) ||
       (column.ext.viewHide !== true && column.ext.viewHide !== 1);
-      
+
     if (isCreateForm && customFormComponent) {
       _createCustomComponent(customFormComponent, column, data);
     }
@@ -333,22 +331,22 @@ const createCustomComponent = (data) => {
 const main = async () => {
   try {
     const tableNames = tableName.split(',');
-    
+
     for (const name of tableNames) {
       console.log(`正在处理表: ${name}`);
-      
+
       const data = await getMetaData(name);
-      
+
       // 确保ext字段存在，提供默认值
       if (!data.ext) {
         data.ext = {
           generateRoute: false,
         };
       }
-      
+
       const selectedTemplates = getSelectedTemplates(data);
       appendComponentProps(data);
-      
+
       // 遍历选中的模板
       selectedTemplates.forEach((template) => {
         const templateContent = template.templateContent;
@@ -356,10 +354,10 @@ const main = async () => {
         const targetPath = art.render(template.targetPath, data);
         const targetFileName = art.render(template.targetFileName, data);
         const targetFile = path.join(rootDir, targetPath, targetFileName);
-        
+
         // 创建目标路径
         createDir(path.join(rootDir, targetPath));
-        
+
         // 根据覆盖参数决定是否写入文件
         if (cover === 1) {
           fs.writeFileSync(targetFile, renderContent);
@@ -378,11 +376,11 @@ const main = async () => {
           }
         }
       });
-      
+
       // 创建自定义表单/列表组件
       createCustomComponent(data);
     }
-    
+
     console.log('🎉 代码生成完成!');
   } catch (error) {
     console.error('❌ 代码生成失败:', error.message);

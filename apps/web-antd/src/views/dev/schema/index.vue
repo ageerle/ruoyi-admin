@@ -125,16 +125,6 @@ function handleMultiDelete() {
     <BasicTable table-title="数据模型列表">
       <template #toolbar-tools>
         <Space>
-          <a-button
-            :disabled="!vxeCheckboxChecked(tableApi)"
-            danger
-            type="primary"
-            v-access:code="['dev:schema:remove']"
-            @click="handleMultiDelete"
-          ></a-button>
-          <a-button v-access:code="['dev:schema:export']" @click="handleDownloadExcel">
-            {{ $t('pages.common.export') }}
-          </a-button>
           <a-button :disabled="!vxeCheckboxChecked(tableApi)" danger type="primary"
                     v-access:code="['dev:schema:remove']" @click="handleMultiDelete">
             {{ $t('pages.common.delete') }}

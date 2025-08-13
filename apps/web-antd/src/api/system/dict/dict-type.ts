@@ -1,9 +1,9 @@
-import type { DictType } from './dict-type-model';
+import type {DictType} from './dict-type-model';
 
-import type { ID, IDS, PageQuery, PageResult } from '#/api/common';
+import type {ID, IDS, PageQuery, PageResult} from '#/api/common';
 
-import { commonExport } from '#/api/helper';
-import { requestClient } from '#/api/request';
+import {commonExport} from '#/api/helper';
+import {requestClient} from '#/api/request';
 
 enum Api {
   dictOptionSelectList = '/system/dict/type/optionselect',
@@ -19,7 +19,7 @@ enum Api {
  * @returns list
  */
 export function dictTypeList(params?: PageQuery) {
-  return requestClient.get<PageResult<DictType>>(Api.dictTypeList, { params });
+  return requestClient.get<PageResult<DictType>>(Api.dictTypeList, {params});
 }
 
 /**

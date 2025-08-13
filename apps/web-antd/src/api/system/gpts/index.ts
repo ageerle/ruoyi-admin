@@ -1,9 +1,9 @@
-import type { GptsForm, GptsQuery, GptsVO } from './model';
+import type {GptsForm, GptsQuery, GptsVO} from './model';
 
-import type { ID, IDS, PageResult } from '#/api/common';
+import type {ID, IDS, PageResult} from '#/api/common';
 
-import { commonExport } from '#/api/helper';
-import { requestClient } from '#/api/request';
+import {commonExport} from '#/api/helper';
+import {requestClient} from '#/api/request';
 
 /**
  * 查询应用管理列表
@@ -11,7 +11,7 @@ import { requestClient } from '#/api/request';
  * @returns 应用管理列表
  */
 export function gptsList(params?: GptsQuery) {
-  return requestClient.get<PageResult<GptsVO>>('/system/gpts/list', { params });
+  return requestClient.get<PageResult<GptsVO>>('/system/gpts/list', {params});
 }
 
 /**

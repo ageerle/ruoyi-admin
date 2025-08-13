@@ -1,9 +1,9 @@
-import type { DictData } from './dict-data-model';
+import type {DictData} from './dict-data-model';
 
-import type { ID, IDS, PageQuery } from '#/api/common';
+import type {ID, IDS, PageQuery} from '#/api/common';
 
-import { commonExport } from '#/api/helper';
-import { requestClient } from '#/api/request';
+import {commonExport} from '#/api/helper';
+import {requestClient} from '#/api/request';
 
 enum Api {
   dictDataExport = '/system/dict/data/export',
@@ -26,7 +26,7 @@ export function dictDataInfo(dictType: string) {
  * @returns 字典数据列表
  */
 export function dictDataList(params?: PageQuery) {
-  return requestClient.get<DictData[]>(Api.dictDataList, { params });
+  return requestClient.get<DictData[]>(Api.dictDataList, {params});
 }
 
 /**

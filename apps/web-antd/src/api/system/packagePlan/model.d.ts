@@ -1,4 +1,4 @@
-import type { BaseEntity, PageQuery } from '#/api/common';
+import type {BaseEntity, PageQuery} from '#/api/common';
 
 export interface PackagePlanVO {
   /**

@@ -1,8 +1,8 @@
-import type { FileCallBack, UpdatePasswordParam, UserProfile } from './model';
+import type {FileCallBack, UpdatePasswordParam, UserProfile} from './model';
 
-import { buildUUID } from '@vben/utils';
+import {buildUUID} from '@vben/utils';
 
-import { requestClient } from '#/api/request';
+import {requestClient} from '#/api/request';
 
 enum Api {
   root = '/system/user/profile',
@@ -45,8 +45,8 @@ export function userUpdatePassword(data: UpdatePasswordParam) {
  */
 export function userUpdateAvatar(fileCallback: FileCallBack) {
   /** 直接点击头像上传 filename为空 由于后台通过拓展名判断(默认文件名blob) 会上传失败 */
-  let { file } = fileCallback;
-  const { filename } = fileCallback;
+  let {file} = fileCallback;
+  const {filename} = fileCallback;
   /**
    * Blob转File类型
    * 1. 在直接点击确认 filename为空 取uuid作为文件名
@@ -60,6 +60,6 @@ export function userUpdateAvatar(fileCallback: FileCallBack) {
     {
       avatarfile: file,
     },
-    { headers: { 'Content-Type': 'multipart/form-data' } },
+    {headers: {'Content-Type': 'multipart/form-data'}},
   );
 }

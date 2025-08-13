@@ -1,6 +1,6 @@
-import type { AxiosRequestConfig } from '@vben/request';
+import type {AxiosRequestConfig} from '@vben/request';
 
-import { requestClient } from '#/api/request';
+import {requestClient} from '#/api/request';
 
 /**
  * Axios上传进度事件
@@ -19,10 +19,11 @@ export function uploadApi(
 ) {
   return requestClient.upload(
     '/resource/oss/upload',
-    { file },
-    { onUploadProgress, timeout: 60_000 },
+    {file},
+    {onUploadProgress, timeout: 60_000},
   );
 }
+
 /**
  * 默认上传结果
  */

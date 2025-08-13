@@ -1,8 +1,8 @@
-import type { Notice } from './model';
+import type {Notice} from './model';
 
-import type { ID, IDS, PageQuery } from '#/api/common';
+import type {ID, IDS, PageQuery} from '#/api/common';
 
-import { requestClient } from '#/api/request';
+import {requestClient} from '#/api/request';
 
 enum Api {
   noticeList = '/system/notice/list',
@@ -15,7 +15,7 @@ enum Api {
  * @returns 分页结果
  */
 export function noticeList(params?: PageQuery) {
-  return requestClient.get<Notice[]>(Api.noticeList, { params });
+  return requestClient.get<Notice[]>(Api.noticeList, {params});
 }
 
 /**

@@ -1,9 +1,9 @@
-import type { PluginForm, PluginQuery, PluginVO } from './model';
+import type {PluginForm, PluginQuery, PluginVO} from './model';
 
-import type { ID, IDS, PageResult } from '#/api/common';
+import type {ID, IDS, PageResult} from '#/api/common';
 
-import { commonExport } from '#/api/helper';
-import { requestClient } from '#/api/request';
+import {commonExport} from '#/api/helper';
+import {requestClient} from '#/api/request';
 
 /**
  * 查询插件管理列表

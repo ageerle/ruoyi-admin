@@ -1,8 +1,8 @@
-import type { Dept } from './model';
+import type {Dept} from './model';
 
-import type { ID } from '#/api/common';
+import type {ID} from '#/api/common';
 
-import { requestClient } from '#/api/request';
+import {requestClient} from '#/api/request';
 
 enum Api {
   deptList = '/system/dept/list',
@@ -15,7 +15,7 @@ enum Api {
  * @returns list
  */
 export function deptList(params?: { deptName?: string; status?: string }) {
-  return requestClient.get<Dept[]>(Api.deptList, { params });
+  return requestClient.get<Dept[]>(Api.deptList, {params});
 }
 
 /**

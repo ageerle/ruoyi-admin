@@ -1,6 +1,6 @@
 import type {FormSchemaGetter} from '#/adapter/form';
 import type {VxeGridPropTypes} from '#/adapter/vxe-table';
-import {schemaList} from '#/api/dev/schema';
+import {schemaList} from '#/api/dev/schema/schema';
 
 export const columns: VxeGridPropTypes.Columns = [
   {
@@ -23,16 +23,10 @@ export const columns: VxeGridPropTypes.Columns = [
   {
     title: '字段编码',
     field: 'code',
-    editRender: {
-      name: 'VxeInput',
-    },
   },
   {
     title: '字段描述',
     field: 'name',
-    editRender: {
-      name: 'VxeInput',
-    },
   },
   {
     title: '字段类型',
@@ -54,14 +48,12 @@ export const columns: VxeGridPropTypes.Columns = [
     },
   },
   {
+    title: '默认值',
+    field: 'defaultValue',
+  },
+  {
     title: '字段长度',
     field: 'length',
-    editRender: {
-      name: 'VxeInput',
-      props: {
-        type: 'number',
-      },
-    },
   },
   {
     title: '主键',
@@ -185,9 +177,6 @@ export const columns: VxeGridPropTypes.Columns = [
   {
     title: '字典类型',
     field: 'dictType',
-    editRender: {
-      name: 'VxeInput',
-    },
   }
 ];
 
@@ -218,5 +207,10 @@ export const querySchema: FormSchemaGetter = () => [
     colProps: {
       span: 8,
     }
-  }
+  },
+  {
+    fieldName: 'code',
+    label: '字段编码',
+    component: 'Input',
+  },
 ];

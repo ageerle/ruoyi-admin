@@ -1,8 +1,8 @@
-import type { OnlineUser } from './model';
+import type {OnlineUser} from './model';
 
-import type { PageQuery, PageResult } from '#/api/common';
+import type {PageQuery, PageResult} from '#/api/common';
 
-import { requestClient } from '#/api/request';
+import {requestClient} from '#/api/request';
 
 enum Api {
   onlineList = '/monitor/online/list',
@@ -23,7 +23,7 @@ export function onlineDeviceList() {
  * @returns 结果
  */
 export function onlineList(params?: PageQuery) {
-  return requestClient.get<PageResult<OnlineUser>>(Api.onlineList, { params });
+  return requestClient.get<PageResult<OnlineUser>>(Api.onlineList, {params});
 }
 
 /**

@@ -1,9 +1,9 @@
-import type { TenantPackage } from './model';
+import type {TenantPackage} from './model';
 
-import type { ID, IDS, PageQuery, PageResult } from '#/api/common';
+import type {ID, IDS, PageQuery, PageResult} from '#/api/common';
 
-import { commonExport } from '#/api/helper';
-import { requestClient } from '#/api/request';
+import {commonExport} from '#/api/helper';
+import {requestClient} from '#/api/request';
 
 enum Api {
   packageChangeStatus = '/system/tenant/package/changeStatus',

@@ -1,4 +1,4 @@
-import { requestClient } from '#/api/request';
+import {requestClient} from '#/api/request';
 
 /**
  * 发送短信验证码
@@ -7,7 +7,7 @@ import { requestClient } from '#/api/request';
  */
 export function sendSmsCode(phonenumber: string) {
   return requestClient.get<void>('/resource/sms/code', {
-    params: { phonenumber },
+    params: {phonenumber},
   });
 }
 
@@ -18,7 +18,7 @@ export function sendSmsCode(phonenumber: string) {
  */
 export function sendEmailCode(email: string) {
   return requestClient.get<void>('/resource/email/code', {
-    params: { email },
+    params: {email},
   });
 }
 

@@ -1,10 +1,10 @@
-import type { GrantType } from '@vben/common-ui';
+import type {GrantType} from '@vben/common-ui';
 
-import { useAppConfig } from '@vben/hooks';
+import {useAppConfig} from '@vben/hooks';
 
-import { requestClient } from '#/api/request';
+import {requestClient} from '#/api/request';
 
-const { clientId, sseEnable } = useAppConfig(
+const {clientId, sseEnable} = useAppConfig(
   import.meta.env,
   import.meta.env.PROD,
 );
@@ -50,16 +50,6 @@ export namespace AuthApi {
 
   export type LoginParams = OAuthLoginParams | SimpleLoginParams;
 
-  // /** 登录接口参数 */
-  // export interface LoginParams {
-  //   code?: string;
-  //   grantType: string;
-  //   password: string;
-  //   tenantId: string;
-  //   username: string;
-  //   uuid?: string;
-  // }
-
   /** 登录接口返回值 */
   export interface LoginResult {
     access_token: string;
@@ -79,7 +69,7 @@ export namespace AuthApi {
 export async function loginApi(data: AuthApi.LoginParams) {
   return requestClient.post<AuthApi.LoginResult>(
     '/auth/login',
-    { ...data, clientId },
+    {...data, clientId},
     {
       encrypt: true,
     },
@@ -146,6 +136,7 @@ export async function getAccessCodesApi() {
 /**
  * 绑定第三方账号
  * @param source 绑定的来源
+ * @param tenantId
  * @returns 跳转url
  */
 export function authBinding(source: string, tenantId: string) {

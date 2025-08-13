@@ -19,8 +19,8 @@ export namespace SchemaGroupApi {
 
   /** 分页查询参数 */
   export interface PageParams {
-    current: number;
-    size: number;
+    pageNum: number;
+    pageSize: number;
     name?: string;
     code?: string;
   }
@@ -29,8 +29,8 @@ export namespace SchemaGroupApi {
   export interface PageResult {
     records: SchemaGroupInfo[];
     total: number;
-    size: number;
-    current: number;
+    pageSize: number;
+    pageNum: number;
   }
 
   /** 选择项 */

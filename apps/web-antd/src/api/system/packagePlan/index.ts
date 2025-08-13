@@ -1,9 +1,9 @@
-import type { PackagePlanForm, PackagePlanQuery, PackagePlanVO } from './model';
+import type {PackagePlanForm, PackagePlanQuery, PackagePlanVO} from './model';
 
-import type { ID, IDS, PageResult } from '#/api/common';
+import type {ID, IDS, PageResult} from '#/api/common';
 
-import { commonExport } from '#/api/helper';
-import { requestClient } from '#/api/request';
+import {commonExport} from '#/api/helper';
+import {requestClient} from '#/api/request';
 
 /**
  * 查询套餐管理列表
@@ -13,7 +13,7 @@ import { requestClient } from '#/api/request';
 export function packagePlanList(params?: PackagePlanQuery) {
   return requestClient.get<PageResult<PackagePlanVO>>(
     '/system/packagePlan/list',
-    { params },
+    {params},
   );
 }
 

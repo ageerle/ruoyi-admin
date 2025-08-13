@@ -1,18 +1,17 @@
 <script setup lang="ts">
-import type { VbenFormProps } from '@vben/common-ui';
-import { Page, useVbenModal } from '@vben/common-ui';
+import type {VbenFormProps} from '@vben/common-ui';
+import {Page, useVbenModal} from '@vben/common-ui';
 
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
-import type { SchemaInfo } from '#/api/dev/schema/types';
-import { $t } from '@vben/locales';
-import { getVxePopupContainer } from '@vben/utils';
+import type {VxeGridProps} from '#/adapter/vxe-table';
+import {useVbenVxeGrid, vxeCheckboxChecked} from '#/adapter/vxe-table';
+import type {SchemaInfo} from '#/api/dev/schema/types';
+import {$t} from '@vben/locales';
+import {getVxePopupContainer} from '@vben/utils';
 
-import { Modal, Popconfirm, Space } from 'ant-design-vue';
-import { schemaExport, schemaList, schemaRemove, } from '#/api/dev/schema';
-import { commonDownloadExcel } from '#/utils/file/download';
+import {Modal, Popconfirm, Space} from 'ant-design-vue';
+import {schemaList, schemaRemove,} from '#/api/dev/schema/schema';
 
-import { columns, querySchema } from './data';
+import {columns, querySchema} from './data';
 import schemaModal from './schema-modal.vue';
 
 defineOptions({
@@ -28,7 +27,7 @@ const formOptions: VbenFormProps = {
   },
   schema: querySchema(),
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
-  // 处理区间选择器RangePicker时间格式 将一个字段映射为两个字段 搜索/导出会用到
+  // 处理区间选择器RangePicker时间格式 将一个字段映射为两个字段 搜索会用到
   fieldMappingTime: [
     [
       'createTime',
@@ -60,7 +59,7 @@ const gridOptions: VxeGridProps = {
   pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async ({ page }, formValues = {}) => {
+      query: async ({page}, formValues = {}) => {
         return await schemaList({
           pageNum: page.currentPage,
           pageSize: page.pageSize,
@@ -95,20 +94,12 @@ function handleAdd() {
 }
 
 async function handleEdit(row: Required<SchemaInfo>) {
-  modalApi.setData({ id: row.id });
+  modalApi.setData({id: row.id});
   modalApi.open();
 }
 
-function handleFieldManage(row: Required<SchemaInfo>) {
-  fieldModalApi.setData({
-    schemaId: row.id,
-    schemaName: row.name,
-  });
-  fieldModalApi.open();
-}
-
 async function handleDelete(row: Required<SchemaInfo>) {
-  await schemaRemove(row.id);
+  await schemaRemove([row.id]);
   await tableApi.query();
 }
 
@@ -126,16 +117,7 @@ function handleMultiDelete() {
   });
 }
 
-function handleDownloadExcel() {
-  commonDownloadExcel(
-    schemaExport,
-    '数据模型数据',
-    tableApi.formApi.form.values,
-    {
-      fieldMappingTime: formOptions.fieldMappingTime,
-    },
-  );
-}
+
 </script>
 
 <template>
@@ -143,11 +125,8 @@ function handleDownloadExcel() {
     <BasicTable table-title="数据模型列表">
       <template #toolbar-tools>
         <Space>
-          <a-button v-access:code="['dev:schema:export']" @click="handleDownloadExcel">
-            {{ $t('pages.common.export') }}
-          </a-button>
           <a-button :disabled="!vxeCheckboxChecked(tableApi)" danger type="primary"
-            v-access:code="['dev:schema:remove']" @click="handleMultiDelete">
+                    v-access:code="['dev:schema:remove']" @click="handleMultiDelete">
             {{ $t('pages.common.delete') }}
           </a-button>
           <a-button type="primary" v-access:code="['dev:schema:add']" @click="handleAdd">
@@ -161,7 +140,7 @@ function handleDownloadExcel() {
             {{ $t('pages.common.edit') }}
           </ghost-button>
           <Popconfirm :get-popup-container="getVxePopupContainer" placement="left" title="确认删除？"
-            @confirm="handleDelete(row)">
+                      @confirm="handleDelete(row)">
             <ghost-button danger v-access:code="['dev:schema:remove']" @click.stop="">
               {{ $t('pages.common.delete') }}
             </ghost-button>
@@ -169,7 +148,7 @@ function handleDownloadExcel() {
         </Space>
       </template>
     </BasicTable>
-    <SchemaModal @reload="tableApi.query()" />
-    <FieldManageModal />
+    <SchemaModal @reload="tableApi.query()"/>
+    <FieldManageModal/>
   </Page>
 </template>

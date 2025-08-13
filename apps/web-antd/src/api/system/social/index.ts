@@ -1,8 +1,8 @@
-import type { SocialInfo } from './model';
+import type {SocialInfo} from './model';
 
-import type { ID } from '#/api/common';
+import type {ID} from '#/api/common';
 
-import { requestClient } from '#/api/request';
+import {requestClient} from '#/api/request';
 
 enum Api {
   root = '/system/social',

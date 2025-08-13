@@ -18,7 +18,7 @@
             {{ $t('pages.common.edit') }}
           </ghost-button>
           <Popconfirm :get-popup-container="getVxePopupContainer" placement="left" title="确认删除？"
-            @confirm="handleDelete(row)">
+                      @confirm="handleDelete(row)">
             <ghost-button danger v-access:code="['dev:schemaField:remove']" @click.stop="">
               {{ $t('pages.common.delete') }}
             </ghost-button>
@@ -26,30 +26,29 @@
         </Space>
       </template>
     </BasicTable>
-    <ModalComponent :schemaOptions="schemaOptions" @reload="tableApi.query()" />
-    <GenerateModalComponent @handleGen="handleGen" />
+    <ModalComponent :schemaOptions="schemaOptions" @reload="tableApi.query()"/>
+    <GenerateModalComponent @handleGen="handleGen"/>
   </Page>
 </template>
 
 <script setup lang="ts">
-import type { VbenFormProps } from '@vben/common-ui';
-import { Page, useVbenModal } from '@vben/common-ui';
+import type {VbenFormProps} from '@vben/common-ui';
+import {Page, useVbenModal} from '@vben/common-ui';
+import {onMounted, ref, watch} from 'vue';
 
-import type { VxeGridProps } from '#/adapter/vxe-table';
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { $t } from '@vben/locales';
-import { getVxePopupContainer } from '@vben/utils';
+import type {VxeGridProps} from '#/adapter/vxe-table';
+import {useVbenVxeGrid} from '#/adapter/vxe-table';
+import {$t} from '@vben/locales';
+import {getVxePopupContainer} from '@vben/utils';
 
-import { message, notification, Popconfirm, Space } from 'ant-design-vue';
-import { deleteSchemaField, getSchemaFieldList } from '#/api/dev/schemaField';
+import {message, notification, Popconfirm, Space} from 'ant-design-vue';
+import {deleteSchemaField, getSchemaFieldList} from '#/api/dev/schemaField/schemaField';
+import type {SchemaGenerateParams, SchemaInfo} from '#/api/dev/schema/types';
+import {batchGenCode, batchGenFrontendCode, schemaList} from '#/api/dev/schema/schema';
 
-import { columns, querySchema } from './data';
+import {columns, querySchema} from './data';
 import SchemaFieldModal from './schema-field-modal.vue';
-import GenerateFieldModal from './generate-field-modal.vue';
-import { batchGenCode, batchGenFrontendCode, schemaList } from '#/api/dev/schema';
-
-import { onMounted, ref, watch } from 'vue';
-import type { SchemaGenerateParams, SchemaInfo } from '#/api/dev/schema/types';
+import GenerateFieldModal from "./generate-field-modal.vue";
 
 interface Props {
   schemaId?: number;
@@ -105,12 +104,12 @@ const gridOptions: VxeGridProps = {
       field: 'action',
       width: 120,
       fixed: 'right',
-      slots: { default: 'action' },
+      slots: {default: 'action'},
     },
   ],
   proxyConfig: {
     ajax: {
-      query: async ({ page }, formValues = {}) => {
+      query: async ({page}, formValues = {}) => {
         const searchSchemaId = formValues?.schemaId || props.schemaId;
         try {
           return await getSchemaFieldList({
@@ -253,7 +252,7 @@ async function handleGen(params: SchemaGenerateParams) {
 // 获取模型列表
 const loadSchemaOptions = async () => {
   try {
-    const response = await schemaList({ pageSize: 1000 });
+    const response = await schemaList({pageSize: 1000});
     schemaOptions.value = response.rows || [];
   } catch (error) {
     console.error('获取模型列表失败:', error);
@@ -264,10 +263,10 @@ const loadSchemaOptions = async () => {
 watch(() => props.schemaId, (newSchemaId) => {
   if (newSchemaId) {
     // 如果有props.schemaId，设置到表单中
-    tableApi.formApi?.setValues({ schemaId: newSchemaId });
+    tableApi.formApi?.setValues({schemaId: newSchemaId});
     tableApi.query();
   }
-}, { immediate: true });
+}, {immediate: true});
 
 // 组件挂载时加载模型列表
 onMounted(() => {

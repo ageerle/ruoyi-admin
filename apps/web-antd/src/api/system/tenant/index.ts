@@ -1,9 +1,9 @@
-import type { Tenant } from './model';
+import type {Tenant} from './model';
 
-import type { ID, IDS, PageQuery } from '#/api/common';
+import type {ID, IDS, PageQuery} from '#/api/common';
 
-import { commonExport } from '#/api/helper';
-import { requestClient } from '#/api/request';
+import {commonExport} from '#/api/helper';
+import {requestClient} from '#/api/request';
 
 enum Api {
   dictSync = '/system/tenant/syncTenantDict',
@@ -22,7 +22,7 @@ enum Api {
  * @returns 分页
  */
 export function tenantList(params?: PageQuery) {
-  return requestClient.get<Tenant[]>(Api.tenantList, { params });
+  return requestClient.get<Tenant[]>(Api.tenantList, {params});
 }
 
 /**
@@ -49,7 +49,7 @@ export function tenantInfo(id: ID) {
  * @returns void
  */
 export function tenantAdd(data: Partial<Tenant>) {
-  return requestClient.postWithMsg<void>(Api.root, data, { encrypt: true });
+  return requestClient.postWithMsg<void>(Api.root, data, {encrypt: true});
 }
 
 /**
@@ -104,7 +104,7 @@ export function tenantDynamicClear() {
  */
 export function tenantSyncPackage(tenantId: string, packageId: string) {
   return requestClient.get<void>(Api.tenantSyncPackage, {
-    params: { packageId, tenantId },
+    params: {packageId, tenantId},
     successMessageMode: 'message',
   });
 }
@@ -116,7 +116,7 @@ export function tenantSyncPackage(tenantId: string, packageId: string) {
  */
 export function dictSyncTenant(tenantId?: string) {
   return requestClient.get<void>(Api.dictSync, {
-    params: { tenantId },
+    params: {tenantId},
     successMessageMode: 'message',
   });
 }

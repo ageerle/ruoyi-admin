@@ -1,9 +1,9 @@
-import type { OperationLog } from './model';
+import type {OperationLog} from './model';
 
-import type { IDS, PageQuery, PageResult } from '#/api/common';
+import type {IDS, PageQuery, PageResult} from '#/api/common';
 
-import { commonExport } from '#/api/helper';
-import { requestClient } from '#/api/request';
+import {commonExport} from '#/api/helper';
+import {requestClient} from '#/api/request';
 
 enum Api {
   operLogClean = '/monitor/operlog/clean',

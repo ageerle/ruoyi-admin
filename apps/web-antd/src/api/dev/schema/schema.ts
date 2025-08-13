@@ -1,4 +1,4 @@
-import type {SchemaInfo as Schema, SchemaQueryParams as SchemaQueryParam} from './schema/types';
+import type {SchemaInfo as Schema, SchemaQueryParams as SchemaQueryParam} from './types';
 
 import type {ID, IDS, PageQuery, PageResult} from '#/api/common';
 
@@ -10,12 +10,12 @@ enum Api {
   list = '/dev/schema/list',
   export = '/dev/schema/export',
   getDataNames = '/dev/schema/getDataNames',
-  batchGenCode= '/tool/gen/batchGenCode',
-  batchGenFrontendCode= '/tool/gen/batchGenFrontendCode',
+  batchGenCode = '/tool/gen/batchGenCode',
+  batchGenFrontendCode = '/tool/gen/batchGenFrontendCode',
 }
 
 /**
- * 获取null列表
+ * 获取数据模型列表
  * @param params 查询参数
  * @returns Schema列表
  */
@@ -24,8 +24,8 @@ export function schemaList(params?: PageQuery & SchemaQueryParam) {
 }
 
 /**
- * 获取null详情
- * @param id nullID
+ * 获取数据模型详情
+ * @param id 数据模型ID
  * @returns Schema详情
  */
 export function schemaInfo(id: ID) {
@@ -33,8 +33,8 @@ export function schemaInfo(id: ID) {
 }
 
 /**
- * 新增null
- * @param data null数据
+ * 新增数据模型
+ * @param data 数据模型数据
  * @returns void
  */
 export function schemaAdd(data: Partial<Schema>) {
@@ -42,8 +42,8 @@ export function schemaAdd(data: Partial<Schema>) {
 }
 
 /**
- * 更新null
- * @param data null数据
+ * 更新数据模型
+ * @param data 数据模型数据
  * @returns void
  */
 export function schemaUpdate(data: Partial<Schema>) {
@@ -51,8 +51,8 @@ export function schemaUpdate(data: Partial<Schema>) {
 }
 
 /**
- * 删除null
- * @param ids nullID数组
+ * 删除数据模型
+ * @param ids 数据模型ID数组
  * @returns void
  */
 export function schemaRemove(ids: ID | IDS) {
@@ -60,7 +60,7 @@ export function schemaRemove(ids: ID | IDS) {
 }
 
 /**
- * 导出null
+ * 导出数据模型
  * @param data 查询参数
  * @returns blob
  */
@@ -78,16 +78,16 @@ export function getDataNames() {
 
 /**
  * 生成前端代码
- * @returns 
+ * @returns
  */
-export function batchGenFrontendCode(workPath:string,previewCode: string) {
+export function batchGenFrontendCode(workPath: string, previewCode: string) {
   return requestClient.get<string>(`${Api.batchGenFrontendCode}?workPath=${encodeURIComponent(workPath)}&previewCode=${encodeURIComponent(previewCode)}`);
 }
 
 /**
  * 生成后端代码
- * @returns 
+ * @returns
  */
-export function batchGenCode(tableName:string) {
+export function batchGenCode(tableName: string) {
   return requestClient.get<string>(`${Api.batchGenCode}?tableNameStr=${tableName}`);
 }

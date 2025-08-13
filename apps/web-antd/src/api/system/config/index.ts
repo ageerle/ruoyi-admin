@@ -1,9 +1,9 @@
-import type { SysConfig } from './model';
+import type {SysConfig} from './model';
 
-import type { ID, IDS, PageQuery, PageResult } from '#/api/common';
+import type {ID, IDS, PageQuery, PageResult} from '#/api/common';
 
-import { commonExport } from '#/api/helper';
-import { requestClient } from '#/api/request';
+import {commonExport} from '#/api/helper';
+import {requestClient} from '#/api/request';
 
 enum Api {
   configExport = '/system/config/export',
@@ -19,7 +19,7 @@ enum Api {
  * @returns 列表
  */
 export function configList(params?: PageQuery) {
-  return requestClient.get<PageResult<SysConfig>>(Api.configList, { params });
+  return requestClient.get<PageResult<SysConfig>>(Api.configList, {params});
 }
 
 export function configInfo(configId: ID) {

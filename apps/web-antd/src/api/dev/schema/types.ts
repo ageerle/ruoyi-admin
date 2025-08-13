@@ -19,38 +19,11 @@ export interface SchemaQueryParams {
   /** 表名 */
   tableName?: string;
 
-  /** 表注释 */
-  comment?: string;
-
-  /** 存储引擎 */
-  engine?: string;
-
-  /** 列表字段 */
-  listKeys?: string;
-
-  /** 搜索表单字段 */
-  searchFormKeys?: string;
-
-  /** 表单设计 */
-  designer?: string;
-
-  /** 状态（0正常 1停用） */
-  status?: string;
-
-  /** 排序 */
-  sort?: number;
-
   /** 备注 */
   remark?: string;
 
   /** 删除标志（0代表存在 2代表删除） */
   delFlag?: string;
-
-  /** 租户编号 */
-  tenantId?: string;
-
-  /** 创建部门 */
-  createDept?: number;
 
   /** 页码 */
   pageNum?: number;
@@ -72,57 +45,14 @@ export interface SchemaInfo {
   /** 模型名称 */
   name?: string;
 
-  /** 模型编码 */
-  code?: string;
-
   /** 表名 */
   tableName?: string;
 
   /** 表注释 */
   comment?: string;
 
-  /** 存储引擎 */
-  engine?: string;
-
-  /** 列表字段 */
-  listKeys?: string;
-
-  /** 搜索表单字段 */
-  searchFormKeys?: string;
-
-  /** 表单设计 */
-  designer?: string;
-
-  /** 状态（0正常 1停用） */
-  status?: string;
-
-  /** 排序 */
-  sort?: number;
-
   /** 备注 */
   remark?: string;
-
-  /** 删除标志（0代表存在 2代表删除） */
-  delFlag?: string;
-
-  /** 租户编号 */
-  tenantId?: string;
-
-  /** 创建部门 */
-  createDept?: number;
-
-  /** 创建者 */
-  createBy?: number;
-
-  /** 创建时间 */
-  createTime?: string;
-
-  /** 更新者 */
-  updateBy?: number;
-
-  /** 更新时间 */
-  updateTime?: string;
-
 }
 
 /**
@@ -141,46 +71,6 @@ export interface SchemaFormData {
 
   /** 表名 */
   tableName?: string;
-
-  /** 表注释 */
-  comment?: string;
-
-  /** 存储引擎 */
-  engine?: string;
-
-  /** 列表字段 */
-  listKeys?: string;
-
-  /** 搜索表单字段 */
-  searchFormKeys?: string;
-
-  /** 表单设计 */
-  designer?: string;
-
-  /** 状态（0正常 1停用） */
-  status?: string;
-
-  /** 排序 */
-  sort?: number;
-
-  /** 备注 */
-  remark?: string;
-
-  /** 删除标志（0代表存在 2代表删除） */
-  delFlag?: string;
-
-  /** 租户编号 */
-  tenantId?: string;
-
-  /** 创建部门 */
-  createDept?: number;
-
-  /** 创建者 */
-  createBy?: number;
-
-  /** 更新者 */
-  updateBy?: number;
-
 }
 
 /**
@@ -204,6 +94,7 @@ export interface SchemaExportParams extends SchemaQueryParams {
   /** 导出字段 */
   fields?: string[];
 }
+
 
 /**
  * 前端脚本参数

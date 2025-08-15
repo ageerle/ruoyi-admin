@@ -18,7 +18,7 @@
           <RadioButton value="all">全部</RadioButton>
         </RadioGroup>
       </FormItem>
-      <FormItem label="本地前端路径" v-bind="validateInfos.workPath">
+      <FormItem label="本地前端根路径" v-bind="validateInfos.workPath">
         <Input v-model:value="formData.workPath" :placeholder="$t('ui.formRules.required')"/>
       </FormItem>
       <FormItem label="自定义数据" v-bind="validateInfos.data">

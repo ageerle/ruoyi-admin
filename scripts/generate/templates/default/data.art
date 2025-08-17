@@ -1,8 +1,8 @@
 import type { FormSchemaGetter } from '#/adapter/form';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 
-import { DictEnum } from '@vben/constants';
-
+import { <{className}>Dict } from '#/api/<{className}>/<{className}>/types';
+import { getDictOptions } from '#/utils/dict';
 import { renderDict } from '#/utils/render';<{if ext.customFormComponentList && ext.customFormComponentList.length > 0}>
 
 // 自定义表单组件
@@ -20,7 +20,7 @@ export const querySchema: FormSchemaGetter = () => [
     fieldName: '<{$value.javaField}>',
     label: '<{$value.columnComment}>',<{if $value.dictType}>
     componentProps: {
-      options: DictEnum.<{$value.dictType}>,
+      options:  getDictOptions(<{className}>Dict.<{$value.dictType}>),
     },<{else if $value.htmlType == 'radio'}>
     componentProps: {
       options: [
@@ -62,7 +62,7 @@ export const columns: VxeGridProps['columns'] = [
     width: 120,
     slots: {
       default: ({ row }) => {
-        return renderDict(row.<{$value.javaField}>, DictEnum.<{$value.dictType}>);
+        return renderDict(row.<{$value.javaField}>,  <{className}>Dict.<{$value.dictType}>);
       },
     },<{/if}><{if $value.columnName == 'create_time' || $value.columnName == 'update_time'}>
     width: 180,<{/if}>
@@ -93,8 +93,12 @@ export const modalSchema: FormSchemaGetter = () => [
       label: '<{$value.columnComment}>',<{if $value.isRequired == '1'}>
       rules: 'required',<{/if}><{if $value.dictType}>
       componentProps: {
-        options: DictEnum.<{$value.dictType}>,
-      },<{else if $value.htmlType == 'radio'}>
+         buttonStyle: 'solid',
+        options:  getDictOptions(<{className}>Dict.<{$value.dictType}>),
+        optionType: 'button',
+      },
+      defaultValue: '0',
+      <{else if $value.htmlType == 'radio'}>
       componentProps: {
         options: [
           { label: '是', value: '1' },

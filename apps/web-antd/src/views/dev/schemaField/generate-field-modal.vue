@@ -19,7 +19,8 @@
         </RadioGroup>
       </FormItem>
       <FormItem label="本地前端根路径" v-bind="validateInfos.workPath">
-        <Input v-model:value="formData.workPath" :placeholder="$t('ui.formRules.required')"/>
+        <Input v-model:value="formData.workPath" :placeholder="$t('ui.formRules.required')"
+               disabled/>
       </FormItem>
       <FormItem label="自定义数据" v-bind="validateInfos.data">
         <Input v-model:value="formData.data"/>
@@ -110,10 +111,31 @@ const [BasicModal, modalApi] = useVbenModal({
       // 只赋值存在的字段
       formData.value = pick(record, Object.keys(defaultValues));
     } else {
+      // 获取初始路径
+      const getDefaultWorkPath = () => {
+        // 优先使用 localStorage 中保存的路径
+        const savedPath = localStorage.getItem("gen_work_path");
+        if (savedPath) return savedPath;
+
+        // 尝试从 Vite 注入的全局变量获取项目根路径
+        try {
+          // 使用构建时注入的项目根路径（相当于 process.cwd()）
+          if (typeof __PROJECT_ROOT__ !== 'undefined') {
+            console.log('从全局变量获取项目根路径:', __PROJECT_ROOT__);
+            return __PROJECT_ROOT__;
+          }
+        } catch (error) {
+          console.warn('获取项目路径失败:', error);
+        }
+
+        // 如果无法自动获取，返回空字符串，让用户手动输入
+        return '';
+      };
+
       formData.value = {
         ...defaultValues,
         tableName,
-        workPath: localStorage.getItem("gen_work_path") || ''
+        workPath: getDefaultWorkPath()
       };
     }
 

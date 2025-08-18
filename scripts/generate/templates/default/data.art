@@ -1,7 +1,7 @@
 import type { FormSchemaGetter } from '#/adapter/form';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 
-import { <{className}>Dict } from '#/api/<{className}>/<{className}>/types';
+import { <{className}>Dict } from '#/api/<{schemaGroupCode}>/<{className}>/types';
 import { getDictOptions } from '#/utils/dict';
 import { renderDict } from '#/utils/render';<{if ext.customFormComponentList && ext.customFormComponentList.length > 0}>
 

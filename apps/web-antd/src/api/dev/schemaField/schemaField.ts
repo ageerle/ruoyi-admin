@@ -4,6 +4,7 @@ import {requestClient} from '#/api/request';
 
 // 字段信息接口
 export interface SchemaField {
+  dictName: any;
   id?: number;
   schemaId?: number;
   name?: string;
@@ -64,14 +65,21 @@ export interface SchemaFieldQueryParams {
   type?: string;
   status?: string;
 }
-
 enum Api {
   list = '/dev/schemaField/list',
   info = '/dev/schemaField',
   add = '/dev/schemaField',
   edit = '/dev/schemaField',
   del = '/dev/schemaField',
-  batchUpdate = '/dev/schemaField/batchUpdate',
+  dictall = '/system/dict/type/all',
+}
+/**
+ * 获取字段列表
+ * @param params 查询参数
+ * @returns 字段列表
+ */
+export function dictall(params?: PageQuery & SchemaFieldQueryParams) {
+  return requestClient.get<PageResult<SchemaField>>(Api.dictall, {params});
 }
 
 /**

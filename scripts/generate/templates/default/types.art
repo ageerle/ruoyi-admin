@@ -1,7 +1,17 @@
 /**
  * <{functionName}>相关类型定义
  */
-
+ /**
+ * 字典枚举定义
+ */
+export enum <{className}>Dict {
+<{each columns}>
+<{if $value.dictType != ''}>
+  /** <{$value.columnComment}> */
+  <{$value.dictType}> = '<{$value.dictType}>',
+<{/if}>
+<{/each}>
+}
 /**
  * <{functionName}>查询参数
  */

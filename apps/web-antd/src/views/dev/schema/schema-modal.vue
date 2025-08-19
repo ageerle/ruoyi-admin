@@ -151,7 +151,8 @@ async function handleCancel() {
                 :get-popup-container="getPopupContainer"
                 :placeholder="$t('ui.formRules.required')" show-search :filter-option="(input: string, option: any) => {
             return option.label.toLowerCase().includes(input.toLowerCase());
-          }"/>
+          }"
+           style="width: 70%" />
       </FormItem>
       <FormItem label="备注">
         <Textarea v-model:value="formData.remark" placeholder="请输入备注"/>

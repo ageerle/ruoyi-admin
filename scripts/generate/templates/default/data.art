@@ -21,6 +21,7 @@ export const querySchema: FormSchemaGetter = () => [
     label: '<{$value.columnComment}>',<{if $value.dictType}>
     componentProps: {
       options:  getDictOptions(<{className}>Dict.<{$value.dictType}>),
+
     },<{else if $value.htmlType == 'radio'}>
     componentProps: {
       options: [

@@ -71,7 +71,16 @@
                 placeholder="请选择显示类型"/>
       </FormItem>
       <FormItem label="字典类型">
-        <Input v-model:value="formData.dictType" placeholder="请输入字典类型"/>
+<Select
+    v-model:value="formData.dictType"
+    :options="htmlDictData"
+    show-search
+    option-filter-prop="label"
+    :filter-option="filterOption"
+    placeholder="请选择或搜索字典类型"
+    style="width: 80%"
+  />
+
       </FormItem>
     </Form>
   </BasicModal>
@@ -82,7 +91,7 @@ import type {RuleObject} from 'ant-design-vue/es/form';
 import {computed, onMounted, ref} from 'vue';
 
 import type {SchemaFieldForm} from '#/api/dev/schemaField/schemaField';
-import {addSchemaField, updateSchemaField,} from '#/api/dev/schemaField/schemaField';
+import {addSchemaField, dictall, updateSchemaField,} from '#/api/dev/schemaField/schemaField';
 
 import {useVbenModal} from '@vben/common-ui';
 import {$t} from '@vben/locales';
@@ -93,6 +102,39 @@ import {pick} from 'lodash-es';
 import {schemaList} from '#/api/dev/schema/schema';
 import type {SchemaInfo} from '#/api/dev/schema/types';
 
+// 定义字典选项类型
+interface DictOption {
+  label: string;
+  value: string;
+  originalData?: any;
+}
+// 下拉选项（响应式）
+const htmlDictData = ref<DictOption[]>([]);
+// 获取字典数据
+const fetchDictData = async () => {
+  try {
+    const res = await dictall()
+    htmlDictData.value = res.rows.map(item => ({
+
+      label: String(item.dictName || ''),
+
+      value: String(item.dictType || ''),
+      originalData: item
+    }));
+    // }
+  } catch (error) {
+  }
+}
+// 搜索过滤函数
+const filterOption = (input: string, option: { label: string; value: string }) => {
+  return (
+    option.label.toLowerCase().includes(input.toLowerCase()) ||
+    option.value.toLowerCase().includes(input.toLowerCase())
+  )
+}
+onMounted(() => {
+  fetchDictData()
+})
 // const root = process.cwd()
 
 const emit = defineEmits<{ reload: [] }>();

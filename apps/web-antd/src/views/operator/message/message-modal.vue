@@ -11,9 +11,9 @@ import { computed, ref } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 import { $t } from '@vben/locales';
-import { cloneDeep } from '@vben/utils';
+import {cloneDeep, getPopupContainer} from '@vben/utils';
 
-import { Form, FormItem, Input, Textarea } from 'ant-design-vue';
+import {Form, FormItem, Input, Select, Textarea} from 'ant-design-vue';
 import { pick } from 'lodash-es';
 
 import { messageAdd, messageInfo, messageUpdate } from '#/api/operator/message';
@@ -37,6 +37,7 @@ const defaultValues: Partial<MessageForm> = {
   deductCost: undefined,
   totalTokens: undefined,
   modelName: undefined,
+  billingType: undefined,
   remark: undefined,
 };
 
@@ -58,6 +59,7 @@ const formRules = ref<AntdFormRules<MessageForm>>({
   deductCost: [{ required: true, message: '扣除金额不能为空' }],
   totalTokens: [{ required: true, message: '累计 Tokens不能为空' }],
   modelName: [{ required: true, message: '模型名称不能为空' }],
+  billingType: [{ required: true, message: '计费类型不能为空' }],
   remark: [{ required: true, message: '备注不能为空' }],
 });
 
@@ -116,6 +118,11 @@ async function handleCancel() {
   formData.value = defaultValues;
   resetFields();
 }
+
+const getBillingType = ref([
+  { label: 'token计费', value: '1' },
+  { label: '次数计费', value: '2' },
+]);
 </script>
 
 <template>
@@ -157,6 +164,14 @@ async function handleCancel() {
         <Input
           v-model:value="formData.modelName"
           :placeholder="$t('ui.formRules.required')"
+        />
+      </FormItem>
+      <FormItem label="计费类型" v-bind="validateInfos.billingType">
+        <Select
+          v-model:value="formData.billingType"
+          :options="getBillingType"
+          :get-popup-container="getPopupContainer"
+          :placeholder="$t('ui.formRules.selectRequired')"
         />
       </FormItem>
       <FormItem label="备注" v-bind="validateInfos.remark">

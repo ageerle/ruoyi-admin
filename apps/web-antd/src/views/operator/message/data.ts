@@ -1,6 +1,10 @@
 import type { FormSchemaGetter } from '#/adapter/form';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 
+import { DictEnum } from '@vben/constants';
+
+import { renderDict } from '#/utils/render';
+
 export const querySchema: FormSchemaGetter = () => [
   {
     component: 'Input',
@@ -44,6 +48,16 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '备注',
     field: 'remark',
+  },
+  {
+    title: '计费类型',
+    field: 'billingType',
+    width: 120,
+    slots: {
+      default: ({ row }) => {
+        return renderDict(row.billingType, DictEnum.SYS_MODEL_BILLING);
+      },
+    },
   },
   {
     field: 'action',

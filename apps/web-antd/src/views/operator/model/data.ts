@@ -45,6 +45,16 @@ export const columns: VxeGridProps['columns'] = [
     field: 'modelPrice',
   },
   {
+    title: '模型优先级',
+    field: 'priority',
+    width: 120,
+    slots: {
+      default: ({ row }) => {
+        return row.priority || 1;
+      },
+    },
+  },
+  {
     title: '计费类型',
     field: 'modelType',
     width: 120,

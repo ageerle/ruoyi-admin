@@ -27,6 +27,11 @@ export interface ModelVO {
   modelPrice: number;
 
   /**
+   * 模型优先级
+   */
+  priority: number;
+
+  /**
    * 计费类型
    */
   modelType: string;
@@ -84,6 +89,11 @@ export interface ModelForm extends BaseEntity {
   modelPrice?: number;
 
   /**
+   * 模型优先级
+   */
+  priority?: number;
+
+  /**
    * 计费类型
    */
   modelType?: string;
@@ -139,6 +149,11 @@ export interface ModelQuery extends PageQuery {
    * 模型价格
    */
   modelPrice?: number;
+
+  /**
+   * 模型优先级
+   */
+  priority?: number;
 
   /**
    * 计费类型

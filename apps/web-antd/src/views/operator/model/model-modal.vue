@@ -13,7 +13,7 @@ import { useVbenModal } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { cloneDeep, getPopupContainer } from '@vben/utils';
 
-import { Form, FormItem, Input, Select, Textarea } from 'ant-design-vue';
+import { Form, FormItem, Input, InputNumber, Select, Textarea } from 'ant-design-vue';
 import { pick } from 'lodash-es';
 
 import { modelAdd, modelInfo, modelUpdate } from '#/api/operator/model';
@@ -34,6 +34,7 @@ const defaultValues: Partial<ModelForm> = {
   modelName: undefined,
   modelDescribe: undefined,
   modelPrice: undefined,
+  priority: 1,
   modelType: undefined,
   modelShow: undefined,
   systemPrompt: undefined,
@@ -172,6 +173,15 @@ const getModelCategory = ref([
         <Input
           v-model:value="formData.modelPrice"
           :placeholder="$t('ui.formRules.required')"
+        />
+      </FormItem>
+      <FormItem label="模型优先级" v-bind="validateInfos.priority">
+        <InputNumber
+          v-model:value="formData.priority"
+          :min="1"
+          :precision="0"
+          placeholder="数字越大优先级越高，默认为1"
+          style="width: 100%"
         />
       </FormItem>
       <FormItem label="计费类型" v-bind="validateInfos.modelType">

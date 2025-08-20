@@ -1,9 +1,10 @@
-import type { FormSchemaGetter } from '#/adapter/form';
-import type { VxeGridProps } from '#/adapter/vxe-table';
+import type {FormSchemaGetter} from '#/adapter/form';
+import type {VxeGridProps} from '#/adapter/vxe-table';
 
-import { DictEnum } from '@vben/constants';
+import {DictEnum} from '@vben/constants';
 
-import { renderDict } from '#/utils/render';
+import {renderDict} from '#/utils/render';
+import {getDictOptions} from "#/utils/dict";
 
 export const querySchema: FormSchemaGetter = () => [
   {
@@ -17,17 +18,22 @@ export const querySchema: FormSchemaGetter = () => [
     label: '提示词模板内容',
   },
   {
-    component: 'Input',
     fieldName: 'category',
     label: '提示词分类',
+    component: 'Select',
+    componentProps: {
+      showSearch: true,
+      options: getDictOptions(DictEnum.PROMPT_TEMPLATE_TYPE),
+    },
   },
 ];
 
 export const columns: VxeGridProps['columns'] = [
-  { type: 'checkbox', width: 60 },
+  {type: 'checkbox', width: 60},
   {
     title: '主键',
     field: 'id',
+    visible: false,
   },
   {
     title: '提示词模板名称',
@@ -40,9 +46,8 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '提示词分类',
     field: 'category',
-    width: 120,
     slots: {
-      default: ({ row }) => {
+      default: ({row}) => {
         return renderDict(row.category, DictEnum.PROMPT_TEMPLATE_TYPE);
       },
     },
@@ -54,8 +59,7 @@ export const columns: VxeGridProps['columns'] = [
   {
     field: 'action',
     fixed: 'right',
-    slots: { default: 'action' },
+    slots: {default: 'action'},
     title: '操作',
-    width: 180,
   },
 ];

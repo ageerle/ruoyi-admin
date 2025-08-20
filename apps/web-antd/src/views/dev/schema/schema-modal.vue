@@ -138,7 +138,7 @@ async function handleCancel() {
 
 <template>
   <BasicModal :title="title">
-    <Form :label-col="{ span: 6 }" :wrapper-col="{ span: 18 }" class="mt-4">
+    <Form :label-col="{ span: 4 }" :wrapper-col="{ span: 18 }" class="mt-4">
       <FormItem label="分组" v-bind="validateInfos.schemaGroupId">
         <Select v-model:value="formData.schemaGroupId" :options="schemaGroupOptions"
                 :get-popup-container="getPopupContainer" placeholder="请选择分组"/>
@@ -148,14 +148,15 @@ async function handleCancel() {
       </FormItem>
       <FormItem label="表名" v-bind="validateInfos.tableName">
         <Select v-model:value="formData.tableName" :options="tableNameOptions"
+                :listHeight="128"
                 :get-popup-container="getPopupContainer"
                 :placeholder="$t('ui.formRules.required')" show-search :filter-option="(input: string, option: any) => {
             return option.label.toLowerCase().includes(input.toLowerCase());
           }"
-           style="width: 70%" />
+        />
       </FormItem>
       <FormItem label="备注">
-        <Textarea v-model:value="formData.remark" placeholder="请输入备注"/>
+        <Textarea v-model:value="formData.remark" placeholder="请输入备注" style="height: 150px"/>
       </FormItem>
     </Form>
   </BasicModal>

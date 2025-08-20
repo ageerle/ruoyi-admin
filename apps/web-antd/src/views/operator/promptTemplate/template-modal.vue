@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import type { RuleObject } from 'ant-design-vue/es/form';
+import type {RuleObject} from 'ant-design-vue/es/form';
 
-import type { TemplateForm } from '#/api/operator/promptTemplate/model';
+import type {TemplateForm} from '#/api/operator/promptTemplate/model';
 
-import { computed, ref } from 'vue';
+import {computed, ref} from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { cloneDeep, getPopupContainer } from '@vben/utils';
+import {useVbenModal} from '@vben/common-ui';
+import {$t} from '@vben/locales';
+import {cloneDeep, getPopupContainer} from '@vben/utils';
 
-import { Form, FormItem, Input, Select, Textarea } from 'ant-design-vue';
-import { pick } from 'lodash-es';
+import {Form, FormItem, Input, Select, Textarea} from 'ant-design-vue';
 
-import {
-  templateAdd,
-  templateInfo,
-  templateUpdate,
-} from '#/api/operator/promptTemplate';
+import {pick} from 'lodash-es';
+
+import {DictEnum} from '@vben/constants';
+import {getDictOptions} from '#/utils/dict';
+
+import {templateAdd, templateInfo, templateUpdate,} from '#/api/operator/promptTemplate';
 
 const emit = defineEmits<{ reload: [] }>();
 
@@ -48,21 +48,21 @@ type AntdFormRules<T> = Partial<Record<keyof T, RuleObject[]>> & {
  * 表单校验规则
  */
 const formRules = ref<AntdFormRules<TemplateForm>>({
-  templateName: [{ required: true, message: '提示词模板名称不能为空' }],
-  templateContent: [{ required: true, message: '提示词模板内容不能为空' }],
+  templateName: [{required: true, message: '提示词模板名称不能为空'}],
+  templateContent: [{required: true, message: '提示词模板内容不能为空'}],
   category: [
     {
       required: true,
       message: '提示词分类',
     },
   ],
-  remark: [{ required: true, message: '备注不能为空' }],
+  remark: [{required: true, message: '备注不能为空'}],
 });
 
 /**
  * useForm解构出表单方法
  */
-const { validate, validateInfos, resetFields } = Form.useForm(
+const {validate, validateInfos, resetFields} = Form.useForm(
   formData,
   formRules,
 );
@@ -79,7 +79,7 @@ const [BasicModal, modalApi] = useVbenModal({
     }
     modalApi.modalLoading(true);
 
-    const { id } = modalApi.getData() as { id?: number | string };
+    const {id} = modalApi.getData() as { id?: number | string };
     isUpdate.value = !!id;
 
     if (isUpdate.value && id) {
@@ -114,7 +114,7 @@ async function handleCancel() {
   resetFields();
 }
 
-const getType = ref([{ label: '知识库', value: 'vector' }]);
+const getType = getDictOptions(DictEnum.PROMPT_TEMPLATE_TYPE);
 </script>
 
 <template>

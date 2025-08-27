@@ -39,6 +39,11 @@ export interface MessageVO {
   modelName: string;
 
   /**
+   * 计费类型
+   */
+  billingType: string;
+
+  /**
    * 备注
    */
   remark: string;
@@ -83,6 +88,11 @@ export interface MessageForm extends BaseEntity {
   modelName?: string;
 
   /**
+   * 计费类型
+   */
+  billingType?: string;
+
+  /**
    * 备注
    */
   remark?: string;
@@ -120,6 +130,11 @@ export interface MessageQuery extends PageQuery {
    * 模型名称
    */
   modelName?: string;
+
+  /**
+   * 计费类型
+   */
+  billingType?: string;
 
   /**
    * 日期范围参数

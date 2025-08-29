@@ -55,6 +55,10 @@ export const columns: VxeGridProps['columns'] = [
     width: 120,
     slots: {
       default: ({ row }) => {
+        // 如果值为空或未定义，返回空字符串
+        if (!row.billingType) {
+          return '';
+        }
         return renderDict(row.billingType, DictEnum.SYS_MODEL_BILLING);
       },
     },

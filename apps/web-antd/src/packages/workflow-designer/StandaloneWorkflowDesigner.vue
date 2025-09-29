@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, reactive, ref, computed } from 'vue'
+import { nextTick, onMounted, reactive, ref, computed, provide } from 'vue'
 import { NButton, NLayout, NLayoutContent, NLayoutSider, useMessage } from 'naive-ui'
 import type { Edge, Node, NodeChange, EdgeChange, Connection, NodeMouseEvent } from '@vue-flow/core'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
@@ -155,8 +155,18 @@ function onDeleteNode(nodeUuid: string) {
   if (idx > -1) props.workflow.nodes.splice(idx, 1)
   const uiIdx = uiWorkflow.nodes.findIndex((n: any) => n.id === nodeUuid)
   if (uiIdx > -1) uiWorkflow.nodes.splice(uiIdx, 1)
+  // 清理右侧属性面板与当前选中节点
+  if (selectedWfNode.value?.uuid === nodeUuid) {
+    selectedWfNode.value = undefined
+    hidePropertyPanel.value = true
+  }
+  // 取消画布选中状态
+  try { addSelectedNodes([]) } catch {}
   emit('deleteNode', nodeUuid)
 }
+
+// 向节点组件注入删除回调，便于在节点内部触发删除
+provide('wfOnDeleteNode', (uuid: string) => onDeleteNode(uuid))
 </script>
 
 <template>

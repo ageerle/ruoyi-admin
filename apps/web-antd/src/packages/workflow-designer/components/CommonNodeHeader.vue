@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { h } from 'vue'
+import { h, inject } from 'vue'
 import { NDropdown } from 'naive-ui'
 import SvgIcon from '../components/SvgIcon.vue'
 import { getIconByComponentName, getIconClassByComponentName } from '../utils/workflow-util'
@@ -10,13 +10,18 @@ const props = defineProps<Props>()
 const options = [{ label: '删除', key: 'delete', icon: renderIcon('ri:delete-bin-line') }]
 
 const emit = defineEmits<{ (e: 'deleteNode', nodeUuid: string): void }>()
+const injectedDelete = inject<(uuid: string) => void>('wfOnDeleteNode')
 
 function renderIcon(icon: string) {
   return () => h(SvgIcon, { icon, class: 'text-base cursor-pointer' })
 }
 
 function handleSelect(key: string | number) {
-  if (key === 'delete') emit('deleteNode', props.wfNode.uuid)
+  if (key === 'delete') {
+    // 兼容两种触发：向上冒泡 或 直接注入调用
+    if (injectedDelete) injectedDelete(props.wfNode.uuid)
+    else emit('deleteNode', props.wfNode.uuid)
+  }
 }
 </script>
 

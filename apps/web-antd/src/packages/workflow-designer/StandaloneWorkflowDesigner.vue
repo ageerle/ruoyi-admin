@@ -2,9 +2,8 @@
 import { nextTick, onMounted, reactive, ref } from 'vue'
 import { NButton, NLayout, NLayoutContent, NLayoutSider, useMessage } from 'naive-ui'
 import type { Edge, Node, NodeChange, EdgeChange, Connection, NodeMouseEvent } from '@vue-flow/core'
-import { VueFlow, useVueFlow, Handle, Position } from '@vue-flow/core'
+import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
-import CommonNodeHeader from './components/CommonNodeHeader.vue'
 import SvgIcon from './components/SvgIcon.vue'
 import { createNewEdge, createNewNode, emptyWorkflowInfo, getIconByComponentName, getIconClassByComponentName } from './utils/workflow-util'
 import type { WorkflowInfo, WorkflowComponent, WorkflowNode } from './types/index.d'
@@ -22,6 +21,7 @@ import TemplateNode from './components/nodes/TemplateNode.vue'
 import SwitcherNode from './components/nodes/SwitcherNode.vue'
 import TongyiwanxNode from './components/nodes/TongyiwanxNode.vue'
 import Dalle3Node from './components/nodes/Dalle3Node.vue'
+import AnswerNode from './components/nodes/AnswerNode.vue'
 
 interface Props {
   workflow: WorkflowInfo
@@ -46,6 +46,33 @@ const { onInit, fitView, onConnect, onEdgesChange, onNodesChange, onNodeClick, a
 
 const uw = { nodes: [] as Array<Node>, edges: [] as Array<Edge> }
 const uiWorkflow = reactive(uw)
+
+// 节点类型
+const nodeTypes = {
+  start: StartNode,
+  end: EndNode,
+  answer: AnswerNode,
+  classifier: ClassifierNode,
+  keywordextractor: KeywordExtractorNode,
+  knowledgeretrieval: NodeShell,
+  documentextractor: DocumentExtractorNode,
+  switcher: SwitcherNode,
+  template: TemplateNode,
+  faqextractor: FaqExtractorNode,
+  humanfeedback: NodeShell,
+  mailsend: NodeShell,
+  httprequest: NodeShell,
+  google: GoogleNode,
+  dalle3: Dalle3Node,
+  tongyiwanx: TongyiwanxNode,
+}
+
+// 边类型
+const edgeTypes = {
+  special: SpecialEdge,
+  custom: SpecialEdge,
+  custom2: SpecialEdge,
+}
 
 function renderGraph() {
   if (uiWorkflow.nodes.length > 0) return
@@ -114,6 +141,11 @@ function onDrop(event: DragEvent) {
   addSelectedNodes([uiWorkflow.nodes[uiWorkflow.nodes.length - 1]])
 }
 
+function onPaletteDragStart(event: DragEvent, name: string) {
+  event.dataTransfer?.setData('application/vueflow', name)
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
+}
+
 function onRun() { emit('run', { workflow: props.workflow }) }
 
 async function onSave() {
@@ -149,7 +181,7 @@ function onDeleteNode(nodeUuid: string) {
                 <aside>
                   <div class="flex flex-col w-full">
                     <template v-for="component in wfComponents" :key="component.name">
-                      <div v-if="component.isEnable !== false" class="flex mt-2 border border-gray-200 cursor-grab text-base h-10 pl-1.5 rounded" :draggable="true" @dragstart="(event: DragEvent) => { event.dataTransfer?.setData('application/vueflow', component.name); event.dataTransfer!.effectAllowed = 'move' }">
+                      <div v-if="component.isEnable !== false" class="flex mt-2 border border-gray-200 cursor-grab text-base h-10 pl-1.5 rounded" :draggable="true" @dragstart="onPaletteDragStart($event, component.name)">
                         <SvgIcon class="mt-3 mr-2" :class="getIconClassByComponentName(component.name)" :icon="getIconByComponentName(component.name)" />
                         <div class="leading-10">{{ component.title }}</div>
                       </div>
@@ -158,35 +190,8 @@ function onDeleteNode(nodeUuid: string) {
                 </aside>
               </NLayoutSider>
               <NLayoutContent class="h-full" style="background:#f5f5f5">
-                <VueFlow ref="wrapper" :nodes="uiWorkflow.nodes" :edges="uiWorkflow.edges" fit-view-on-init @dragover="onDragOver">
+                <VueFlow ref="wrapper" :nodes="uiWorkflow.nodes" :edges="uiWorkflow.edges" :node-types="nodeTypes" :edge-types="edgeTypes" fit-view-on-init @dragover="onDragOver">
                   <Background />
-                  <template #node-start="nodeProps"><StartNode v-bind="nodeProps" /></template>
-                  <template #node-end="nodeProps"><EndNode v-bind="nodeProps" /></template>
-                  <template #node-answer="nodeProps">
-                    <div class="flex flex-col w-full">
-                      <Handle type="target" :position="Position.Left" />
-                      <Handle type="source" :position="Position.Right" />
-                      <CommonNodeHeader :wf-node="nodeProps.data" @delete-node="onDeleteNode" />
-                      <div class="content_line">{{ nodeProps.data.nodeConfig?.model_name }}</div>
-                    </div>
-                  </template>
-                  <template #node-classifier="nodeProps"><ClassifierNode v-bind="nodeProps" /></template>
-                  <template #node-keywordextractor="nodeProps"><KeywordExtractorNode v-bind="nodeProps" /></template>
-                  <template #node-knowledgeretrieval="nodeProps"><NodeShell :data="nodeProps.data" /></template>
-                  <template #node-documentextractor="nodeProps"><DocumentExtractorNode v-bind="nodeProps" /></template>
-                  <template #node-switcher="nodeProps"><SwitcherNode v-bind="nodeProps" /></template>
-                  <template #node-template="nodeProps"><TemplateNode v-bind="nodeProps" /></template>
-                  <template #node-faqextractor="nodeProps"><FaqExtractorNode v-bind="nodeProps" /></template>
-                  <template #node-humanfeedback="nodeProps"><NodeShell :data="nodeProps.data" /></template>
-                  <template #node-mailsend="nodeProps"><NodeShell :data="nodeProps.data" /></template>
-                  <template #node-httprequest="nodeProps"><NodeShell :data="nodeProps.data" /></template>
-                  <template #node-google="nodeProps"><GoogleNode v-bind="nodeProps" /></template>
-                  <template #node-dalle3="nodeProps"><Dalle3Node v-bind="nodeProps" /></template>
-                  <template #node-tongyiwanx="nodeProps"><TongyiwanxNode v-bind="nodeProps" /></template>
-
-                  <template #edge-special="edgeProps"><SpecialEdge v-bind="edgeProps" /></template>
-                  <template #edge-custom="edgeProps"><SpecialEdge v-bind="edgeProps" /></template>
-                  <template #edge-custom2="edgeProps"><SpecialEdge v-bind="edgeProps" /></template>
                 </VueFlow>
                 <RightPanel :workflow="props.workflow" :ui-workflow="uiWorkflow" :hide-property-panel="hidePropertyPanel" :wf-node="selectedWfNode" />
                 <div class="absolute right-5 top-3 flex items-center">

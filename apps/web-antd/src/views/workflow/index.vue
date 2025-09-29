@@ -4,6 +4,7 @@ import WorkflowDesigner from '#/packages/workflow-designer/StandaloneWorkflowDes
 import type { WorkflowInfo, WorkflowComponent, WorkflowNode } from '#/packages/workflow-designer/types/index.d'
 import { NMessageProvider } from 'naive-ui'
 
+// 要使用的节点列表，不使用时可以注释掉
 const wfComponents: WorkflowComponent[] = [
   { name: 'Start', title: '开始' },
   { name: 'End', title: '结束' },
@@ -21,6 +22,7 @@ const wfComponents: WorkflowComponent[] = [
   { name: 'HumanFeedback', title: '人工反馈' },
   { name: 'MailSend', title: '邮件发送' },
   { name: 'HttpRequest', title: 'HTTP 请求' },
+  { name: 'Test', title: '测试' },
 ]
 
 const workflow = ref<WorkflowInfo>({

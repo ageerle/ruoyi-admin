@@ -10,6 +10,8 @@ const props = defineProps<Props>()
 const nodeConfig = props.wfNode.nodeConfig as any
 </script>
 
+
+
 <template>
   <div class="flex flex-col w-full">
     <div class="mt-2">

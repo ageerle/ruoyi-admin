@@ -22,5 +22,4 @@ const nodeConfig = props.wfNode.nodeConfig as any
     </div>
   </div>
 </template>
-
-
+ 

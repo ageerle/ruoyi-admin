@@ -51,8 +51,13 @@ function handleRun(payload: { workflow: Workflow.WorkflowInfo }) {
 1) 最小化接入
 - 在宿主页面（如 `src/views/workflow/index.vue`）把 `{ name, title }` 追加到传入的 `wfComponents` 列表，即可出现在左侧面板并参与拖拽：
   - 例如：`{ name: 'MyNode', title: '我的节点' }`
-- 在 `utils/workflow-util.ts` 的 `createNewNode` 中：
-  - 为新节点的 `name` 增加一个 `case`，初始化该节点的 `nodeConfig`（仅与功能相关字段，避免耦合权限/接口）。
+- 默认配置两种方式（有优先级）：
+  - 方式 A（优先级最高）：在 `properties/YourNodeProperty.vue` 中导出
+    - `export function getDefaultNodeConfig(workflow) { return {/* 默认配置 */} }`
+    - 示例：`properties/TestNodeProperty.vue`
+  - 方式 B（集中维护）：在 `properties/defaults.ts` 中配置
+    - `export const propertyDefaultGetters = { yournode: (workflow) => ({ /* 默认配置 */ }) }`
+  - 兜底：若 A/B 都未提供，回退为空对象 `{}`。
 - 在 `components/nodes/` 下创建 `MyNode.vue`（可选）。无需手动注册，系统会自动扫描注册：
   - 文件名 `MyNode.vue` 会被转换成 `mynode` 键名并注入 `nodeTypes`。
   - 如果没有提供该文件，会自动回退到通用外观 `NodeShell`。

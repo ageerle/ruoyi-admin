@@ -67,5 +67,4 @@ function onDeleteCategory(category: Category) {
     <NButton dashed @click="onAdd">+新增类别</NButton>
   </div>
 </template>
-
-
+ 

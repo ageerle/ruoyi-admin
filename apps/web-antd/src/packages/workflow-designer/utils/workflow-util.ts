@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { WorkflowInfo, WorkflowNode, WorkflowEdge, WorkflowComponent, UIWorkflow } from '../types/index.d'
+import { propertyDefaultGetters } from '../properties/defaults'
 
 export function emptyWorkflowInfo(): WorkflowInfo {
   return {
@@ -14,7 +15,7 @@ export function emptyWorkflowInfo(): WorkflowInfo {
 
 export function emptyWorkflowNode(): WorkflowNode {
   return {
-    uuid: uuidv4().replace(/-/g, ''),
+    uuid: createUuid(),
     title: '',
     workflowUuid: 'default',
     wfComponent: { name: 'Start', title: '开始' },
@@ -26,6 +27,53 @@ export function emptyWorkflowNode(): WorkflowNode {
   }
 }
 
+function createUuid() {
+  return uuidv4().replace(/-/g, '')
+}
+
+// 默认配置：优先读取面板自定义导出，其次读取集中配置表，最后内置表
+const propertyModules = import.meta.glob('../properties/*NodeProperty.vue', { eager: true }) as Record<string, any>
+function toPropertyKey(path: string) {
+  const file = path.substring(path.lastIndexOf('/') + 1)
+  return file.replace(/NodeProperty\.vue$/, '').toLowerCase()
+}
+const propertySelfGetters: Record<string, (workflow: WorkflowInfo) => any> = {}
+for (const [p, mod] of Object.entries(propertyModules)) {
+  const key = toPropertyKey(p)
+  const getter = (mod as any)?.getDefaultNodeConfig as ((wf: WorkflowInfo) => any) | undefined
+  if (typeof getter === 'function') propertySelfGetters[key] = getter
+}
+
+function getDefaultNodeConfig(name: string, workflow: WorkflowInfo) {
+  const key = (name || '').toLowerCase()
+  // 1) 面板自身导出
+  const selfGetter = propertySelfGetters[key]
+  if (selfGetter) return selfGetter(workflow)
+  // 2) 集中配置表
+  const tableGetter = propertyDefaultGetters[key]
+  if (tableGetter) return tableGetter(workflow)
+
+  // 3) 内置简易默认表,可在defaults.ts中添加其他默认配置,不建议使用该内置配置表
+  // const simpleDefaults: Record<string, any> = {
+  //   start: { prologue: '' },
+  //   end: { result: '' },
+  //   answer: { prompt: '', model_name: '' },
+  //   template: { content: '' },
+  //   keywordextractor: { top_n: 5, model_name: '' },
+  //   faqextractor: { top_n: 5, model_name: '' },
+  //   knowledgeretrieval: { knowledge_base_uuid: '', knowledge_base_name: '', score: 0.6, top_n: 3, is_strict: true, default_response: '' },
+  //   dalle3: { prompt: '', size: '1024x1024', quality: 'standard' },
+  //   tongyiwanx: { model_name: '', prompt: '', size: '1024*1024', seed: -1 },
+  //   google: { query: '', country: 'cn', language: 'zh-cn', top_n: 5 },
+  //   humanfeedback: { tip: '' },
+  //   mailsend: { sender_type: 1, cc_mails: '', to_mails: '', subject: '', content: '', smtp: { host: '', port: 465 }, sender: { name: '', mail: '', password: '' } },
+  //   httprequest: { method: 'GET', url: '', content_type: 'text/plain', headers: [{ name: 'Accept', value: '*/*' }], params: [], text_body: '', json_body: {}, form_data_body: [], form_urlencoded_body: [], body: {}, timeout: 10, retry_times: 0, clear_html: false },
+  //   classifier: { categories: [ { category_uuid: createUuid(), category_name: '', target_node_uuid: '' }, { category_uuid: createUuid(), category_name: '', target_node_uuid: '' } ] },
+  // }
+
+  // return simpleDefaults[key] ?? {}
+}
+
 export function createNewNode(
   workflow: WorkflowInfo,
   uiWorkflow: UIWorkflow,
@@ -33,73 +81,13 @@ export function createNewNode(
   position: { x: number; y: number },
 ) {
   const newWfNode = emptyWorkflowNode()
-  newWfNode.uuid = uuidv4().replace(/-/g, '')
+  newWfNode.uuid = createUuid()
   newWfNode.title = component.title
   newWfNode.workflowUuid = workflow.uuid
   newWfNode.wfComponent = component
   newWfNode.inputConfig = { user_inputs: [], ref_inputs: [] }
-  // 为不同组件初始化最小可用的 nodeConfig，去除外部依赖
-  switch ((component.name || '').toLowerCase()) {
-    case 'start':
-      newWfNode.nodeConfig = { prologue: '' }
-      break
-    case 'end':
-      newWfNode.nodeConfig = { result: '' }
-      break
-    case 'answer':
-      newWfNode.nodeConfig = { prompt: '', model_name: '' }
-      break
-    case 'classifier':
-      newWfNode.nodeConfig = { categories: [
-        { category_uuid: uuidv4().replace(/-/g, ''), category_name: '', target_node_uuid: '' },
-        { category_uuid: uuidv4().replace(/-/g, ''), category_name: '', target_node_uuid: '' },
-      ] }
-      break
-    case 'switcher': {
-      const startNode = workflow.nodes.find(n => n.wfComponent?.name === 'Start')
-      const firstParam = startNode?.inputConfig?.user_inputs?.[0]?.name || ''
-      newWfNode.nodeConfig = {
-        default_target_node_uuid: '',
-        cases: [
-          { uuid: uuidv4().replace(/-/g, ''), operator: 'and', target_node_uuid: '', conditions: [{ node_uuid: startNode?.uuid || '', node_param_name: firstParam, operator: 'contains', value: '' }] },
-          { uuid: uuidv4().replace(/-/g, ''), operator: 'and', target_node_uuid: '', conditions: [{ node_uuid: startNode?.uuid || '', node_param_name: firstParam, operator: 'contains', value: '' }] },
-        ],
-      }
-      break
-    }
-    case 'template':
-      newWfNode.nodeConfig = { content: '' }
-      break
-    case 'keywordextractor':
-      newWfNode.nodeConfig = { top_n: 5, model_name: '' }
-      break
-    case 'faqextractor':
-      newWfNode.nodeConfig = { top_n: 5, model_name: '' }
-      break
-    case 'knowledgeretrieval':
-      newWfNode.nodeConfig = { knowledge_base_uuid: '', knowledge_base_name: '', score: 0.6, top_n: 3, is_strict: true, default_response: '' }
-      break
-    case 'dalle3':
-      newWfNode.nodeConfig = { prompt: '', size: '1024x1024', quality: 'standard' }
-      break
-    case 'tongyiwanx':
-      newWfNode.nodeConfig = { model_name: '', prompt: '', size: '1024*1024', seed: -1 }
-      break
-    case 'google':
-      newWfNode.nodeConfig = { query: '', country: 'cn', language: 'zh-cn', top_n: 5 }
-      break
-    case 'humanfeedback':
-      newWfNode.nodeConfig = { tip: '' }
-      break
-    case 'mailsend':
-      newWfNode.nodeConfig = { sender_type: 1, cc_mails: '', to_mails: '', subject: '', content: '', smtp: { host: '', port: 465 }, sender: { name: '', mail: '', password: '' } }
-      break
-    case 'httprequest':
-      newWfNode.nodeConfig = { method: 'GET', url: '', content_type: 'text/plain', headers: [{ name: 'Accept', value: '*/*' }], params: [], text_body: '', json_body: {}, form_data_body: [], form_urlencoded_body: [], body: {}, timeout: 10, retry_times: 0, clear_html: false }
-      break
-    default:
-      newWfNode.nodeConfig = {}
-  }
+  // 使用映射初始化最小可用的 nodeConfig，特殊项（如 switcher）按需读取 workflow
+  newWfNode.nodeConfig = getDefaultNodeConfig(component.name, workflow)
   newWfNode.outputConfig = {}
   newWfNode.positionX = position.x
   newWfNode.positionY = position.y

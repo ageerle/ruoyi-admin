@@ -8,6 +8,19 @@ const wfComponents: WorkflowComponent[] = [
   { name: 'Start', title: '开始' },
   { name: 'End', title: '结束' },
   { name: 'Answer', title: '回答' },
+  { name: 'Classifier', title: '内容分类' },
+  { name: 'DocumentExtractor', title: '文档抽取' },
+  { name: 'KeywordExtractor', title: '关键词抽取' },
+  { name: 'FaqExtractor', title: 'FAQ 抽取' },
+  { name: 'KnowledgeRetrieval', title: '知识检索' },
+  { name: 'Switcher', title: '条件分支' },
+  { name: 'Template', title: '模板' },
+  { name: 'Dalle3', title: 'Dalle3 绘图' },
+  { name: 'Tongyiwanx', title: '通义万相' },
+  { name: 'Google', title: 'Google 搜索' },
+  { name: 'HumanFeedback', title: '人工反馈' },
+  { name: 'MailSend', title: '邮件发送' },
+  { name: 'HttpRequest', title: 'HTTP 请求' },
 ]
 
 const workflow = ref<WorkflowInfo>({

@@ -36,7 +36,6 @@ function handleRun(payload: { workflow: Workflow.WorkflowInfo }) {
 2. 必要依赖：
 - vue 3
 - naive-ui（本包 UI 使用）
-- uuid
 - @vue-flow/core 与 @vue-flow/background
 
 3. 可选：若你已有 `SvgIcon` 组件，可替换 `components/SvgIcon.vue` 的实现。

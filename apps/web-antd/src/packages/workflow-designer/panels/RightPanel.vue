@@ -4,6 +4,10 @@ import { NInput } from 'naive-ui'
 import SvgIcon from '../components/SvgIcon.vue'
 import { getIconByComponentName, getIconClassByComponentName } from '../utils/workflow-util'
 import StartNodeProperty from '../properties/StartNodeProperty.vue'
+import GenericNodeProperty from '../properties/GenericNodeProperty.vue'
+import AnswerNodeProperty from '../properties/AnswerNodeProperty.vue'
+import KeywordExtractorNodeProperty from '../properties/KeywordExtractorNodeProperty.vue'
+import ClassifierNodeProperty from '../properties/ClassifierNodeProperty.vue'
 import type { WorkflowInfo, UIWorkflow, WorkflowNode } from '../types/index.d'
 
 interface Props {
@@ -38,7 +42,10 @@ onMounted(() => { nodeTitle.value = props.wfNode?.title || '' })
       </div>
       <div class="overflow-y-auto" :style="`height:${innerHeight - 250}px`">
         <StartNodeProperty v-if="wfNode.wfComponent.name === 'Start'" :workflow="workflow" :wf-node="wfNode" />
-        <div v-else class="text-gray-500 px-2">此示例仅内置 Start 节点属性编辑，其他节点可按需扩展。</div>
+        <AnswerNodeProperty v-else-if="wfNode.wfComponent.name === 'Answer'" :workflow="workflow" :wf-node="wfNode" />
+        <KeywordExtractorNodeProperty v-else-if="wfNode.wfComponent.name === 'KeywordExtractor'" :workflow="workflow" :wf-node="wfNode" />
+        <ClassifierNodeProperty v-else-if="wfNode.wfComponent.name === 'Classifier'" :workflow="workflow" :ui-workflow="uiWorkflow" :wf-node="wfNode" />
+        <GenericNodeProperty v-else :workflow="workflow" :ui-workflow="uiWorkflow" :wf-node="wfNode" />
       </div>
     </div>
   </div>

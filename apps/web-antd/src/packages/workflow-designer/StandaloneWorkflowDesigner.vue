@@ -9,6 +9,8 @@ import SvgIcon from './components/SvgIcon.vue'
 import { createNewEdge, createNewNode, emptyWorkflowInfo, getIconByComponentName, getIconClassByComponentName } from './utils/workflow-util'
 import type { WorkflowInfo, WorkflowComponent, WorkflowNode } from './types/index.d'
 import RightPanel from './panels/RightPanel.vue'
+import NodeShell from './components/nodes/NodeShell.vue'
+import SpecialEdge from './components/edges/SpecialEdge.vue'
 
 interface Props {
   workflow: WorkflowInfo
@@ -167,7 +169,23 @@ function onDeleteNode(nodeUuid: string) {
                       <div class="content_line">{{ nodeProps.data.nodeConfig?.model_name }}</div>
                     </div>
                   </template>
-                  
+                  <template #node-classifier="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-keywordextractor="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-knowledgeretrieval="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-documentextractor="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-switcher="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-template="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-faqextractor="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-humanfeedback="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-mailsend="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-httprequest="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-google="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-dalle3="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-tongyiwanx="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+
+                  <template #edge-special="edgeProps"><SpecialEdge v-bind="edgeProps" /></template>
+                  <template #edge-custom="edgeProps"><SpecialEdge v-bind="edgeProps" /></template>
+                  <template #edge-custom2="edgeProps"><SpecialEdge v-bind="edgeProps" /></template>
                 </VueFlow>
                 <RightPanel :workflow="props.workflow" :ui-workflow="uiWorkflow" :hide-property-panel="hidePropertyPanel" :wf-node="selectedWfNode" />
                 <div class="absolute right-5 top-3 flex items-center">

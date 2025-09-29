@@ -11,6 +11,17 @@ import type { WorkflowInfo, WorkflowComponent, WorkflowNode } from './types/inde
 import RightPanel from './panels/RightPanel.vue'
 import NodeShell from './components/nodes/NodeShell.vue'
 import SpecialEdge from './components/edges/SpecialEdge.vue'
+import GoogleNode from './components/nodes/GoogleNode.vue'
+import StartNode from './components/nodes/StartNode.vue'
+import EndNode from './components/nodes/EndNode.vue'
+import ClassifierNode from './components/nodes/ClassifierNode.vue'
+import KeywordExtractorNode from './components/nodes/KeywordExtractorNode.vue'
+import FaqExtractorNode from './components/nodes/FaqExtractorNode.vue'
+import DocumentExtractorNode from './components/nodes/DocumentExtractorNode.vue'
+import TemplateNode from './components/nodes/TemplateNode.vue'
+import SwitcherNode from './components/nodes/SwitcherNode.vue'
+import TongyiwanxNode from './components/nodes/TongyiwanxNode.vue'
+import Dalle3Node from './components/nodes/Dalle3Node.vue'
 
 interface Props {
   workflow: WorkflowInfo
@@ -149,18 +160,8 @@ function onDeleteNode(nodeUuid: string) {
               <NLayoutContent class="h-full" style="background:#f5f5f5">
                 <VueFlow ref="wrapper" :nodes="uiWorkflow.nodes" :edges="uiWorkflow.edges" fit-view-on-init @dragover="onDragOver">
                   <Background />
-                  <template #node-start="nodeProps">
-                    <div class="flex flex-col w-full">
-                      <Handle type="source" :position="Position.Right" />
-                      <CommonNodeHeader :wf-node="nodeProps.data" @delete-node="onDeleteNode" />
-                    </div>
-                  </template>
-                  <template #node-end="nodeProps">
-                    <div class="flex flex-col w-full">
-                      <Handle type="target" :position="Position.Left" />
-                      <CommonNodeHeader :wf-node="nodeProps.data" @delete-node="onDeleteNode" />
-                    </div>
-                  </template>
+                  <template #node-start="nodeProps"><StartNode v-bind="nodeProps" /></template>
+                  <template #node-end="nodeProps"><EndNode v-bind="nodeProps" /></template>
                   <template #node-answer="nodeProps">
                     <div class="flex flex-col w-full">
                       <Handle type="target" :position="Position.Left" />
@@ -169,19 +170,19 @@ function onDeleteNode(nodeUuid: string) {
                       <div class="content_line">{{ nodeProps.data.nodeConfig?.model_name }}</div>
                     </div>
                   </template>
-                  <template #node-classifier="nodeProps"><NodeShell :data="nodeProps.data" /></template>
-                  <template #node-keywordextractor="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-classifier="nodeProps"><ClassifierNode v-bind="nodeProps" /></template>
+                  <template #node-keywordextractor="nodeProps"><KeywordExtractorNode v-bind="nodeProps" /></template>
                   <template #node-knowledgeretrieval="nodeProps"><NodeShell :data="nodeProps.data" /></template>
-                  <template #node-documentextractor="nodeProps"><NodeShell :data="nodeProps.data" /></template>
-                  <template #node-switcher="nodeProps"><NodeShell :data="nodeProps.data" /></template>
-                  <template #node-template="nodeProps"><NodeShell :data="nodeProps.data" /></template>
-                  <template #node-faqextractor="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-documentextractor="nodeProps"><DocumentExtractorNode v-bind="nodeProps" /></template>
+                  <template #node-switcher="nodeProps"><SwitcherNode v-bind="nodeProps" /></template>
+                  <template #node-template="nodeProps"><TemplateNode v-bind="nodeProps" /></template>
+                  <template #node-faqextractor="nodeProps"><FaqExtractorNode v-bind="nodeProps" /></template>
                   <template #node-humanfeedback="nodeProps"><NodeShell :data="nodeProps.data" /></template>
                   <template #node-mailsend="nodeProps"><NodeShell :data="nodeProps.data" /></template>
                   <template #node-httprequest="nodeProps"><NodeShell :data="nodeProps.data" /></template>
-                  <template #node-google="nodeProps"><NodeShell :data="nodeProps.data" /></template>
-                  <template #node-dalle3="nodeProps"><NodeShell :data="nodeProps.data" /></template>
-                  <template #node-tongyiwanx="nodeProps"><NodeShell :data="nodeProps.data" /></template>
+                  <template #node-google="nodeProps"><GoogleNode v-bind="nodeProps" /></template>
+                  <template #node-dalle3="nodeProps"><Dalle3Node v-bind="nodeProps" /></template>
+                  <template #node-tongyiwanx="nodeProps"><TongyiwanxNode v-bind="nodeProps" /></template>
 
                   <template #edge-special="edgeProps"><SpecialEdge v-bind="edgeProps" /></template>
                   <template #edge-custom="edgeProps"><SpecialEdge v-bind="edgeProps" /></template>

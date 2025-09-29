@@ -2,6 +2,7 @@
 import { Handle, Position } from '@vue-flow/core'
 import type { NodeProps } from '@vue-flow/core'
 import CommonNodeHeader from '../../components/CommonNodeHeader.vue'
+import SvgIcon from '../../components/SvgIcon.vue'
 
 defineProps<NodeProps>()
 </script>
@@ -12,7 +13,8 @@ defineProps<NodeProps>()
     <Handle type="source" :position="Position.Right" />
     <CommonNodeHeader :wf-node="data" />
     <div clas="flex-1 flex-col">
-      <div class="content_line flex items-center">
+      <div class="content_line flex items-center px-2">
+        <SvgIcon class="mx-1.5" icon="mdi:robot" />
         {{ data.nodeConfig?.model_name }}
       </div>
     </div>

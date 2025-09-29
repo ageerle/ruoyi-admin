@@ -45,7 +45,6 @@ function handleRun(payload: { workflow: Workflow.WorkflowInfo }) {
 - 不包含鉴权、用户判断、接口请求等逻辑；对外通过 emits 暴露 `save`、`run` 事件。
 - 完整样式与交互来自原工作流模块，做了最小化改造以去除外部依赖。
 
-
 ## 扩展指引（新增节点/边、接入后端）
 
 ### 新增一个节点（Node）

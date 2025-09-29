@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { NInput } from 'naive-ui'
 import SvgIcon from '../components/SvgIcon.vue'
 import { getIconByComponentName, getIconClassByComponentName } from '../utils/workflow-util'
-import StartNodeProperty from '../properties/StartNodeProperty.vue'
 import GenericNodeProperty from '../properties/GenericNodeProperty.vue'
-import AnswerNodeProperty from '../properties/AnswerNodeProperty.vue'
-import KeywordExtractorNodeProperty from '../properties/KeywordExtractorNodeProperty.vue'
-import ClassifierNodeProperty from '../properties/ClassifierNodeProperty.vue'
 import type { WorkflowInfo, UIWorkflow, WorkflowNode } from '../types/index.d'
 
 interface Props {
@@ -28,6 +24,27 @@ watch(nodeTitle, (val) => { if (props.wfNode) props.wfNode.title = val }, { imme
 
 const innerHeight = window.innerHeight < 800 ? 800 : window.innerHeight
 onMounted(() => { nodeTitle.value = props.wfNode?.title || '' })
+
+// 自动扫描专属属性面板：文件名 <Name>NodeProperty.vue → 键名为小写 name
+const propertyModules = import.meta.glob('../properties/*NodeProperty.vue', {
+  eager: true,
+  import: 'default',
+}) as Record<string, any>
+
+function toPropertyKey(path: string) {
+  const file = path.substring(path.lastIndexOf('/') + 1)
+  return file.replace(/NodeProperty\.vue$/, '').toLowerCase()
+}
+
+const propertyMap = Object.fromEntries(
+  Object.entries(propertyModules).map(([p, mod]) => [toPropertyKey(p), mod]),
+)
+
+const resolvedPropertyComponent = computed(() => {
+  const name = props.wfNode?.wfComponent.name?.toLowerCase()
+  if (!name) return GenericNodeProperty
+  return propertyMap[name] || GenericNodeProperty
+})
 </script>
 
 <template>
@@ -41,11 +58,7 @@ onMounted(() => { nodeTitle.value = props.wfNode?.title || '' })
         <div class="text-sm text-gray-500">组件功能：{{ wfNode.wfComponent.remark }}</div>
       </div>
       <div class="overflow-y-auto" :style="`height:${innerHeight - 250}px`">
-        <StartNodeProperty v-if="wfNode.wfComponent.name === 'Start'" :workflow="workflow" :wf-node="wfNode" />
-        <AnswerNodeProperty v-else-if="wfNode.wfComponent.name === 'Answer'" :workflow="workflow" :wf-node="wfNode" />
-        <KeywordExtractorNodeProperty v-else-if="wfNode.wfComponent.name === 'KeywordExtractor'" :workflow="workflow" :wf-node="wfNode" />
-        <ClassifierNodeProperty v-else-if="wfNode.wfComponent.name === 'Classifier'" :workflow="workflow" :ui-workflow="uiWorkflow" :wf-node="wfNode" />
-        <GenericNodeProperty v-else :workflow="workflow" :ui-workflow="uiWorkflow" :wf-node="wfNode" />
+        <component :is="resolvedPropertyComponent" :workflow="workflow" :ui-workflow="uiWorkflow" :wf-node="wfNode" />
       </div>
     </div>
   </div>

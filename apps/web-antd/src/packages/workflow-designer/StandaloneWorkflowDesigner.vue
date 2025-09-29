@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, reactive, ref, computed } from 'vue'
 import { NButton, NLayout, NLayoutContent, NLayoutSider, useMessage } from 'naive-ui'
 import type { Edge, Node, NodeChange, EdgeChange, Connection, NodeMouseEvent } from '@vue-flow/core'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
@@ -9,19 +9,6 @@ import { createNewEdge, createNewNode, emptyWorkflowInfo, getIconByComponentName
 import type { WorkflowInfo, WorkflowComponent, WorkflowNode } from './types/index.d'
 import RightPanel from './panels/RightPanel.vue'
 import NodeShell from './components/nodes/NodeShell.vue'
-import SpecialEdge from './components/edges/SpecialEdge.vue'
-import GoogleNode from './components/nodes/GoogleNode.vue'
-import StartNode from './components/nodes/StartNode.vue'
-import EndNode from './components/nodes/EndNode.vue'
-import ClassifierNode from './components/nodes/ClassifierNode.vue'
-import KeywordExtractorNode from './components/nodes/KeywordExtractorNode.vue'
-import FaqExtractorNode from './components/nodes/FaqExtractorNode.vue'
-import DocumentExtractorNode from './components/nodes/DocumentExtractorNode.vue'
-import TemplateNode from './components/nodes/TemplateNode.vue'
-import SwitcherNode from './components/nodes/SwitcherNode.vue'
-import TongyiwanxNode from './components/nodes/TongyiwanxNode.vue'
-import Dalle3Node from './components/nodes/Dalle3Node.vue'
-import AnswerNode from './components/nodes/AnswerNode.vue'
 
 interface Props {
   workflow: WorkflowInfo
@@ -47,32 +34,34 @@ const { onInit, fitView, onConnect, onEdgesChange, onNodesChange, onNodeClick, a
 const uw = { nodes: [] as Array<Node>, edges: [] as Array<Edge> }
 const uiWorkflow = reactive(uw)
 
-// 节点类型
-const nodeTypes = {
-  start: StartNode,
-  end: EndNode,
-  answer: AnswerNode,
-  classifier: ClassifierNode,
-  keywordextractor: KeywordExtractorNode,
-  knowledgeretrieval: NodeShell,
-  documentextractor: DocumentExtractorNode,
-  switcher: SwitcherNode,
-  template: TemplateNode,
-  faqextractor: FaqExtractorNode,
-  humanfeedback: NodeShell,
-  mailsend: NodeShell,
-  httprequest: NodeShell,
-  google: GoogleNode,
-  dalle3: Dalle3Node,
-  tongyiwanx: TongyiwanxNode,
+// 自动扫描并注册节点/边组件，未提供节点组件时回退到 NodeShell
+const nodeModules = import.meta.glob('./components/nodes/*Node.vue', { eager: true, import: 'default' }) as Record<string, any>
+const edgeModules = import.meta.glob('./components/edges/*Edge.vue', { eager: true, import: 'default' }) as Record<string, any>
+
+function toKey(path: string, suffix: 'Node' | 'Edge') {
+  const file = path.substring(path.lastIndexOf('/') + 1)
+  return file.replace(new RegExp(`${suffix}\\.vue$`), '').toLowerCase()
 }
 
-// 边类型
-const edgeTypes = {
-  special: SpecialEdge,
-  custom: SpecialEdge,
-  custom2: SpecialEdge,
-}
+const nodeTypes = computed(() => {
+  const map: Record<string, any> = {}
+  for (const [p, mod] of Object.entries(nodeModules)) {
+    map[toKey(p, 'Node')] = mod
+  }
+  for (const c of props.wfComponents) {
+    const key = c.name.toLowerCase()
+    if (!map[key]) map[key] = NodeShell
+  }
+  return map
+})
+
+const edgeTypes = computed(() => {
+  const map: Record<string, any> = {}
+  for (const [p, mod] of Object.entries(edgeModules)) {
+    map[toKey(p, 'Edge')] = mod
+  }
+  return map
+})
 
 function renderGraph() {
   if (uiWorkflow.nodes.length > 0) return

@@ -281,7 +281,8 @@ onMounted(() => {
 <style scoped>
 .workflow-sidebar {
   width: 100%;
-  height: 100%;
+  height: 80%; /* 由父容器控制高度，避免整页滚动 */
+  max-height: 100%;
   background: white;
   display: flex;
   flex-direction: column;
@@ -296,14 +297,19 @@ onMounted(() => {
 /* 工作流列表部分 */
 .workflow-list-section {
   flex: 1;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  min-height: 0; /* 允许内部滚动区域正确计算高度 */
 }
 
 .sidebar-header {
   padding: 16px;
   border-bottom: 1px solid #e0e0e0;
+  position: sticky; /* 顶部固定 */
+  top: 0;
+  background: #fff;
+  z-index: 2;
 }
 
 .header-tabs {
@@ -332,8 +338,9 @@ onMounted(() => {
 
 .workflow-list {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto; /* 内容过多时滚动 */
   padding: 8px;
+  min-height: 0; /* 避免子元素把容器撑开 */
 }
 
 .workflow-items {
@@ -490,6 +497,13 @@ onMounted(() => {
 }
 
 /* 收起状态下的样式 */
+.workflow-sidebar.collapsed {
+  background: transparent;
+  border-right: none;
+  width: 0;
+  overflow: visible;
+}
+
 .workflow-sidebar.collapsed .sidebar-header,
 .workflow-sidebar.collapsed .workflow-list,
 .workflow-sidebar.collapsed .workflow-components-section {
@@ -498,5 +512,9 @@ onMounted(() => {
 
 .workflow-sidebar.collapsed .collapse-btn {
   right: -15px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
 }
 </style>

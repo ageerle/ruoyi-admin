@@ -61,7 +61,7 @@ function handleSelectWorkflow(selectedWorkflow: WorkflowInfo) {
 </script>
 
 <template>
-  <div class="h-full">
+  <div class="workflow-page">
     <n-message-provider>
       <div class="workflow-container">
         <!-- 左侧面板 -->
@@ -89,10 +89,15 @@ function handleSelectWorkflow(selectedWorkflow: WorkflowInfo) {
 </template>
 
 <style scoped>
+.workflow-page {
+  height: 100%; /* 页面容器占满视窗，并裁剪滚动 */
+  overflow: hidden;
+}
 .workflow-container {
   display: flex;
-  height: 100vh;
+  height: 100%; /* 跟随父级高度，避免叠加头部造成溢出 */
   width: 100%;
+  overflow: hidden; /* 禁止页面级滚动，仅区域滚动 */
 }
 
 .left-panel {
@@ -103,12 +108,16 @@ function handleSelectWorkflow(selectedWorkflow: WorkflowInfo) {
 }
 
 .left-panel.collapsed {
-  width: 60px;
+  width: 0;
+  background: transparent;
+  border-right: none;
+  overflow: visible;
 }
 
 .right-panel {
   flex: 1;
   min-width: 0;
   background: #f5f5f5;
+  overflow: hidden; /* 右侧由内部编辑器掌控滚动（通常为画布，不滚动）*/
 }
 </style>

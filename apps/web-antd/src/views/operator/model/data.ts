@@ -33,6 +33,15 @@ export const columns: VxeGridProps['columns'] = [
     },
   },
   {
+    title: '模型供应商',
+    field: 'providerName',
+    slots: {
+      default: ({ row }) => {
+        return renderDict(row.providerName, DictEnum.MODEL_PROVIDER);
+      },
+    },
+  },
+  {
     title: '模型名称',
     field: 'modelName',
   },

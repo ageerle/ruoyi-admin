@@ -127,6 +127,11 @@ export interface ModelForm extends BaseEntity {
    * 备注
    */
   remark?: string;
+
+  /**
+   * 供应商名称
+   */
+  providerName?: string;
 }
 
 export interface ModelQuery extends PageQuery {

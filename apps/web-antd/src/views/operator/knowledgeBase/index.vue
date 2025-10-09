@@ -31,6 +31,8 @@ import {
   knowledgeFragmentList,
 } from '#/api/operator/knowledgeBase';
 
+import { modelList } from '#/api/operator/model';
+
 import { useAppConfig } from '@vben/hooks';
 import { useAccessStore } from '@vben/stores';
 
@@ -95,7 +97,8 @@ const defaultFormData = {
   overlapChar: 30,
   vectorModelName: 'weaviate',
   questionSeparator: '',
-  embeddingModelName: 'baai/bge-m3',
+  embeddingModelName: '',
+  embeddingModelId: '',
   description: '',
 };
 const formData = ref({ ...defaultFormData });
@@ -104,19 +107,25 @@ const getVector = ref([
   { label: 'milvus', value: 'milvus' },
 ]);
 
-const getVectorModel = ref([
-  { label: 'text-embedding-3-small', value: 'text-embedding-3-small' },
-  { label: 'quentinz/bge-large-zh-v1.5', value: 'quentinz/bge-large-zh-v1.5' },
-  { label: 'baai/bge-m3', value: 'baai/bge-m3' },
-]);
+const vectorModel = ref([]);
 
 onMounted(() => {
   getList();
+  getEmbeddingModelList();
 });
 
 const getList = () => {
   knowledgeList().then((res) => {
     data.value = res.rows;
+  });
+};
+
+const getEmbeddingModelList = () => {
+  modelList({ category: 'vector' }).then((res) => {
+    vectorModel.value = res.rows.map((item) => ({
+      label: item.modelName,
+      value: item.id,
+    }));
   });
 };
 
@@ -205,6 +214,14 @@ const handleSubmit = () => {
   formRef.value
     .validate()
     .then(() => {
+      // 1. 从已加载的模型列表中，匹配当前选中的模型
+      const targetModel = vectorModel.value.find(
+        (item) => item.value === formData.value.embeddingModelId,
+      );
+      // 2. 赋值模型名称（未匹配到时设为空，避免异常）
+      formData.value.embeddingModelName = targetModel?.label || '';
+
+      // 3. 原有提交逻辑不变
       knowledgeSave(formData.value).then((res) => {
         message.success('添加成功');
         getList();
@@ -333,10 +350,7 @@ const handleSubmit = () => {
         >
           <Input v-model:value="formData.kname" />
         </FormItem>
-        <FormItem
-          label="分隔符"
-          name="knowledgeSeparator"
-        >
+        <FormItem label="分隔符" name="knowledgeSeparator">
           <Input v-model:value="formData.knowledgeSeparator" />
         </FormItem>
         <FormItem
@@ -359,10 +373,7 @@ const handleSubmit = () => {
             style="width: 100%"
           />
         </FormItem>
-        <FormItem
-          label="重叠字符"
-          name="overlapChar"
-        >
+        <FormItem label="重叠字符" name="overlapChar">
           <InputNumber
             v-model:value="formData.overlapChar"
             style="width: 100%"
@@ -373,19 +384,22 @@ const handleSubmit = () => {
           name="vectorModelName"
           :rules="[{ required: true, message: '请选择向量库' }]"
         >
-          <Select v-model:value="formData.vectorModelName" :options="getVector" />
+          <Select
+            v-model:value="formData.vectorModelName"
+            :options="getVector"
+          />
         </FormItem>
         <FormItem label="提问分割符" name="questionSeparator">
           <Input v-model:value="formData.questionSeparator" />
         </FormItem>
         <FormItem
           label="向量模型"
-          name="embeddingModelName"
+          name="embeddingModelId"
           :rules="[{ required: true, message: '请选择向量模型' }]"
         >
           <Select
-            v-model:value="formData.embeddingModelName"
-            :options="getVectorModel"
+            v-model:value="formData.embeddingModelId"
+            :options="vectorModel"
           />
         </FormItem>
         <FormItem label="知识描述" name="description">

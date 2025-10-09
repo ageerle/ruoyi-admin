@@ -13,7 +13,14 @@ import { useVbenModal } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { cloneDeep, getPopupContainer } from '@vben/utils';
 
-import { Form, FormItem, Input, InputNumber, Select, Textarea } from 'ant-design-vue';
+import {
+  Form,
+  FormItem,
+  Input,
+  InputNumber,
+  Select,
+  Textarea,
+} from 'ant-design-vue';
 import { pick } from 'lodash-es';
 
 import { modelAdd, modelInfo, modelUpdate } from '#/api/operator/model';
@@ -41,6 +48,7 @@ const defaultValues: Partial<ModelForm> = {
   apiHost: undefined,
   apiKey: undefined,
   remark: undefined,
+  providerName: undefined,
 };
 
 /**
@@ -63,6 +71,16 @@ const formRules = ref<AntdFormRules<ModelForm>>({
   modelShow: [{ required: true, message: '是否显示不能为空' }],
   apiHost: [{ required: true, message: '请求地址不能为空' }],
   apiKey: [{ required: true, message: '密钥不能为空' }],
+  providerName: [
+    {
+      validator: async (_rule, value) => {
+        if (formData.value.category === 'vector' && !value) {
+          return Promise.reject('请选择模型供应商');
+        }
+        return Promise.resolve();
+      },
+    },
+  ],
 });
 
 /**
@@ -144,6 +162,14 @@ const getModelCategory = ref([
   { label: 'FASTGPT-fastgpt', value: 'fastgpt' },
 ]);
 
+const getProviderCategory = ref([
+  { label: 'ollama', value: 'ollama' },
+  { label: '阿里云百链', value: 'bailianTextModel' },
+  { label: '阿里云百链(多模态)', value: 'bailianMultiModel' },
+  { label: '智普', value: 'zhipu' },
+  { label: '硅基流动', value: 'siliconflow' },
+  { label: 'OpenAi', value: 'openai' },
+]);
 </script>
 
 <template>
@@ -153,6 +179,19 @@ const getModelCategory = ref([
         <Select
           v-model:value="formData.category"
           :options="getModelCategory"
+          :get-popup-container="getPopupContainer"
+          :placeholder="$t('ui.formRules.selectRequired')"
+        />
+      </FormItem>
+      <FormItem
+        v-if="formData.category === 'vector'"
+        label="模型供应商"
+        v-bind="validateInfos.providerName"
+        :rules="[{ required: true, message: '请选择模型供应商' }]"
+      >
+        <Select
+          v-model:value="formData.providerName"
+          :options="getProviderCategory"
           :get-popup-container="getPopupContainer"
           :placeholder="$t('ui.formRules.selectRequired')"
         />

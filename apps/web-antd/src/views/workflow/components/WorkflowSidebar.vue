@@ -2,9 +2,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { NButton, NModal, NForm, NFormItem, NInput, NSwitch, NIcon, NPopconfirm, useMessage, NSpin, NEmpty } from 'naive-ui'
 import { Plus, UserRoundPen, X, LockKeyhole, ExternalLink, ChevronLeft, ChevronRight } from '@vben/icons'
-import { workflowDefinitionList, workflowDefinitionAdd, workflowDefinitionUpdate, workflowDefinitionDelete } from '#/api/workflow/definition'
-import { categoryTree } from '#/api/workflow/category'
-import type { ProcessDefinition } from '#/api/workflow/definition/model'
+import { workflowApi } from '#/api/workflow'
 import type { WorkflowInfo, WorkflowComponent } from '#/packages/workflow-designer/types/index.d'
 
 interface Props {
@@ -27,17 +25,15 @@ const message = useMessage()
 // 响应式数据
 const activeTab = ref<'my' | 'public'>('my')
 const loading = ref(false)
-const myWorkflows = ref<ProcessDefinition[]>([])
-const publicWorkflows = ref<ProcessDefinition[]>([])
-const categories = ref<any[]>([])
+const myWorkflows = ref<any[]>([])
+const publicWorkflows = ref<any[]>([])
 
 // 新建/编辑工作流
 const showModal = ref(false)
 const modalTitle = ref('新增')
-const editingWorkflow = ref<ProcessDefinition | null>(null)
+const editingWorkflow = ref<any | null>(null)
 const formData = reactive({
-  flowName: '',
-  category: '',
+  title: '',
   remark: '',
   isPublic: false
 })
@@ -52,25 +48,15 @@ async function fetchWorkflows() {
   loading.value = true
   try {
     const [myRes, publicRes] = await Promise.all([
-      workflowDefinitionList({ isPublish: 0 }), // 我的工作流（未发布）
-      workflowDefinitionList({ isPublish: 1 })  // 公开工作流（已发布）
+      workflowApi.workflowSearchMine('', 1, 100), // 我的工作流
+      workflowApi.workflowSearchPublic('', 1, 100)  // 公开工作流
     ])
-    myWorkflows.value = myRes.rows || []
-    publicWorkflows.value = publicRes.rows || []
+    myWorkflows.value = myRes.data?.records || []
+    publicWorkflows.value = publicRes.data?.records || []
   } catch (error) {
     message.error('获取工作流列表失败')
   } finally {
     loading.value = false
-  }
-}
-
-// 获取分类列表
-async function fetchCategories() {
-  try {
-    const res = await categoryTree()
-    categories.value = res || []
-  } catch (error) {
-    console.error('获取分类失败:', error)
   }
 }
 
@@ -79,8 +65,7 @@ function handleNewWorkflow() {
   modalTitle.value = '新增'
   editingWorkflow.value = null
   Object.assign(formData, {
-    flowName: '',
-    category: '',
+    title: '',
     remark: '',
     isPublic: false
   })
@@ -88,22 +73,21 @@ function handleNewWorkflow() {
 }
 
 // 编辑工作流
-function handleEditWorkflow(workflow: ProcessDefinition) {
+function handleEditWorkflow(workflow: any) {
   modalTitle.value = '编辑'
   editingWorkflow.value = workflow
   Object.assign(formData, {
-    flowName: workflow.flowName,
-    category: workflow.category,
-    remark: workflow.formCustom || '',
-    isPublic: workflow.isPublish === 1
+    title: workflow.title,
+    remark: workflow.remark || '',
+    isPublic: workflow.isPublic
   })
   showModal.value = true
 }
 
 // 删除工作流
-async function handleDeleteWorkflow(workflow: ProcessDefinition) {
+async function handleDeleteWorkflow(workflow: any) {
   try {
-    await workflowDefinitionDelete([workflow.id])
+    await workflowApi.workflowDel(workflow.uuid)
     message.success('删除成功')
     await fetchWorkflows()
   } catch (error) {
@@ -113,27 +97,27 @@ async function handleDeleteWorkflow(workflow: ProcessDefinition) {
 
 // 保存工作流
 async function handleSaveWorkflow() {
-  if (!formData.flowName.trim()) {
+  if (!formData.title.trim()) {
     message.error('请输入工作流名称')
     return
   }
 
   try {
     const data = {
-      flowName: formData.flowName,
-      category: formData.category,
-      formCustom: formData.remark,
-      isPublish: formData.isPublic ? 1 : 0
+      title: formData.title,
+      remark: formData.remark,
+      isPublic: formData.isPublic
     }
 
     if (editingWorkflow.value) {
-      await workflowDefinitionUpdate({
-        id: editingWorkflow.value.id,
-        ...data
+      await workflowApi.workflowBaseInfoUpdate({
+        uuid: editingWorkflow.value.uuid,
+        title: formData.title,
+        remark: formData.remark
       })
       message.success('更新成功')
     } else {
-      await workflowDefinitionAdd(data)
+      await workflowApi.workflowAdd(data)
       message.success('新增成功')
     }
 
@@ -145,15 +129,15 @@ async function handleSaveWorkflow() {
 }
 
 // 选择工作流
-function handleSelectWorkflow(workflow: ProcessDefinition) {
+function handleSelectWorkflow(workflow: any) {
   // 将后端数据转换为前端格式
   const workflowInfo: WorkflowInfo = {
-    uuid: workflow.id,
-    title: workflow.flowName,
-    remark: workflow.formCustom,
-    isPublic: workflow.isPublish === 1,
-    nodes: [],
-    edges: []
+    uuid: workflow.uuid,
+    title: workflow.title,
+    remark: workflow.remark,
+    isPublic: workflow.isPublic,
+    nodes: workflow.nodes || [],
+    edges: workflow.edges || []
   }
   
   emit('selectWorkflow', workflowInfo)
@@ -166,7 +150,6 @@ function toggleCollapsed() {
 
 onMounted(() => {
   fetchWorkflows()
-  fetchCategories()
 })
 </script>
 
@@ -212,15 +195,14 @@ onMounted(() => {
           <div v-else class="workflow-items">
             <div 
               v-for="workflow in currentWorkflows" 
-              :key="workflow.id"
+              :key="workflow.uuid"
               class="workflow-item"
               @click="handleSelectWorkflow(workflow)"
             >
               <div class="workflow-info">
-                <div class="workflow-name">{{ workflow.flowName }}</div>
+                <div class="workflow-name">{{ workflow.title }}</div>
                 <div class="workflow-meta">
-                  <span class="category">{{ workflow.categoryName }}</span>
-                  <span class="version">v{{ workflow.version }}</span>
+                  <span class="version">{{ workflow.createTime }}</span>
                 </div>
               </div>
               <div class="workflow-actions">
@@ -242,13 +224,13 @@ onMounted(() => {
                   </template>
                   确定要删除这个工作流吗？
                 </n-popconfirm>
-                <n-icon 
-                  class="action-icon lock"
-                  :title="workflow.isPublish === 1 ? '已发布' : '未发布'"
-                >
-                  <LockKeyhole v-if="workflow.isPublish === 0" />
-                  <ExternalLink v-if="workflow.isPublish === 1" />
-                </n-icon>
+              <n-icon 
+                class="action-icon lock"
+                :title="workflow.isPublic ? '已发布' : '未发布'"
+              >
+                <LockKeyhole v-if="!workflow.isPublic" />
+                <ExternalLink v-if="workflow.isPublic" />
+              </n-icon>
               </div>
             </div>
           </div>
@@ -268,10 +250,7 @@ onMounted(() => {
     <n-modal v-model:show="showModal" preset="card" :title="modalTitle" style="width: 500px">
       <n-form :model="formData" label-placement="left" label-width="80px">
         <n-form-item label="标题" required>
-          <n-input v-model:value="formData.flowName" placeholder="如：翻译" />
-        </n-form-item>
-        <n-form-item label="分类">
-          <n-input v-model:value="formData.category" placeholder="请输入分类" />
+          <n-input v-model:value="formData.title" placeholder="如：翻译" />
         </n-form-item>
         <n-form-item label="备注">
           <n-input v-model:value="formData.remark" placeholder="请输入" />

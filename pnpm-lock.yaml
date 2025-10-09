@@ -599,6 +599,9 @@ importers:
       '@ant-design/icons-vue':
         specifier: ^7.0.1
         version: 7.0.1(vue@3.5.13(typescript@5.8.2))
+      '@iconify/vue':
+        specifier: ^5.0.0
+        version: 5.0.0(vue@3.5.13(typescript@5.8.2))
       '@tinymce/tinymce-vue':
         specifier: ^6.0.1
         version: 6.1.0(tinymce@7.7.2)(vue@3.5.13(typescript@5.8.2))
@@ -3462,6 +3465,11 @@ packages:
 
   '@iconify/vue@4.3.0':
     resolution: {integrity: sha512-Xq0h6zMrHBbrW8jXJ9fISi+x8oDQllg5hTDkDuxnWiskJ63rpJu9CvJshj8VniHVTbsxCg9fVoPAaNp3RQI5OQ==}
+    peerDependencies:
+      vue: ^3.5.13
+
+  '@iconify/vue@5.0.0':
+    resolution: {integrity: sha512-C+KuEWIF5nSBrobFJhT//JS87OZ++QDORB6f2q2Wm6fl2mueSTpFBeBsveK0KW9hWiZ4mNiPjsh6Zs4jjdROSg==}
     peerDependencies:
       vue: ^3.5.13
 
@@ -12323,6 +12331,11 @@ snapshots:
   '@iconify/types@2.0.0': {}
 
   '@iconify/vue@4.3.0(vue@3.5.13(typescript@5.8.2))':
+    dependencies:
+      '@iconify/types': 2.0.0
+      vue: 3.5.13(typescript@5.8.2)
+
+  '@iconify/vue@5.0.0(vue@3.5.13(typescript@5.8.2))':
     dependencies:
       '@iconify/types': 2.0.0
       vue: 3.5.13(typescript@5.8.2)

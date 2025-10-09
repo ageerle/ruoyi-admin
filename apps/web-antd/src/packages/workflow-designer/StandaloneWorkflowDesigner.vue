@@ -29,7 +29,7 @@ const ms = useMessage()
 const submitting = ref<boolean>(false)
 const hidePropertyPanel = ref<boolean>(true)
 const selectedWfNode = ref<WorkflowNode>()
-const { onInit, fitView, onConnect, onEdgesChange, onNodesChange, onNodeClick, addSelectedNodes, project } = useVueFlow()
+const { onInit, fitView, onConnect, onEdgesChange, onNodesChange, onNodeClick, addSelectedNodes, project, getNodes } = useVueFlow()
 
 const uw = { nodes: [] as Array<Node>, edges: [] as Array<Edge> }
 const uiWorkflow = reactive(uw)
@@ -68,6 +68,7 @@ function renderGraph() {
   const initX = 10, initY = 50
   for (let i = 0; i < props.workflow.nodes.length; i++) {
     const node = props.workflow.nodes[i]
+    if (!node) continue
     const px = node.positionX ? node.positionX : initX + 230 * i
     const py = node.positionY ? node.positionY : initY
     uiWorkflow.nodes.push({ id: node.uuid, type: node.wfComponent.name.toLowerCase(), data: node, position: { x: px, y: py } })
@@ -127,7 +128,11 @@ function onDrop(event: DragEvent) {
   const flowbounds = (wrapper.value as any).$el.getBoundingClientRect()
   const position = project({ x: event.clientX - flowbounds.left, y: event.clientY - flowbounds.top })
   createNewNode(props.workflow, uiWorkflow, component, position)
-  addSelectedNodes([uiWorkflow.nodes[uiWorkflow.nodes.length - 1]])
+  const lastNode = uiWorkflow.nodes[uiWorkflow.nodes.length - 1]
+  if (lastNode) {
+    const graphNode = getNodes.value.find((n: any) => n.id === lastNode.id)
+    if (graphNode) addSelectedNodes([graphNode])
+  }
 }
 
 function onPaletteDragStart(event: DragEvent, name: string) {

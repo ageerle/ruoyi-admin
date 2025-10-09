@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
+    "@iconify/vue": "^5.0.0",
     "@tinymce/tinymce-vue": "^6.0.1",
     "@vben/access": "workspace:*",
     "@vben/common-ui": "workspace:*",
@@ -56,8 +57,8 @@
     "pinia": "catalog:",
     "tinymce": "^7.3.0",
     "unplugin-vue-components": "^0.27.3",
-    "vue": "catalog:",
     "uuid": "^9.0.0",
+    "vue": "catalog:",
     "vue-router": "catalog:"
   },
   "devDependencies": {

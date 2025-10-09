@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import WorkflowDesigner from '#/packages/workflow-designer/StandaloneWorkflowDesigner.vue'
-import WorkflowSidebar from './components/WorkflowSidebar.vue'
-import type { WorkflowInfo, WorkflowComponent } from '#/packages/workflow-designer/types/index.d'
+import type { WorkflowInfo, WorkflowComponent, WorkflowNode } from '#/packages/workflow-designer/types/index.d'
 import { NMessageProvider } from 'naive-ui'
 
 // 要使用的节点列表，不使用时可以注释掉
@@ -45,8 +44,6 @@ const workflow = ref<WorkflowInfo>({
   edges: [],
 })
 
-const sidebarCollapsed = ref(false)
-
 function handleSave(updated: WorkflowInfo) {
   console.log('save demo workflow', updated)
 }
@@ -54,61 +51,15 @@ function handleSave(updated: WorkflowInfo) {
 function handleRun(payload: { workflow: WorkflowInfo }) {
   console.log('run demo workflow', payload.workflow)
 }
-
-function handleSelectWorkflow(selectedWorkflow: WorkflowInfo) {
-  workflow.value = selectedWorkflow
-}
 </script>
 
 <template>
   <div class="h-full">
     <n-message-provider>
-      <div class="workflow-container">
-        <!-- 左侧面板 -->
-        <div class="left-panel" :class="{ collapsed: sidebarCollapsed }">
-          <WorkflowSidebar 
-            :collapsed="sidebarCollapsed"
-            :wf-components="wfComponents"
-            @update:collapsed="sidebarCollapsed = $event"
-            @select-workflow="handleSelectWorkflow"
-          />
-        </div>
-        
-        <!-- 右侧工作流编辑器 -->
-        <div class="right-panel">
-          <WorkflowDesigner 
-            :workflow="workflow" 
-            :wf-components="wfComponents" 
-            @save="handleSave" 
-            @run="handleRun" 
-          />
-        </div>
-      </div>
+      <WorkflowDesigner :workflow="workflow" :wf-components="wfComponents" @save="handleSave" @run="handleRun" />
     </n-message-provider>
   </div>
+  
 </template>
 
-<style scoped>
-.workflow-container {
-  display: flex;
-  height: 100vh;
-  width: 100%;
-}
 
-.left-panel {
-  width: 300px;
-  transition: width 0.3s ease;
-  border-right: 1px solid #e0e0e0;
-  background: white;
-}
-
-.left-panel.collapsed {
-  width: 60px;
-}
-
-.right-panel {
-  flex: 1;
-  min-width: 0;
-  background: #f5f5f5;
-}
-</style>

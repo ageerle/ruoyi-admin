@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, reactive, ref, computed, provide, watch } from 'vue'
+import { nextTick, onMounted, reactive, ref, computed, provide, watch, markRaw } from 'vue'
 import { NButton, NLayout, NLayoutContent, NLayoutSider, useMessage } from 'naive-ui'
 import type { Edge, Node, NodeChange, EdgeChange, Connection, NodeMouseEvent } from '@vue-flow/core'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
@@ -13,10 +13,12 @@ import NodeShell from './components/nodes/NodeShell.vue'
 interface Props {
   workflow: WorkflowInfo
   wfComponents: WorkflowComponent[]
+  componentIdMap: Record<number, string>
 }
 const props = withDefaults(defineProps<Props>(), {
   workflow: () => emptyWorkflowInfo(),
   wfComponents: () => [],
+  componentIdMap: () => ({}),
 })
 
 const emit = defineEmits<{
@@ -46,11 +48,11 @@ function toKey(path: string, suffix: 'Node' | 'Edge') {
 const nodeTypes = computed(() => {
   const map: Record<string, any> = {}
   for (const [p, mod] of Object.entries(nodeModules)) {
-    map[toKey(p, 'Node')] = mod
+    map[toKey(p, 'Node')] = markRaw(mod)
   }
   for (const c of props.wfComponents) {
     const key = c.name.toLowerCase()
-    if (!map[key]) map[key] = NodeShell
+    if (!map[key]) map[key] = markRaw(NodeShell)
   }
   return map
 })
@@ -58,28 +60,110 @@ const nodeTypes = computed(() => {
 const edgeTypes = computed(() => {
   const map: Record<string, any> = {}
   for (const [p, mod] of Object.entries(edgeModules)) {
-    map[toKey(p, 'Edge')] = mod
+    map[toKey(p, 'Edge')] = markRaw(mod)
   }
   return map
 })
 
 function renderGraph() {
-  // 安全地清空现有节点和边，避免 Vue 虚拟 DOM 比较错误
-  uiWorkflow.nodes.splice(0, uiWorkflow.nodes.length)
-  uiWorkflow.edges.splice(0, uiWorkflow.edges.length)
+  console.log('开始渲染工作流:', props.workflow)
+  console.log('节点数量:', props.workflow.nodes.length)
+  console.log('边数量:', props.workflow.edges.length)
   
   const initX = 10, initY = 50
+  const validNodeIds = new Set<string>()
+  const newNodes: Array<any> = []
+  const newEdges: Array<any> = []
+  
+  // 先渲染所有有效节点
   for (let i = 0; i < props.workflow.nodes.length; i++) {
     const node = props.workflow.nodes[i]
-    if (!node || !node.wfComponent || !node.wfComponent.name) continue
+    console.log(`检查节点 ${i}:`, node)
+    
+    if (!node) {
+      console.warn(`跳过节点 ${i}: 节点为空`)
+      continue
+    }
+    
+    if (!node.uuid) {
+      console.warn(`跳过节点 ${i}: 缺少 uuid 字段`, node)
+      continue
+    }
+    
+    // 处理组件信息：后端可能只提供 workflowComponentId，需要映射到组件名称
+    let componentName = ''
+    if (node.wfComponent && node.wfComponent.name) {
+      // 如果已经有 wfComponent.name，直接使用
+      componentName = node.wfComponent.name
+    } else if (node.workflowComponentId !== undefined) {
+      // 使用调用方传入的组件ID映射
+      componentName = props.componentIdMap[node.workflowComponentId] || 'Unknown'
+      console.log(`根据 workflowComponentId ${node.workflowComponentId} 映射到组件: ${componentName}`)
+    } else {
+      console.warn(`跳过节点 ${i}: 无法确定组件类型`, node)
+      continue
+    }
+    
     const px = node.positionX ? node.positionX : initX + 230 * i
     const py = node.positionY ? node.positionY : initY
-    uiWorkflow.nodes.push({ id: node.uuid, type: node.wfComponent.name.toLowerCase(), data: node, position: { x: px, y: py } })
+    
+    // 确保节点数据包含 wfComponent 信息，供 CommonNodeHeader 使用
+    const nodeData = {
+      ...node,
+      wfComponent: node.wfComponent || {
+        name: componentName,
+        title: componentName === 'Start' ? '开始' : componentName === 'End' ? '结束' : componentName,
+        remark: componentName === 'Start' ? '工作流开始节点' : componentName === 'End' ? '工作流结束节点' : `${componentName}节点`
+      }
+    }
+    
+    newNodes.push({ id: node.uuid, type: componentName.toLowerCase(), data: nodeData, position: { x: px, y: py } })
+    validNodeIds.add(node.uuid)
+    console.log(`✅ 添加节点: ${node.uuid} (${componentName})`)
   }
+  
+  console.log('有效节点ID:', Array.from(validNodeIds))
+  
+  // 只渲染有效的边（源节点和目标节点都存在）
   for (const wfEdge of props.workflow.edges) {
-    if (!wfEdge || !wfEdge.uuid || !wfEdge.sourceNodeUuid || !wfEdge.targetNodeUuid) continue
-    uiWorkflow.edges.push({ id: wfEdge.uuid, source: wfEdge.sourceNodeUuid, target: wfEdge.targetNodeUuid, sourceHandle: wfEdge.sourceHandle, type: 'special', animated: true, data: wfEdge })
+    if (!wfEdge || !wfEdge.uuid || !wfEdge.sourceNodeUuid || !wfEdge.targetNodeUuid) {
+      console.warn('跳过无效边（缺少必要字段）:', wfEdge)
+      continue
+    }
+    
+    // 验证源节点和目标节点是否都存在
+    if (validNodeIds.has(wfEdge.sourceNodeUuid) && validNodeIds.has(wfEdge.targetNodeUuid)) {
+      newEdges.push({ 
+        id: wfEdge.uuid, 
+        source: wfEdge.sourceNodeUuid, 
+        target: wfEdge.targetNodeUuid, 
+        sourceHandle: wfEdge.sourceHandle, 
+        type: 'special', 
+        animated: true, 
+        data: wfEdge 
+      })
+      console.log(`添加边: ${wfEdge.uuid} (${wfEdge.sourceNodeUuid} -> ${wfEdge.targetNodeUuid})`)
+    } else {
+      console.warn(`跳过无效的边: ${wfEdge.uuid}, 源节点: ${wfEdge.sourceNodeUuid}, 目标节点: ${wfEdge.targetNodeUuid}`)
+      console.warn('源节点存在:', validNodeIds.has(wfEdge.sourceNodeUuid))
+      console.warn('目标节点存在:', validNodeIds.has(wfEdge.targetNodeUuid))
+    }
   }
+  
+  // 使用 nextTick 确保 DOM 更新安全
+  nextTick(() => {
+    // 安全地更新数组
+    uiWorkflow.nodes.length = 0
+    uiWorkflow.edges.length = 0
+    uiWorkflow.nodes.push(...newNodes)
+    uiWorkflow.edges.push(...newEdges)
+    
+    console.log('最终渲染结果:')
+    console.log('UI节点数量:', uiWorkflow.nodes.length)
+    console.log('UI边数量:', uiWorkflow.edges.length)
+    console.log('UI节点:', uiWorkflow.nodes)
+    console.log('UI边:', uiWorkflow.edges)
+  })
 }
 
 onNodesChange((changes: NodeChange[]) => {
@@ -151,7 +235,7 @@ async function onSave() {
   submitting.value = true
   try {
     emit('save', props.workflow)
-    ms.success('保存触发')
+    // ms.success('保存触发')
   } finally {
     submitting.value = false
   }

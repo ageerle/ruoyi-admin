@@ -168,7 +168,7 @@ export function deleteEdgesBySourceHandle(
 function wfNodeToUiNode(node: WorkflowNode) {
   return {
     id: node.uuid,
-    type: node.wfComponent.name.toLowerCase(),
+    type: node.wfComponent?.name.toLowerCase() ?? '',
     data: node,
     position: { x: node.positionX, y: node.positionY },
   }

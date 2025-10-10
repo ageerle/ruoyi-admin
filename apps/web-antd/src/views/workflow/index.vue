@@ -10,11 +10,19 @@ import { message } from 'ant-design-vue'
 // 工作流组件列表，从后端接口获取
 const wfComponents = ref<WorkflowComponent[]>([])
 
+// 组件ID映射，根据后端返回的组件列表自动生成
+const componentIdMap = ref<Record<number, string>>({})
+// 组件Name到ID的反向映射，用于保存时写入数值ID
+const nameToIdMap = ref<Record<string, number>>({})
+
 // 获取工作流组件列表
 async function fetchWorkflowComponents() {
   try {
     const res = await workflowApi.workflowComponents()
     wfComponents.value = res || []
+    
+    // 根据组件列表自动生成ID映射
+    generateComponentIdMap()
   } catch (error) {
     message.error('获取工作流组件失败')
     // 如果接口失败，使用默认组件列表
@@ -23,7 +31,35 @@ async function fetchWorkflowComponents() {
       { name: 'End', title: '结束' },
       { name: 'Answer', title: '回答' },
     ]
+    generateComponentIdMap()
   }
+}
+
+// 根据组件列表生成ID映射
+function generateComponentIdMap() {
+  const map: Record<number, string> = {}
+  
+  // 如果后端返回的组件包含ID信息，使用后端数据
+  // 否则使用默认映射
+  wfComponents.value.forEach((component, index) => {
+    // 假设后端组件有id字段，如果没有则使用索引
+    const id = (component as any).id ?? index
+    map[id] = component.name
+  })
+  
+  // 如果没有组件或组件为空，使用默认映射
+  if (Object.keys(map).length === 0) {
+    map[0] = 'Start'
+    map[1] = 'End'
+    map[2] = 'Answer'
+  }
+  
+  componentIdMap.value = map
+  // 生成 name -> id 反向映射
+  nameToIdMap.value = Object.fromEntries(
+    Object.entries(map).map(([id, name]) => [name, Number(id)])
+  )
+  console.log('生成的组件ID映射:', map)
 }
 
 const workflow = ref<WorkflowInfo>({
@@ -35,6 +71,7 @@ const workflow = ref<WorkflowInfo>({
       title: '开始',
       workflowUuid: 'demo-1',
       wfComponent: { name: 'Start', title: '开始' },
+      workflowComponentId: 1,
       inputConfig: { user_inputs: [], ref_inputs: [] },
       nodeConfig: { prologue: '' },
       outputConfig: {},
@@ -49,6 +86,11 @@ const sidebarCollapsed = ref(false)
 
 async function handleSave(updated: WorkflowInfo) {
   try {
+    updated.nodes.forEach((node) => {
+      // 使用 name -> id 映射，确保为 number 类型
+      node.workflowComponentId = nameToIdMap.value[node.wfComponent?.name || ''] ?? 0
+    })
+    console.log('handleSave', updated)
     await workflowApi.workflowUpdate({
       uuid: updated.uuid,
       title: updated.title,
@@ -98,6 +140,7 @@ onMounted(() => {
           <WorkflowDesigner 
             :workflow="workflow" 
             :wf-components="wfComponents" 
+            :component-id-map="componentIdMap"
             @save="handleSave" 
             @run="handleRun" 
           />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { NButton, NModal, NForm, NFormItem, NInput, NSwitch, NIcon, NPopconfirm, useMessage, NSpin, NEmpty } from 'naive-ui'
 import { Plus, UserRoundPen, X, LockKeyhole, ExternalLink, ChevronLeft, ChevronRight } from '@vben/icons'
 import { workflowApi } from '#/api/workflow'
@@ -27,6 +27,7 @@ const activeTab = ref<'my' | 'public'>('my')
 const loading = ref(false)
 const myWorkflows = ref<any[]>([])
 const publicWorkflows = ref<any[]>([])
+const selectedWorkflowUuid = ref<string>('')
 
 // 新建/编辑工作流
 const showModal = ref(false)
@@ -42,6 +43,13 @@ const formData = reactive({
 const currentWorkflows = computed(() => {
   return activeTab.value === 'my' ? myWorkflows.value : publicWorkflows.value
 })
+
+// 监听当前工作流列表变化，自动选中第一个
+watch(currentWorkflows, (newWorkflows) => {
+  if (newWorkflows.length > 0 && !selectedWorkflowUuid.value) {
+    handleSelectWorkflow(newWorkflows[0])
+  }
+}, { immediate: true })
 
 // 获取工作流列表
 async function fetchWorkflows() {
@@ -130,6 +138,9 @@ async function handleSaveWorkflow() {
 
 // 选择工作流
 function handleSelectWorkflow(workflow: any) {
+  // 设置选中状态
+  selectedWorkflowUuid.value = workflow.uuid
+  
   // 将后端数据转换为前端格式
   const workflowInfo: WorkflowInfo = {
     uuid: workflow.uuid,
@@ -197,6 +208,7 @@ onMounted(() => {
               v-for="workflow in currentWorkflows" 
               :key="workflow.uuid"
               class="workflow-item"
+              :class="{ 'workflow-item-selected': selectedWorkflowUuid === workflow.uuid }"
               @click="handleSelectWorkflow(workflow)"
             >
               <div class="workflow-info">
@@ -364,6 +376,18 @@ onMounted(() => {
 .workflow-item:hover {
   border-color: #18a058;
   box-shadow: 0 2px 8px rgba(24, 160, 88, 0.1);
+}
+
+.workflow-item-selected {
+  border-color: #18a058 !important;
+  background-color: #f0f9ff;
+  box-shadow: 0 2px 8px rgba(24, 160, 88, 0.2);
+}
+
+.workflow-item-selected:hover {
+  border-color: #18a058 !important;
+  background-color: #e6f7ff;
+  box-shadow: 0 2px 8px rgba(24, 160, 88, 0.3);
 }
 
 .workflow-info {

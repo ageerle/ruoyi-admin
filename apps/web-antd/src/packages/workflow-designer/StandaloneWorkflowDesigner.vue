@@ -31,7 +31,7 @@ const ms = useMessage()
 const submitting = ref<boolean>(false)
 const hidePropertyPanel = ref<boolean>(true)
 const selectedWfNode = ref<WorkflowNode>()
-const { onInit, fitView, onConnect, onEdgesChange, onNodesChange, onNodeClick, onNodeDragStop, addSelectedNodes, project, getNodes } = useVueFlow()
+const { onInit, fitView, onConnect, onEdgesChange, onNodesChange, onNodeClick, onEdgeClick, onNodeDragStop, addSelectedNodes, project, getNodes } = useVueFlow()
 
 const uw = { nodes: [] as Array<Node>, edges: [] as Array<Edge> }
 const uiWorkflow = reactive(uw)
@@ -272,6 +272,24 @@ async function onSave() {
     submitting.value = false
   }
 }
+
+// 点击边时删除该边
+onEdgeClick(({ edge }: any) => {
+  const id = edge?.id
+  if (!id) return
+  const idx = props.workflow.edges.findIndex((e: any) => e.uuid === id || e.id === id)
+  if (idx > -1) {
+    const removedList = props.workflow.edges.splice(idx, 1)
+    const removed = removedList.length ? (removedList[0] as any) : undefined
+    if (removed) {
+      if (!props.workflow.deleteEdges) props.workflow.deleteEdges = []
+      const removedId: string = (removed.uuid || removed.id || '') as string
+      if (removedId) props.workflow.deleteEdges.push(removedId)
+    }
+  }
+  const uiIdx = (uiWorkflow.edges as any[]).findIndex((e: any) => e.id === id)
+  if (uiIdx > -1) (uiWorkflow.edges as any[]).splice(uiIdx, 1)
+})
 
 // 监听 workflow prop 变化，重新渲染
 watch(() => props.workflow, () => {

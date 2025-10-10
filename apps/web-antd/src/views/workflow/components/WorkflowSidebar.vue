@@ -51,8 +51,8 @@ async function fetchWorkflows() {
       workflowApi.workflowSearchMine('', 1, 100), // 我的工作流
       workflowApi.workflowSearchPublic('', 1, 100)  // 公开工作流
     ])
-    myWorkflows.value = myRes.data?.records || []
-    publicWorkflows.value = publicRes.data?.records || []
+    myWorkflows.value = (myRes as any)?.records || []
+    publicWorkflows.value = (publicRes as any)?.records || []
   } catch (error) {
     message.error('获取工作流列表失败')
   } finally {

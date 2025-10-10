@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, reactive, ref, computed, provide } from 'vue'
+import { nextTick, onMounted, reactive, ref, computed, provide, watch } from 'vue'
 import { NButton, NLayout, NLayoutContent, NLayoutSider, useMessage } from 'naive-ui'
 import type { Edge, Node, NodeChange, EdgeChange, Connection, NodeMouseEvent } from '@vue-flow/core'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
@@ -64,16 +64,20 @@ const edgeTypes = computed(() => {
 })
 
 function renderGraph() {
-  if (uiWorkflow.nodes.length > 0) return
+  // 安全地清空现有节点和边，避免 Vue 虚拟 DOM 比较错误
+  uiWorkflow.nodes.splice(0, uiWorkflow.nodes.length)
+  uiWorkflow.edges.splice(0, uiWorkflow.edges.length)
+  
   const initX = 10, initY = 50
   for (let i = 0; i < props.workflow.nodes.length; i++) {
     const node = props.workflow.nodes[i]
-    if (!node) continue
+    if (!node || !node.wfComponent || !node.wfComponent.name) continue
     const px = node.positionX ? node.positionX : initX + 230 * i
     const py = node.positionY ? node.positionY : initY
     uiWorkflow.nodes.push({ id: node.uuid, type: node.wfComponent.name.toLowerCase(), data: node, position: { x: px, y: py } })
   }
   for (const wfEdge of props.workflow.edges) {
+    if (!wfEdge || !wfEdge.uuid || !wfEdge.sourceNodeUuid || !wfEdge.targetNodeUuid) continue
     uiWorkflow.edges.push({ id: wfEdge.uuid, source: wfEdge.sourceNodeUuid, target: wfEdge.targetNodeUuid, sourceHandle: wfEdge.sourceHandle, type: 'special', animated: true, data: wfEdge })
   }
 }
@@ -124,7 +128,7 @@ function onDrop(event: DragEvent) {
   const comName = event.dataTransfer?.getData('application/vueflow') as string
   const component = props.wfComponents.find((c: WorkflowComponent) => c.name === comName)
   if (!component) { ms.warning('组件未找到'); return }
-  if (comName === 'Start' && props.workflow.nodes.some((n: WorkflowNode) => n.wfComponent.name === 'Start')) { ms.warning('开始节点只能有一个'); return }
+  if (comName === 'Start' && props.workflow.nodes.some((n: WorkflowNode) => n.wfComponent?.name === 'Start')) { ms.warning('开始节点只能有一个'); return }
   const flowbounds = (wrapper.value as any).$el.getBoundingClientRect()
   const position = project({ x: event.clientX - flowbounds.left, y: event.clientY - flowbounds.top })
   createNewNode(props.workflow, uiWorkflow, component, position)
@@ -152,6 +156,13 @@ async function onSave() {
     submitting.value = false
   }
 }
+
+// 监听 workflow prop 变化，重新渲染
+watch(() => props.workflow, () => {
+  nextTick(() => {
+    renderGraph()
+  })
+}, { deep: true })
 
 onMounted(() => { renderGraph() })
 

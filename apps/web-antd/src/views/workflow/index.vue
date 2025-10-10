@@ -1,30 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import WorkflowDesigner from '#/packages/workflow-designer/StandaloneWorkflowDesigner.vue'
 import WorkflowSidebar from './components/WorkflowSidebar.vue'
 import type { WorkflowInfo, WorkflowComponent } from '#/packages/workflow-designer/types/index.d'
 import { NMessageProvider } from 'naive-ui'
+import { workflowApi } from '#/api/workflow'
+import { message } from 'ant-design-vue'
 
-// 要使用的节点列表，不使用时可以注释掉
-const wfComponents: WorkflowComponent[] = [
-  { name: 'Start', title: '开始' },
-  { name: 'End', title: '结束' },
-  { name: 'Answer', title: '回答' },
-  { name: 'Classifier', title: '内容分类' },
-  { name: 'DocumentExtractor', title: '文档抽取' },
-  { name: 'KeywordExtractor', title: '关键词抽取' },
-  { name: 'FaqExtractor', title: 'FAQ 抽取' },
-  { name: 'KnowledgeRetrieval', title: '知识检索' },
-  { name: 'Switcher', title: '条件分支' },
-  { name: 'Template', title: '模板' },
-  { name: 'Dalle3', title: 'Dalle3 绘图' },
-  { name: 'Tongyiwanx', title: '通义万相' },
-  { name: 'Google', title: 'Google 搜索' },
-  { name: 'HumanFeedback', title: '人工反馈' },
-  { name: 'MailSend', title: '邮件发送' },
-  { name: 'HttpRequest', title: 'HTTP 请求' },
-  { name: 'Test', title: '测试' },
-]
+// 工作流组件列表，从后端接口获取
+const wfComponents = ref<WorkflowComponent[]>([])
+
+// 获取工作流组件列表
+async function fetchWorkflowComponents() {
+  try {
+    const res = await workflowApi.workflowComponents()
+    wfComponents.value = res || []
+  } catch (error) {
+    message.error('获取工作流组件失败')
+    // 如果接口失败，使用默认组件列表
+    wfComponents.value = [
+      { name: 'Start', title: '开始' },
+      { name: 'End', title: '结束' },
+      { name: 'Answer', title: '回答' },
+    ]
+  }
+}
 
 const workflow = ref<WorkflowInfo>({
   uuid: 'demo-1',
@@ -47,8 +47,22 @@ const workflow = ref<WorkflowInfo>({
 
 const sidebarCollapsed = ref(false)
 
-function handleSave(updated: WorkflowInfo) {
-  console.log('save demo workflow', updated)
+async function handleSave(updated: WorkflowInfo) {
+  try {
+    await workflowApi.workflowUpdate({
+      uuid: updated.uuid,
+      title: updated.title,
+      remark: (updated as any).remark ?? '',
+      isPublic: (updated as any).isPublic ?? false,
+      nodes: updated.nodes || [],
+      edges: updated.edges || [],
+    })
+    message.success('保存成功')
+    // 更新本地状态，触发编辑器重新渲染
+    workflow.value = { ...updated }
+  } catch (error) {
+    message.error('保存失败')
+  }
 }
 
 function handleRun(payload: { workflow: WorkflowInfo }) {
@@ -58,6 +72,11 @@ function handleRun(payload: { workflow: WorkflowInfo }) {
 function handleSelectWorkflow(selectedWorkflow: WorkflowInfo) {
   workflow.value = selectedWorkflow
 }
+
+// 组件挂载时获取工作流组件列表
+onMounted(() => {
+  fetchWorkflowComponents()
+})
 </script>
 
 <template>

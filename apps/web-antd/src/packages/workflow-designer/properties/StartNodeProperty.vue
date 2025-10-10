@@ -9,6 +9,7 @@ import type { WorkflowInfo, WorkflowNode, NodeIODefinition } from '../types/inde
 interface Props {
   workflow: WorkflowInfo
   wfNode: WorkflowNode
+  uiWorkflow?: any // 仅为消除额外属性告警，无需使用
 }
 const props = defineProps<Props>()
 const showModal = ref<boolean>(false)
@@ -39,10 +40,24 @@ const columns = [
 
 const submitStatus = computed(() => !!(tmpItem.name && tmpItem.title))
 
+// 防御性初始化：确保 inputConfig 结构存在且为数组，避免新增时报错
+if (!props.wfNode.inputConfig) (props.wfNode as any).inputConfig = { user_inputs: [], ref_inputs: [] }
+if (!Array.isArray(props.wfNode.inputConfig.user_inputs)) (props.wfNode.inputConfig as any).user_inputs = []
+if (!Array.isArray(props.wfNode.inputConfig.ref_inputs)) (props.wfNode.inputConfig as any).ref_inputs = []
+
 function onEdit(row: NodeIODefinition) {
   showModal.value = true
   const idx = props.wfNode.inputConfig.user_inputs.findIndex(item => item.uuid === row.uuid)
-  Object.assign(tmpItem, props.wfNode.inputConfig.user_inputs[idx])
+  const hit = idx > -1 ? props.wfNode.inputConfig.user_inputs[idx] : {
+    uuid: row.uuid,
+    type: row.type,
+    name: row.name,
+    title: row.title,
+    required: row.required,
+    multiple: false,
+    limit: 10,
+  }
+  Object.assign(tmpItem, hit)
 }
 
 function onDelete(row: NodeIODefinition) {
@@ -52,17 +67,18 @@ function onDelete(row: NodeIODefinition) {
 
 function onShowModal() {
   showModal.value = true
-  Object.assign(tmpItem, { uuid: uuidv4().replace(/-/g, ''), type: 1, name: '', title: '', required: false })
+  Object.assign(tmpItem, { uuid: uuidv4().replace(/-/g, ''), type: 1, name: '', title: '', required: false, multiple: false, limit: 10 })
 }
 
 function submitForm() {
   showModal.value = false
   const idx = props.wfNode.inputConfig.user_inputs.findIndex(item => item.uuid === tmpItem.uuid)
   if (idx > -1) {
-    Object.assign(props.wfNode.inputConfig.user_inputs[idx], { ...tmpItem })
+    // 使用替换避免 TS 关于可能为 undefined 的报错
+    props.wfNode.inputConfig.user_inputs.splice(idx, 1, { ...tmpItem })
   } else {
     props.wfNode.inputConfig.user_inputs.push({ ...tmpItem })
-    Object.assign(tmpItem, { uuid: '', type: 1, name: '', label: '', required: false })
+    Object.assign(tmpItem, { uuid: '', type: 1, name: '', title: '', required: false, multiple: false, limit: 10 })
   }
 }
 </script>

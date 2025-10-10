@@ -107,17 +107,16 @@ function renderGraph() {
     const px = node.positionX ? node.positionX : initX + 230 * i
     const py = node.positionY ? node.positionY : initY
     
-    // 确保节点数据包含 wfComponent 信息，供 CommonNodeHeader 使用
-    const nodeData = {
-      ...node,
-      wfComponent: node.wfComponent || {
+    // 直接在原始节点对象上补齐 wfComponent，保持引用一致，确保属性修改能写回 workflow.nodes
+    if (!node.wfComponent) {
+      node.wfComponent = {
         name: componentName,
         title: componentName === 'Start' ? '开始' : componentName === 'End' ? '结束' : componentName,
         remark: componentName === 'Start' ? '工作流开始节点' : componentName === 'End' ? '工作流结束节点' : `${componentName}节点`
       }
     }
-    
-    newNodes.push({ id: node.uuid, type: componentName.toLowerCase(), data: nodeData, position: { x: px, y: py } })
+
+    newNodes.push({ id: node.uuid, type: componentName.toLowerCase(), data: node, position: { x: px, y: py } })
     validNodeIds.add(node.uuid)
     console.log(`✅ 添加节点: ${node.uuid} (${componentName})`)
   }

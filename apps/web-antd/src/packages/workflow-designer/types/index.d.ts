@@ -37,7 +37,7 @@ export interface WorkflowNode {
   title: string
   workflowUuid: string
   wfComponent?: WorkflowComponent  // 可选，前端可能没有
-  workflowComponentId: number      // 后端返回的组件ID
+  workflowComponentId?: number      // 后端返回的组件ID（新增节点可缺省，保存时补齐）
   inputConfig: NodeIOConfig
   nodeConfig: Record<string, any>
   outputConfig: Record<string, any>

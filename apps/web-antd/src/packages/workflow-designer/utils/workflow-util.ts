@@ -2,6 +2,10 @@ import { v4 as uuidv4 } from 'uuid'
 import type { WorkflowInfo, WorkflowNode, WorkflowEdge, WorkflowComponent, UIWorkflow } from '../types/index.d'
 import { propertyDefaultGetters } from '../properties/defaults'
 
+function deepClone<T>(value: T): T {
+  try { return structuredClone(value) } catch { return JSON.parse(JSON.stringify(value)) }
+}
+
 export function emptyWorkflowInfo(): WorkflowInfo {
   return {
     uuid: 'default',
@@ -87,7 +91,7 @@ export function createNewNode(
   newWfNode.wfComponent = component
   newWfNode.inputConfig = { user_inputs: [], ref_inputs: [] }
   // 使用映射初始化最小可用的 nodeConfig，特殊项（如 switcher）按需读取 workflow
-  newWfNode.nodeConfig = getDefaultNodeConfig(component.name, workflow)
+  newWfNode.nodeConfig = deepClone(getDefaultNodeConfig(component.name, workflow) || {})
   newWfNode.outputConfig = {}
   newWfNode.positionX = position.x
   newWfNode.positionY = position.y

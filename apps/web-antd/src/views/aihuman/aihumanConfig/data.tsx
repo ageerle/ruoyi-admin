@@ -5,6 +5,7 @@ import { AihumanConfigDict } from '#/api/aihuman/AihumanConfig/types';
 import { getDictOptions } from '#/utils/dict';
 import { renderDict } from '#/utils/render';
 
+
 export const querySchema: FormSchemaGetter = () => [
 
   {

@@ -40,6 +40,7 @@ const scaleOptions = [
   { value: 1.5, label: '大 (1.5)' }
 ];
 
+
 // 默认0.6
 const selectedScale = ref<number>(0.6);
 

@@ -4,7 +4,7 @@ import WorkflowDesigner from '#/packages/workflow-designer/StandaloneWorkflowDes
 import WorkflowSidebar from './components/WorkflowSidebar.vue'
 import type { WorkflowInfo, WorkflowComponent } from '#/packages/workflow-designer/types/index.d'
 import { NMessageProvider, NModal, NButton } from 'naive-ui'
-import { workflowApi, setWorkflowRunImpl, setWorkflowResumeImpl, setUploadAction } from '#/api/workflow'
+import { workflowApi } from '#/api/workflow'
 import RunDetail from '#/packages/workflow-designer/components/RunDetail.vue'
 import { message } from 'ant-design-vue'
 
@@ -123,25 +123,6 @@ function handleSelectWorkflow(selectedWorkflow: WorkflowInfo) {
 // 组件挂载时获取工作流组件列表
 onMounted(() => {
   fetchWorkflowComponents()
-  // 注入运行与恢复实现
-  setUploadAction('/api/file/upload')
-  setWorkflowRunImpl(async ({ options, startCallback, messageReceived, doneCallback, errorCallback }) => {
-    try {
-      const runtime = { uuid: `rt-${Date.now()}`, workflowId: options.uuid, input: {}, output: {}, nodes: [] }
-      startCallback && startCallback(JSON.stringify(runtime))
-      const nodeUuid = (workflow.value.nodes[0]?.uuid) || 'start'
-      const runtimeNode = { uuid: `rtn-${Date.now()}`, nodeId: 0, input: {}, output: {} }
-      messageReceived && messageReceived(JSON.stringify(runtimeNode), `[NODE_RUN_${nodeUuid}]`)
-      setTimeout(() => { messageReceived && messageReceived('running...', `[NODE_CHUNK_${nodeUuid}]`) }, 200)
-      setTimeout(() => {
-        messageReceived && messageReceived(JSON.stringify({ name: 'output', content: { value: 'ok', type: 1 } }), `[NODE_OUTPUT_${nodeUuid}]`)
-        doneCallback && doneCallback(JSON.stringify({ output: 'ok' }))
-      }, 600)
-    } catch (e: any) {
-      errorCallback && errorCallback(e?.message || 'run error')
-    }
-  })
-  setWorkflowResumeImpl(async () => { /* no-op for demo */ })
 })
 </script>
 

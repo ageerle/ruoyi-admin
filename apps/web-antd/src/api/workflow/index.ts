@@ -68,3 +68,6 @@ export const workflowApi = {
 }
 
 export default workflowApi
+
+// 运行时能力透出（便于按包内其他接口形式统一从此处导出）
+export * from './runtime'

@@ -1,0 +1,61 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "梅朵吉祥物.moc3",
+		"Textures": [
+			"梅朵吉祥物.4096/texture_00.png",
+			"梅朵吉祥物.4096/texture_01.png"
+		],
+		"Physics": "梅朵吉祥物.physics3.json",
+		"DisplayInfo": "梅朵吉祥物.cdi3.json",
+		"MotionSync": "梅朵吉祥物.motionsync3.json",
+		"Expressions": [
+			{
+				"Name": "kaixin",
+				"File": "kaixin.exp3.json"
+			},
+			{
+				"Name": "maozi",
+				"File": "maozi.exp3.json"
+			},
+			{
+				"Name": "mouth open",
+				"File": "mouth open.exp3.json"
+			},
+			{
+				"Name": "shibai",
+				"File": "shibai.exp3.json"
+			},
+			{
+				"Name": "yinchen",
+				"File": "yinchen.exp3.json"
+			}
+		],
+		"Motions": {
+			"": [
+				{
+					"File": "mouth.motion3.json"
+				}
+			]
+		}
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": [
+				"ParamMouthForm",
+				"ParamMouthOpenY"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		}
+	],
+	"HitAreas": []
+}

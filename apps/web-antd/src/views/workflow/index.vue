@@ -86,9 +86,12 @@ const sidebarCollapsed = ref(false)
 
 async function handleSave(updated: WorkflowInfo) {
   try {
+    // 新增的节点没有 workflowComponentId, 需要手动设置 workflowComponentId
     updated.nodes.forEach((node) => {
-      // 使用 name -> id 映射，确保为 number 类型
-      node.workflowComponentId = nameToIdMap.value[node.wfComponent?.name || ''] ?? 0
+      if (node.wfComponent) {
+        // 使用 name -> id 映射，确保为 number 类型
+        node.workflowComponentId = nameToIdMap.value[node.wfComponent?.name || ''] ?? 0
+      }
     })
     console.log('handleSave', updated)
     await workflowApi.workflowUpdate({

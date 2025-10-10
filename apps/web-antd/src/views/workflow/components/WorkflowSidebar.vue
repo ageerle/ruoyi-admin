@@ -125,8 +125,21 @@ async function handleSaveWorkflow() {
       })
       message.success('更新成功')
     } else {
-      await workflowApi.workflowAdd(data)
+      const res: any = await workflowApi.workflowAdd(data)
       message.success('新增成功')
+      // 记录返回的 uuid（有些后端会直接返回字符串或对象）
+      const createdUuid: string | undefined = typeof res === 'string' ? res : res?.uuid
+      // 先关闭弹窗
+      showModal.value = false
+      // 刷新列表
+      await fetchWorkflows()
+      // 选择目标：优先按 uuid，其次按标题，最后选最新一条
+      let target: any | undefined
+      if (createdUuid) target = myWorkflows.value.find(w => w.uuid === createdUuid)
+      if (!target) target = myWorkflows.value.find(w => w.title === formData.title)
+      if (!target) target = myWorkflows.value[0]
+      if (target) handleSelectWorkflow(target)
+      return
     }
 
     showModal.value = false

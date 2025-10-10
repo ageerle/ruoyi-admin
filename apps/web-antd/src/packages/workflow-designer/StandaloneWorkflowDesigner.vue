@@ -31,7 +31,7 @@ const ms = useMessage()
 const submitting = ref<boolean>(false)
 const hidePropertyPanel = ref<boolean>(true)
 const selectedWfNode = ref<WorkflowNode>()
-const { onInit, fitView, onConnect, onEdgesChange, onNodesChange, onNodeClick, addSelectedNodes, project, getNodes } = useVueFlow()
+const { onInit, fitView, onConnect, onEdgesChange, onNodesChange, onNodeClick, onNodeDragStop, addSelectedNodes, project, getNodes } = useVueFlow()
 
 const uw = { nodes: [] as Array<Node>, edges: [] as Array<Edge> }
 const uiWorkflow = reactive(uw)
@@ -169,8 +169,18 @@ function renderGraph() {
 onNodesChange((changes: NodeChange[]) => {
   let nodeUnSelected = false
   for (const change of changes) {
+    // 同步选中状态
     if ('selected' in change) {
-      if (!change.selected && selectedWfNode.value?.uuid === change.id) nodeUnSelected = true
+      if (!change.selected && selectedWfNode.value?.uuid === (change as any).id) nodeUnSelected = true
+    }
+    // 同步位置：当拖拽结束或位置变更时写回到 workflow.nodes
+    if ((change as any).type === 'position') {
+      const wfNode = props.workflow.nodes.find((n: WorkflowNode) => n.uuid === (change as any).id)
+      const uiNode = uiWorkflow.nodes.find((n: any) => n.id === (change as any).id)
+      if (wfNode && uiNode) {
+        wfNode.positionX = uiNode.position.x
+        wfNode.positionY = uiNode.position.y
+      }
     }
   }
   if (nodeUnSelected) hidePropertyPanel.value = true
@@ -228,12 +238,35 @@ function onPaletteDragStart(event: DragEvent, name: string) {
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
 }
 
+// 将画布中的节点坐标写回 workflow
+function syncPositionsFromUi() {
+  const nodes = getNodes.value as any[]
+  for (const n of nodes) {
+    const wfNode = props.workflow.nodes.find((x: WorkflowNode) => x.uuid === n.id)
+    if (wfNode) {
+      wfNode.positionX = n.position?.x ?? wfNode.positionX
+      wfNode.positionY = n.position?.y ?? wfNode.positionY
+    }
+  }
+}
+
+// 拖拽结束时同步该节点的坐标
+onNodeDragStop(({ node }: any) => {
+  const wfNode = props.workflow.nodes.find((x: WorkflowNode) => x.uuid === node?.id)
+  if (wfNode) {
+    wfNode.positionX = node.position?.x ?? wfNode.positionX
+    wfNode.positionY = node.position?.y ?? wfNode.positionY
+  }
+})
+
 function onRun() { emit('run', { workflow: props.workflow }) }
 
 async function onSave() {
   if (submitting.value) return
   submitting.value = true
   try {
+    // 最后一次同步：以画布为准写回所有节点坐标
+    syncPositionsFromUi()
     emit('save', props.workflow)
     // ms.success('保存触发')
   } finally {

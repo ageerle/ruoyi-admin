@@ -14,11 +14,13 @@ interface Props {
   workflow: WorkflowInfo
   wfComponents: WorkflowComponent[]
   componentIdMap: Record<number, string>
+  saving?: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
   workflow: () => emptyWorkflowInfo(),
   wfComponents: () => [],
   componentIdMap: () => ({}),
+  saving: false,
 })
 
 const emit = defineEmits<{
@@ -28,7 +30,6 @@ const emit = defineEmits<{
 }>()
 
 const ms = useMessage()
-const submitting = ref<boolean>(false)
 const hidePropertyPanel = ref<boolean>(true)
 const selectedWfNode = ref<WorkflowNode>()
 const { onInit, fitView, onConnect, onEdgesChange, onNodesChange, onNodeClick, onEdgeClick, onNodeDragStop, addSelectedNodes, project, getNodes } = useVueFlow()
@@ -261,16 +262,10 @@ onNodeDragStop(({ node }: any) => {
 function onRun() { emit('run', { workflow: props.workflow }) }
 
 async function onSave() {
-  if (submitting.value) return
-  submitting.value = true
-  try {
-    // 最后一次同步：以画布为准写回所有节点坐标
-    syncPositionsFromUi()
-    emit('save', props.workflow)
-    // ms.success('保存触发')
-  } finally {
-    submitting.value = false
-  }
+  if (props.saving) return
+  // 最后一次同步：以画布为准写回所有节点坐标
+  syncPositionsFromUi()
+  emit('save', props.workflow)
 }
 
 // 点击边时删除该边
@@ -344,8 +339,8 @@ provide('wfOnDeleteNode', (uuid: string) => onDeleteNode(uuid))
                 </VueFlow>
                 <RightPanel :workflow="props.workflow" :ui-workflow="uiWorkflow" :hide-property-panel="hidePropertyPanel" :wf-node="selectedWfNode" />
                 <div class="absolute right-5 top-3 flex items-center">
-                  <NButton :disabled="submitting" text-color="black" color="white" style="margin-right:1.5rem" class="shadow-lg" @click="onRun">运 行</NButton>
-                  <NButton :disabled="submitting" :loading="submitting" type="info" class="shadow-lg" @click="onSave">保 存</NButton>
+                  <NButton :disabled="props.saving" text-color="black" color="white" style="margin-right:1.5rem" class="shadow-lg" @click="onRun">运 行</NButton>
+                  <NButton :disabled="props.saving" :loading="props.saving" type="info" class="shadow-lg" @click="onSave">保 存</NButton>
                 </div>
               </NLayoutContent>
             </NLayout>

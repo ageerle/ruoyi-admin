@@ -85,8 +85,11 @@ const workflow = ref<WorkflowInfo>({
 
 const sidebarCollapsed = ref(false)
 const showRun = ref(false)
+const saving = ref(false)
 
 async function handleSave(updated: WorkflowInfo) {
+  if (saving.value) return
+  saving.value = true
   try {
     // 新增的节点没有 workflowComponentId, 需要手动设置 workflowComponentId
     updated.nodes.forEach((node) => {
@@ -109,6 +112,8 @@ async function handleSave(updated: WorkflowInfo) {
     workflow.value = { ...updated }
   } catch (error) {
     message.error('保存失败')
+  } finally {
+    saving.value = false
   }
 }
 
@@ -146,6 +151,7 @@ onMounted(() => {
             :workflow="workflow" 
             :wf-components="wfComponents" 
             :component-id-map="componentIdMap"
+            :saving="saving"
             @save="handleSave" 
             @run="handleRun" 
           />

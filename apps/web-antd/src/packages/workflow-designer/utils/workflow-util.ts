@@ -90,6 +90,7 @@ export function createNewNode(
   newWfNode.workflowUuid = workflow.uuid
   newWfNode.wfComponent = component
   newWfNode.inputConfig = { user_inputs: [], ref_inputs: [] }
+  newWfNode.nodeConfig = {}
   // 使用映射初始化最小可用的 nodeConfig，特殊项（如 switcher）按需读取 workflow
   newWfNode.nodeConfig = deepClone(getDefaultNodeConfig(component.name, workflow) || {})
   newWfNode.outputConfig = {}

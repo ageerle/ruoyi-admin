@@ -159,7 +159,6 @@ onMounted(() => {
       </div>
       <NModal v-model:show="showRun" preset="card" title="运行" :mask-closable="false" style="width:95%;max-width:800px">
         <RunDetail :workflow="workflow" @run-done="showRun=false" />
-        <div class="flex justify-end mt-2"><NButton size="small" @click="showRun=false">关闭</NButton></div>
       </NModal>
     </n-message-provider>
   </div>

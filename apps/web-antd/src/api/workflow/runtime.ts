@@ -1,5 +1,6 @@
 // 运行时相关接口（提供注入能力，避免与应用层 API 耦合）
 import { adapters } from './adapters'
+import { useAccessStore } from '@vben/stores'
 
 export interface WorkflowRunParams {
   options: { uuid: string; inputs: any[] }
@@ -70,15 +71,39 @@ export async function commonSseProcess(
   },
 ) {
   try {
+    // 使用项目的请求客户端来获取正确的配置
+    const accessStore = useAccessStore()
+    const token = accessStore.accessToken ? `Bearer ${accessStore.accessToken}` : ''
+    
+    console.log('SSE 请求配置:', {
+      url,
+      token: token ? '已设置' : '未设置',
+      options: params.options
+    })
+    
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': token,
+        'Accept-Language': 'zh_CN',
+        'Content-Language': 'zh_CN',
+        'clientId': 'web'
+      },
       body: JSON.stringify({ ...params.options }),
       signal: params.signal,
     })
+    
+    console.log('SSE 响应状态:', {
+      status: res.status,
+      statusText: res.statusText,
+      contentType: res.headers.get('content-type'),
+      ok: res.ok
+    })
+    
     const contentType = res.headers.get('content-type') || ''
     if (!res.ok || !contentType.includes('text/event-stream')) {
-      throw new Error('SSE open failed')
+      throw new Error(`SSE open failed: ${res.status} ${res.statusText}`)
     }
 
     const reader = res.body?.getReader()

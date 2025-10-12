@@ -12,9 +12,11 @@ import { ref, onMounted, onBeforeUnmount, defineExpose, watch, defineProps } fro
 import { aihumanPublishList } from '#/api/aihuman/aihumanPublish';
 import type { AihumanPublishInfo } from '#/api/aihuman/aihumanPublish/types';
 
-// 定义props接收eyeMode
+
+// 定义props接收eyeMode和defaultModelPath
 const props = defineProps<{
   eyeMode?: string;
+  defaultModelPath?: string;
 }>();
 
 let app: any = null;
@@ -64,7 +66,9 @@ const initLive2D = async () => {
     });
 
     // 使用默认模型路径
-    const cubism4Model = '/Live2D/models/kei_vowels_pro/kei_vowels_pro.model3.json';
+    // 使用传入的默认模型路径，如果没有则使用备用路径
+    const defaultPath = props.defaultModelPath || '/Live2D/models/梅朵吉祥物/梅朵吉祥物.model3.json';
+    const cubism4Model = defaultPath;
 
     const models = await Promise.all([
       live2d.Live2DModel.from(cubism4Model, { autoInteract: internalEyeMode.value === 'true' })
@@ -77,12 +81,12 @@ const initLive2D = async () => {
       const scaleY = window.innerHeight / model.height;
 
       // 使用响应式的缩放比例
-      model.scale.set(Math.min(scaleX, scaleY) * modelScale.value);
+      model.scale.set(Math.min(scaleX, scaleY) * 0.6);
 
       model.y = window.innerHeight * 0.1;
 
       // 设置模型居中
-      centerModel();
+      //centerModel();
 
       draggable(model);
     });
@@ -164,7 +168,7 @@ const playExpression = (expressionName: string) => {
 
 // 测试音频
 const testAudio = () => {
-  talk('/Live2D/jieshao.mp3');
+  talk('/Live2D/meiduo.wav');
 };
 
 // 更新模型
@@ -214,28 +218,28 @@ const updateModelScale = (scaleFactor: number) => {
   }
 };
 
-// 调整模型大小的方法
-const adjustModelSize = (delta: number) => {
-  // 更新缩放比例
-  modelScale.value = Math.max(0.3, Math.min(2.0, modelScale.value + delta));
+// 修改调整模型大小的方法，从接受增量改为接受绝对值
+const adjustModelSize = (scaleFactor: number) => {
+  // 直接设置缩放比例，限制在合理范围内
+  modelScale.value = Math.max(0.1, Math.min(2.0, scaleFactor));
 
   // 如果模型已初始化，应用新的缩放比例并保持居中
   if (model4 && app) {
     const scaleX = window.innerWidth / model4.width;
     const scaleY = window.innerHeight / model4.height;
     model4.scale.set(Math.min(scaleX, scaleY) * modelScale.value);
-    // 保持模型居中
-    centerModel();
+    //centerModel();
   }
 };
 
-// 保持模型居中的方法
-const centerModel = () => {
-  if (model4 && app) {
-    model4.x = window.innerWidth / 2;
-    model4.y = window.innerHeight / 2;
-  }
-};
+// // 保持模型居中的方法
+// const centerModel = () => {
+//   if (model4 && app) {
+//     model4.x = window.innerWidth / 2;
+//     model4.y = window.innerHeight / 2;
+//   }
+// };
+
 
 defineExpose({
   testAudio,

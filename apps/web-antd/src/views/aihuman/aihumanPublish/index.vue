@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 // 依赖引入
 import type { VbenFormProps } from '@vben/common-ui';
 import type { VxeGridProps } from '#/adapter/vxe-table';
@@ -7,11 +8,14 @@ import type { AihumanPublishInfo } from '#/api/aihuman/aihumanPublish/types';
 import { ref, computed, watch, onMounted } from 'vue';
 import { Page } from '@vben/common-ui';
 import { $t } from '@vben/locales';
-import { Space, Button, Select, Input, Radio, message } from 'ant-design-vue';
+import { Space, Button, Select, Input, Radio, message, Slider } from 'ant-design-vue';
 import axios from 'axios';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
+
+// 接口引入 start
 import { aihumanPublishList } from '#/api/aihuman/aihumanPublish';
+// 接口引入 end
 
 import { columns, querySchema } from './data';
 import Live2DViewer from './Live2DViewer.vue';
@@ -43,29 +47,33 @@ const scaleOptions = [
 
 // 默认0.6
 const selectedScale = ref<number>(0.6);
+// 添加当前模型缩放比例变量
+const modelScale = ref<number>(0.6);
 
 // 添加模型名称映射，存储场景名称到模型名称的对应关系
 const nameToModelMap = ref<Record<string, string>>({});
+// 添加默认模型路径变量
+const defaultModelPath = ref<string>('');
 
-// Coze API配置
+// Coze API配置 - 初始化空对象，后续从API获取
 const cozeConfig = ref({
-  apiUrl: 'https://api.coze.cn/v3/chat',
-  authorizationToken: 'sat_8T9q3ZjHmSFiyfTm5zvAEDv3HaAvLrS3J8aiIKrqP4qgTGCF39J7dRNUMM8NPYAn',
-  botId: '7506335095931338792',
-  userId: '7376476310010937396'
+  apiUrl: '',
+  authorizationToken: '',
+  botId: '',
+  userId: ''
 });
 
-// 语音合成配置
+// 语音合成配置 - 初始化空对象，后续从API获取
 const ttsConfig = ref({
-  apiUrl: 'http://127.0.0.1:9880',
-  textLang: 'zh',
-  refAudioPath: './meiduo.wav',
-  promptLang: 'zh',
-  promptText: '你好呀，我叫暖暖，你看我这身白色毛衣',
-  textSplitMethod: 'cut5',
-  batchSize: 10,
-  mediaType: 'wav',
-  speedFactor: '1.0'
+  apiUrl: '',
+  textLang: '',
+  refAudioPath: '',
+  promptLang: '',
+  promptText: '',
+  textSplitMethod: '',
+  batchSize: 0,
+  mediaType: '',
+  speedFactor: ''
 });
 
 onMounted(() => {
@@ -147,6 +155,58 @@ const [BasicTable, tableApi] = useVbenVxeGrid({
   gridOptions,
 });
 
+// 从API获取指定模型的配置参数
+const fetchConfigParams = async (modelName?: string) => {
+  try {
+    // 使用项目中已有的API函数
+    const response = await aihumanPublishList();
+
+    let targetConfig;
+
+    // 如果指定了模型名称，查找对应的配置
+    if (modelName && response.rows && Array.isArray(response.rows)) {
+      // 查找与模型名称匹配的配置
+      targetConfig = response.rows.find((row: AihumanPublishInfo) =>
+        row.name === modelName || row.modelName === modelName
+      );
+    }
+
+    // 如果没有找到指定模型的配置或未指定模型，使用第一个有agentParams的配置
+    if (!targetConfig && response.rows && Array.isArray(response.rows)) {
+      targetConfig = response.rows.find((row: AihumanPublishInfo) => row.agentParams);
+    }
+
+    if (targetConfig && targetConfig.agentParams) {
+      try {
+        const agentParams = JSON.parse(targetConfig.agentParams);
+
+        // 从agentParams.agentConfig获取coze配置
+        if (agentParams.agent === 'coze' && agentParams.agentConfig) {
+          cozeConfig.value = agentParams.agentConfig;
+        } else if (agentParams.agent) {
+          // 预留其他平台的处理逻辑
+          console.log(`不支持的agent类型: ${agentParams.agent}`);
+        }
+
+        // 从agentParams.voiceConfig获取tts配置
+        if (agentParams.voice === 'GPT-SoVITS' && agentParams.voiceConfig) {
+          ttsConfig.value = agentParams.voiceConfig;
+        } else if (agentParams.voice) {
+          // 预留其他语音平台的处理逻辑
+          console.log(`不支持的voice类型: ${agentParams.voice}`);
+        }
+
+        console.log(`成功为模型 ${modelName || '默认'} 加载配置参数`);
+      } catch (parseError) {
+        console.error('解析agentParams失败:', parseError);
+      }
+    }
+  } catch (error) {
+    console.error('获取配置参数失败:', error);
+    message.error('获取配置参数失败，使用默认配置');
+  }
+};
+
 // 格式化日期
 const formatDate = (dateString?: string) => {
   if (!dateString) return '';
@@ -165,8 +225,33 @@ const formatDate = (dateString?: string) => {
   }
 };
 
-// 初始化模型列表
-const initModelList = () => {
+// 删除这个错误的非async版本函数定义
+// const initModelList = () => {
+//   ...
+// };
+
+// 测试音频
+const handleTestAudio = () => {
+  if (viewerRef.value) {
+    viewerRef.value.testAudio();
+  }
+};
+
+// 更新模型
+const handleUpdateModel = async () => {
+  if (viewerRef.value && selectedModel.value && nameToModelMap.value[selectedModel.value]) {
+    // 根据选中的场景名称查找对应的模型名称
+    const modelName = nameToModelMap.value[selectedModel.value];
+    const newModelPath = `/Live2D/models/${modelName}/${modelName}.model3.json`;
+    viewerRef.value.updateModel(newModelPath);
+
+    // 获取并应用当前模型对应的配置参数
+    await fetchConfigParams(selectedModel.value);
+  }
+};
+
+// 保留这个正确的async版本函数定义
+const initModelList = async () => {
   const selectElement = document.getElementById('model_list') as HTMLSelectElement;
   if (selectElement && viewerRef.value && viewerRef.value.configData && viewerRef.value.configData.length > 0) {
     // 清空现有选项和映射
@@ -187,26 +272,28 @@ const initModelList = () => {
     // 确保数组不为空再赋值
     if (viewerRef.value.configData.length > 0) {
       selectedModel.value = viewerRef.value.configData[0].name as string;
+      // 设置默认模型路径为下拉框第一条记录的modelPath
+      defaultModelPath.value = viewerRef.value.configData[0].modelPath as string;
+      // 为默认选中的模型加载配置参数
+      await fetchConfigParams(selectedModel.value);
     }
   }
 };
 
-// 测试音频
-const handleTestAudio = () => {
-  if (viewerRef.value) {
-    viewerRef.value.testAudio();
-  }
-};
-
-// 更新模型
-const handleUpdateModel = () => {
-  if (viewerRef.value && selectedModel.value && nameToModelMap.value[selectedModel.value]) {
-    // 根据选中的场景名称查找对应的模型名称
-    const modelName = nameToModelMap.value[selectedModel.value];
-    const newModelPath = `/Live2D/models/${modelName}/${modelName}.model3.json`;
-    viewerRef.value.updateModel(newModelPath);
-  }
-};
+onMounted(() => {
+  // 页面加载时初始化模型列表
+  // 由于viewerRef可能需要时间加载，添加一个延迟以确保组件已完全初始化
+  setTimeout(() => {
+    if (viewerRef.value && viewerRef.value.configData && viewerRef.value.configData.length > 0) {
+      initModelList();
+    } else if (viewerRef.value) {
+      // 如果还没有configData，调用fetchConfigData获取数据
+      viewerRef.value.fetchConfigData().then(() => {
+        initModelList();
+      });
+    }
+  }, 500);
+});
 
 // 停止讲话
 const handleStopSpeaking = () => {
@@ -310,15 +397,11 @@ const startStream = async () => {
 };
 
 // 添加处理模型大小调整的方法
-const handleIncreaseSize = () => {
+const handleScaleChange = (value: number) => {
   if (viewerRef.value) {
-    viewerRef.value.adjustModelSize(0.1); // 每次增加0.1的比例
-  }
-};
-
-const handleDecreaseSize = () => {
-  if (viewerRef.value) {
-    viewerRef.value.adjustModelSize(-0.1); // 每次减少0.1的比例
+    // 直接传入目标缩放比例，不再计算增量
+    modelScale.value = value;
+    viewerRef.value.adjustModelSize(value);
   }
 };
 
@@ -456,9 +539,10 @@ initModelList();
             <div class="control-group">
               <Input
                 v-model:value="chatText"
-                placeholder="我是梅朵，请输入想要咨询的内容"
+                placeholder="请输入想要对话的内容"
                 style="width: 300px; margin-bottom: 10px;"
               />
+              &nbsp
               <Button
                 @click="sendChatMessage"
                 :loading="isLoading"
@@ -469,7 +553,7 @@ initModelList();
             <div class="chat-output">
               <textarea
                 v-model="chatOutput"
-                placeholder="对话历史"
+                placeholder="数字人返回的对话内容"
                 style="width: 100%; height: 150px; resize: vertical;"
                 :disabled="true"
               ></textarea>
@@ -530,12 +614,18 @@ initModelList();
 
       <!-- 右侧显示 Live2D 数字人 -->
       <div class="w-full overflow-hidden border border-gray-200 rounded">
-        <div class="p-2 bg-gray-100 border-b border-gray-200 flex items-center justify-end">
-          <Button type="text" @click="handleDecreaseSize" icon="minus" size="small" />
-          <span class="mx-2 text-sm">调整大小</span>
-          <Button type="text" @click="handleIncreaseSize" icon="plus" size="small" />
+        <div class="p-2 bg-gray-100 border-b border-gray-200 flex items-center justify-between">
+          <span class="text-sm">调整大小: {{ modelScale.toFixed(1) }}</span>
+          <Slider
+            :min="0.1"
+            :max="2.0"
+            :step="0.1"
+            :value="modelScale"
+            @change="handleScaleChange"
+            :style="{ width: '200px' }"
+          />
         </div>
-        <Live2DViewer ref="viewerRef" :eyeMode="localEyeMode" />
+        <Live2DViewer ref="viewerRef" :eyeMode="localEyeMode" :default-model-path="defaultModelPath" />
       </div>
 
     </div>

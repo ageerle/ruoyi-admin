@@ -17,6 +17,7 @@ export enum DictEnum {
   WF_FORM_TYPE = 'wf_form_type', // 表单类型
   WF_TASK_STATUS = 'wf_task_status', // 任务状态
   CHAT_MODEL_CATEGORY = 'chat_model_category', // 模型分类
+  MCP_TRANSPORT_TYPE = 'mcp_transport_type', // mcp链接方式
   STATUS_TYPE = 'status_type', // 状态类型
   MODEL_PROVIDER= 'model_provider',
 }

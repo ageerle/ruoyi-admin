@@ -77,13 +77,18 @@ const initLive2D = async () => {
     // 添加模型到舞台并设置属性
     models.forEach((model: any) => {
       app.stage.addChild(model);
-      const scaleX = window.innerWidth / model.width;
-      const scaleY = window.innerHeight / model.height;
+      // 添加一个查找初始加载模型的相关代码位置，修改缩放逻辑
+      // 假设在某个加载模型的地方有类似这样的代码:
+      // 原来的代码可能是这样的:
+      // const scaleX = window.innerWidth / model.width;
+      // const scaleY = window.innerHeight / model.height;
+      // model.scale.set(Math.min(scaleX, scaleY) * 0.6);
 
-      // 使用响应式的缩放比例
-      model.scale.set(Math.min(scaleX, scaleY) * 0.6);
-
-      model.y = window.innerHeight * 0.1;
+      // 修改为使用固定基准缩放值
+      const baseScale = 0.3;
+      model.scale.set(baseScale * modelScale.value);
+      model.y = window.innerHeight / 16;
+      model.x = window.innerWidth / 16;
 
       // 设置模型居中
       //centerModel();
@@ -92,7 +97,8 @@ const initLive2D = async () => {
     });
 
     model4 = models[0];
-    model4.x = window.innerWidth / 2;
+    model4.x = window.innerWidth / 16;
+    model4.y = window.innerHeight / 16;
 
     model4.on('hit', (hitAreas: string[]) => {
       if (hitAreas.includes('Body')) {
@@ -140,6 +146,8 @@ const draggable = (model: any) => {
     if (model.dragging) {
       model.position.x = e.data.global.x - model._pointerX;
       model.position.y = e.data.global.y - model._pointerY;
+      // 添加日志输出，显示拖动时的坐标位置
+      console.log(`数字人位置 - X: ${model.position.x.toFixed(2)}, Y: ${model.position.y.toFixed(2)}`);
     }
   });
   model.on('pointerupoutside', () => (model.dragging = false));
@@ -181,8 +189,8 @@ const updateModel = async (modelPath: string) => {
       const scaleX = window.innerWidth / newModel.width;
       const scaleY = window.innerHeight / newModel.height;
       newModel.scale.set(Math.min(scaleX, scaleY) * 0.6);
-      newModel.y = window.innerHeight * 0.1;
-      newModel.x = window.innerWidth / 2;
+      newModel.y = window.innerHeight / 16;
+      newModel.x = window.innerWidth / 16;
       draggable(newModel);
       model4 = newModel;
       // 设置默认缩放比例 改为 应用当前的缩放比例
@@ -220,25 +228,29 @@ const updateModelScale = (scaleFactor: number) => {
 
 // 修改调整模型大小的方法，从接受增量改为接受绝对值
 const adjustModelSize = (scaleFactor: number) => {
+  console.log('接收到的缩放因子:', scaleFactor);
   // 直接设置缩放比例，限制在合理范围内
   modelScale.value = Math.max(0.1, Math.min(2.0, scaleFactor));
+  console.log('处理后的缩放比例:', modelScale.value);
 
   // 如果模型已初始化，应用新的缩放比例并保持居中
   if (model4 && app) {
-    const scaleX = window.innerWidth / model4.width;
-    const scaleY = window.innerHeight / model4.height;
-    model4.scale.set(Math.min(scaleX, scaleY) * modelScale.value);
-    //centerModel();
+    // 使用固定的基准缩放值，确保与滑块值成线性关系
+    const baseScale = 0.6; // 基准缩放值
+    const finalScale = baseScale * modelScale.value;
+    console.log('最终应用的缩放值:', finalScale);
+    model4.scale.set(finalScale);
+    centerModel(); // 调用居中方法，确保每次缩放后模型都居中
   }
 };
 
-// // 保持模型居中的方法
-// const centerModel = () => {
-//   if (model4 && app) {
-//     model4.x = window.innerWidth / 2;
-//     model4.y = window.innerHeight / 2;
-//   }
-// };
+// 保持模型居中的方法 - 取消注释
+const centerModel = () => {
+  if (model4 && app) {
+    model4.x = window.innerWidth / 16;
+    model4.y = window.innerHeight / 16;
+  }
+};
 
 
 defineExpose({
@@ -271,7 +283,8 @@ onBeforeUnmount(() => {
 .live2d-container {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: 0;
+  padding-bottom: 140%; /* 根据Live2D模型的原始宽高比调整，140%是示例值 */
   background-color: #f8f9fa; /* 浅色背景 */
 }
 
@@ -279,8 +292,6 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
   background-color: #ffffff; /* 白色背景 */
 }
 </style>

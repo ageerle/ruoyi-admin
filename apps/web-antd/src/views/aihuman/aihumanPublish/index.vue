@@ -398,9 +398,11 @@ const startStream = async () => {
 
 // 添加处理模型大小调整的方法
 const handleScaleChange = (value: number) => {
+  console.log('滑块值变化:', value); // 增加日志输出滑块值
   if (viewerRef.value) {
     // 直接传入目标缩放比例，不再计算增量
     modelScale.value = value;
+    console.log('设置模型缩放比例:', modelScale.value); // 增加日志输出设置的缩放比例
     viewerRef.value.adjustModelSize(value);
   }
 };

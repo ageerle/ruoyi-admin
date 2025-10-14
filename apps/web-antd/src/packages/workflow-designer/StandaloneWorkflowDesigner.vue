@@ -265,6 +265,11 @@ async function onSave() {
   if (props.saving) return
   // 最后一次同步：以画布为准写回所有节点坐标
   syncPositionsFromUi()
+  // 去重 deleteEdges，避免重复 id
+  if (Array.isArray((props.workflow as any).deleteEdges)) {
+    const dedup = Array.from(new Set((props.workflow as any).deleteEdges))
+    ;(props.workflow as any).deleteEdges = dedup
+  }
   emit('save', props.workflow)
 }
 
@@ -300,6 +305,25 @@ function onDeleteNode(nodeUuid: string) {
   if (idx > -1) props.workflow.nodes.splice(idx, 1)
   const uiIdx = uiWorkflow.nodes.findIndex((n: any) => n.id === nodeUuid)
   if (uiIdx > -1) uiWorkflow.nodes.splice(uiIdx, 1)
+  // 同步删除与该节点相关的边，并记录到 deleteEdges，确保后端同步删除
+  const toRemove: any[] = []
+  for (let i = props.workflow.edges.length - 1; i >= 0; i--) {
+    const e: any = props.workflow.edges[i]
+    if (e.sourceNodeUuid === nodeUuid || e.targetNodeUuid === nodeUuid) {
+      const removed = props.workflow.edges.splice(i, 1)[0]
+      if (removed) toRemove.push(removed)
+    }
+  }
+  if (toRemove.length > 0) {
+    if (!props.workflow.deleteEdges) (props.workflow as any).deleteEdges = []
+    toRemove.forEach((e) => {
+      const id: string = (e.uuid || e.id || '') as string
+      if (id) (props.workflow as any).deleteEdges.push(id)
+      // 从 UI 边列表中删除
+      const uiIdx2 = (uiWorkflow.edges as any[]).findIndex((x: any) => x.id === id)
+      if (uiIdx2 > -1) (uiWorkflow.edges as any[]).splice(uiIdx2, 1)
+    })
+  }
   // 清理右侧属性面板与当前选中节点
   if (selectedWfNode.value?.uuid === nodeUuid) {
     selectedWfNode.value = undefined

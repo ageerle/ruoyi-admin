@@ -13,7 +13,7 @@ type NodeIORefDefinition = { node_uuid: string; node_param_name: string }
 interface Props {
   workflow: WorkflowInfo
   wfNode: WorkflowNode
-  wfRefVar: NodeIORefDefinition
+  wfRefVar?: NodeIORefDefinition
   excludeNodes: string[]
   whiteListComponents?: string[]
   whiteListUserInputTypes?: number[]
@@ -183,7 +183,7 @@ function removeVariable(index: number) {
 
 <template>
   <NCollapse :default-expanded-names="['vars']">
-    <NCollapseItem name="vars" title="引用变量">
+    <NCollapseItem name="vars" title="输入">
       <div class="flex flex-col gap-2">
         <div v-for="(sv, idx) in selectedVars" :key="idx" class="flex items-center gap-2">
           <div class="min-w-36 text-gray-600 flex items-center justify-between pr-2">

@@ -21,7 +21,7 @@ export const workflowApi = {
     return adapters.httpPost<T>(`/workflow/set-public/${uuid}?isPublic=${isPublic}`)
   },
 
-  workflowBaseInfoUpdate<T = any>(data: { uuid: string; title: string; remark: string }) {
+  workflowBaseInfoUpdate<T = any>(data: { uuid: string; title: string; remark: string; isPublic: boolean }) {
     return adapters.httpPost<T>('/workflow/base-info/update', data)
   },
 

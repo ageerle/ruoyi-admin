@@ -121,7 +121,8 @@ async function handleSaveWorkflow() {
       await workflowApi.workflowBaseInfoUpdate({
         uuid: editingWorkflow.value.uuid,
         title: formData.title,
-        remark: formData.remark
+        remark: formData.remark,
+        isPublic: formData.isPublic
       })
       message.success('更新成功')
     } else {

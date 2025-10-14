@@ -3,6 +3,7 @@ import { onMounted, ref, watch } from 'vue'
 import { NInput, NSelect } from 'naive-ui'
 import type { WorkflowInfo, WorkflowNode } from '../types/index.d'
 import { requestClient } from '#/api/request'
+import WfVariableSelector from '../components/WfVariableSelector.vue'
 
 interface Props {
   workflow: WorkflowInfo
@@ -13,6 +14,16 @@ const nodeConfig = props.wfNode.nodeConfig as any
 
 // 模型下拉选项
 const modelOptions = ref<Array<{ label: string; value: string }>>([])
+
+// 变量引用（用于从其他节点/开始节点选择变量）
+if (!nodeConfig.ref_input) nodeConfig.ref_input = { node_uuid: '', node_param_name: '' }
+const refVar = ref<{ node_uuid: string; node_param_name: string }>(
+  { node_uuid: nodeConfig.ref_input.node_uuid || '', node_param_name: nodeConfig.ref_input.node_param_name || '' },
+)
+function onVariableSelected(vs: string[]) {
+  refVar.value = { node_uuid: vs[0] || '', node_param_name: vs[1] || '' }
+  nodeConfig.ref_input = { ...refVar.value }
+}
 
 async function fetchModels() {
   try {
@@ -52,6 +63,8 @@ watch(() => nodeConfig.model_code, (val) => {
 
 <template>
   <div class="flex flex-col w-full">
+    <!-- 放在第一位：变量选择器 -->
+    <WfVariableSelector :workflow="workflow" :wf-node="wfNode" :wf-ref-var="refVar" :exclude-nodes="[wfNode.uuid]" @variableSelected="onVariableSelected" />
     <div class="mt-2">
       <div class="text-sm mb-1">模型名</div>
       <NSelect v-model:value="nodeConfig.model_code" :options="modelOptions" filterable clearable placeholder="请选择模型" />

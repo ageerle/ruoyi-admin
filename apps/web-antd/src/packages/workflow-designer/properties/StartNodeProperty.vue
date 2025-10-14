@@ -40,6 +40,9 @@ const columns = [
 
 const submitStatus = computed(() => !!(tmpItem.name && tmpItem.title))
 
+// 防御性初始化：确保配置结构存在，避免后端缺字段时面板无法展示
+if (!props.wfNode.nodeConfig) (props.wfNode as any).nodeConfig = {}
+if ((props.wfNode.nodeConfig as any).prologue === undefined) (props.wfNode.nodeConfig as any).prologue = ''
 // 防御性初始化：确保 inputConfig 结构存在且为数组，避免新增时报错
 if (!props.wfNode.inputConfig) (props.wfNode as any).inputConfig = { user_inputs: [], ref_inputs: [] }
 if (!Array.isArray(props.wfNode.inputConfig.user_inputs)) (props.wfNode.inputConfig as any).user_inputs = []

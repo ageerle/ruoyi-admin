@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { h, ref, computed, watch } from 'vue'
+import { h, ref, computed } from 'vue'
 import { NSelect, NButton, NCollapse, NCollapseItem, NInput } from 'naive-ui'
 import type { VNodeChild } from 'vue'
 import type { SelectGroupOption, SelectOption } from 'naive-ui'
@@ -8,37 +8,20 @@ import { getIconByComponentName, getIconClassByComponentName } from '../utils/wo
 import SvgIcon from './SvgIcon.vue'
 import type { WorkflowInfo, WorkflowNode } from '../types/index.d'
 
-type NodeIORefDefinition = { node_uuid: string; node_param_name: string }
-
 interface Props {
   workflow: WorkflowInfo
   wfNode: WorkflowNode
-  wfRefVar?: NodeIORefDefinition
   excludeNodes: string[]
   whiteListComponents?: string[]
   whiteListUserInputTypes?: number[]
-  // 可选：多变量模式数据来源（v-model）
-  modelValue?: NodeIORefDefinition[]
-  multiple?: boolean
-  displayKeys?: string[]
 }
 const props = withDefaults(defineProps<Props>(), {
   workflow: () => emptyWorkflowInfo(),
   whiteListComponents: () => [],
-  multiple: true,
-  displayKeys: () => [],
 })
 
-interface Emit {
-  (e: 'variableSelected', nodeUuidParanmName: string[]): void
-  (e: 'update:modelValue', value: Array<{ node_uuid: string; node_param_name: string }>): void
-  (e: 'update:displayKeys', value: string[]): void
-}
-const emit = defineEmits<Emit>()
-
-// 兼容：单变量字符串列表（用于 NSelect 的 v-model）
+// 本组件内部状态（自动写回节点）
 const selectedVars = ref<string[]>([])
-const isMultiple = computed(() => !!props.multiple)
 const keysRef = ref<string[]>([])
 
 const userInputGroup: SelectGroupOption = {
@@ -107,25 +90,15 @@ function getLabelByValue(val: string): string {
   return ''
 }
 
-// 初始化/同步选择值
+// 初始化：从节点自身读取
 function rebuildSelectedVars() {
-  if (Array.isArray(props.modelValue) && props.modelValue.length > 0) {
-    selectedVars.value = props.modelValue.map(v => `${v.node_uuid}::${v.node_param_name}`)
-  } else if (props.wfRefVar) {
-    const n = props.wfRefVar
-    selectedVars.value = (n && n.node_uuid && n.node_param_name) ? [`${n.node_uuid}::${n.node_param_name}`] : []
-  } else {
-    selectedVars.value = []
-  }
+  const src = ((props.wfNode as any)?.inputConfig?.ref_inputs || []) as any[]
+  selectedVars.value = src.map((x) => `${x.node_uuid || ''}::${x.node_param_name || ''}`)
+  keysRef.value = src.map((x) => x.name || '')
   syncKeysLength()
 }
 
 rebuildSelectedVars()
-watch(() => props.modelValue, () => rebuildSelectedVars(), { deep: true })
-watch(() => props.displayKeys, (val) => {
-  if (Array.isArray(val)) keysRef.value = val.slice()
-  syncKeysLength()
-}, { deep: true, immediate: true })
 
 // 占位默认 key（如需外部未传时的回填可启用）
 // function defaultKeyAt(idx: number) { return `var_${idx + 1}` }
@@ -136,34 +109,26 @@ function syncKeysLength() {
   while (keysRef.value.length > targetLen) keysRef.value.pop()
 }
 
-function toRefDef(val: string): NodeIORefDefinition {
+function toRefDef(val: string): { node_uuid: string; node_param_name: string } {
   const vs = String(val || '').split('::')
   return { node_uuid: vs[0] || '', node_param_name: vs[1] || '' }
 }
 
 function handleSelectAt(index: number, value: string) {
-  if (isMultiple.value) {
-    const arr = selectedVars.value.slice()
-    arr[index] = value
-    selectedVars.value = arr
-    const payload = selectedVars.value.map(toRefDef)
-    // 双向绑定
-    // @ts-ignore
-    emit('update:modelValue', payload)
-  } else {
-    selectedVars.value = [value]
-    emit('variableSelected', String(value || '').split('::'))
-  }
+  const arr = selectedVars.value.slice()
+  arr[index] = value
+  selectedVars.value = arr
+  // 写回节点
+  const payload = selectedVars.value.map(toRefDef)
+  const next = payload.map((m, i) => ({ name: keysRef.value[i] || `var_${i + 1}`, node_uuid: m.node_uuid, node_param_name: m.node_param_name }))
+  if (!(props.wfNode as any).inputConfig) (props.wfNode as any).inputConfig = { user_inputs: [], ref_inputs: [] }
+  ;(props.wfNode.inputConfig as any).ref_inputs = next
 }
 
 function addVariable() {
   selectedVars.value = [...selectedVars.value, '']
   keysRef.value = [...keysRef.value, '']
-  const payload = selectedVars.value.map(toRefDef)
-  // @ts-ignore
-  emit('update:modelValue', payload)
-  // @ts-ignore
-  emit('update:displayKeys', keysRef.value)
+  handleSelectAt(selectedVars.value.length - 1, '')
 }
 
 function removeVariable(index: number) {
@@ -174,10 +139,9 @@ function removeVariable(index: number) {
   ks.splice(index, 1)
   keysRef.value = ks
   const payload = selectedVars.value.map(toRefDef)
-  // @ts-ignore
-  emit('update:modelValue', payload)
-  // @ts-ignore
-  emit('update:displayKeys', keysRef.value)
+  const next = payload.map((m, i) => ({ name: keysRef.value[i] || `var_${i + 1}`, node_uuid: m.node_uuid, node_param_name: m.node_param_name }))
+  if (!(props.wfNode as any).inputConfig) (props.wfNode as any).inputConfig = { user_inputs: [], ref_inputs: [] }
+  ;(props.wfNode.inputConfig as any).ref_inputs = next
 }
 </script>
 

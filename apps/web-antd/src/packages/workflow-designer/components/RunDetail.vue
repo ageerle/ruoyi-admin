@@ -97,20 +97,40 @@ async function run() {
             const nodeUuid = eventName.replace('[NODE_RUN_', '').replace(']', '')
             const runtimeNode = JSON.parse(chunk)
             nodeUuidToRuntimeNodeUuid.set(nodeUuid, runtimeNode.uuid)
+            // 补充节点元信息（标题、组件），用于 UI 展示
+            const wfNodeMeta = (props.workflow?.nodes || []).find((n: any) => n.uuid === nodeUuid)
+            if (wfNodeMeta) {
+              ;(runtimeNode as any).nodeTitle = wfNodeMeta.title
+              ;(runtimeNode as any).wfComponent = wfNodeMeta.wfComponent
+            }
             wfStore.appendRuntimeNode(wfRuntimeUuid.value, runtimeNode)
             runtimeNodes.push(runtimeNode)
           } else if (eventName.includes('[NODE_CHUNK_')) {
             const nodeUuid = eventName.replace('[NODE_CHUNK_', '').replace(']', '')
             const runtimeNodeUuid = nodeUuidToRuntimeNodeUuid.get(nodeUuid) || ''
             wfStore.appendChunkToRuntimeNode(wfRuntimeUuid.value, runtimeNodeUuid, chunk)
+            const hit = runtimeNodes.find((n: any) => n.uuid === runtimeNodeUuid)
+            if (hit) {
+              ;(hit as any).chunks = ((hit as any).chunks || '') + chunk
+            }
           } else if (eventName.includes('[NODE_INPUT_')) {
             const nodeUuid = eventName.replace('[NODE_INPUT_', '').replace(']', '')
             const runtimeNodeUuid = nodeUuidToRuntimeNodeUuid.get(nodeUuid) || ''
             wfStore.appendInputToRuntimeNode(wfRuntimeUuid.value, runtimeNodeUuid, chunk)
+            const hit = runtimeNodes.find((n: any) => n.uuid === runtimeNodeUuid)
+            if (hit) {
+              const payload = JSON.parse(chunk)
+              ;(hit as any).input = { ...(hit as any).input, [payload.name]: payload.content }
+            }
           } else if (eventName.includes('[NODE_OUTPUT_')) {
             const nodeUuid = eventName.replace('[NODE_OUTPUT_', '').replace(']', '')
             const runtimeNodeUuid = nodeUuidToRuntimeNodeUuid.get(nodeUuid) || ''
             wfStore.appendOutputToRuntimeNode(wfRuntimeUuid.value, runtimeNodeUuid, chunk)
+            const hit = runtimeNodes.find((n: any) => n.uuid === runtimeNodeUuid)
+            if (hit) {
+              const payload = JSON.parse(chunk)
+              ;(hit as any).output = { ...(hit as any).output, [payload.name]: payload.content }
+            }
           } else if (eventName.includes('[NODE_WAIT_FEEDBACK_BY_')) {
             humanFeedback.value = true
             humanFeedbackTip.value = chunk || ''

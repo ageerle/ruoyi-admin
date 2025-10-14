@@ -41,7 +41,7 @@ const propertyMap = Object.fromEntries(
 )
 
 const resolvedPropertyComponent = computed(() => {
-  const name = props.wfNode?.wfComponent.name?.toLowerCase()
+  const name = props.wfNode?.wfComponent?.name?.toLowerCase()
   if (!name) return GenericNodeProperty
   return propertyMap[name] || GenericNodeProperty
 })
@@ -52,10 +52,10 @@ const resolvedPropertyComponent = computed(() => {
     <div v-if="!hidePropertyPanel && wfNode" class="px-3 pt-5 h-full" style="width:600px">
       <div class="w-full flex flex-col border-b divide-gray-400 pb-3 mb-5">
         <div class="text-3xl flex items-center h-10 mb-2">
-          <SvgIcon class="mt-1 mr-2" :class="getIconClassByComponentName(wfNode.wfComponent.name)" :icon="getIconByComponentName(wfNode.wfComponent.name)" />
+          <SvgIcon class="mt-1 mr-2" :class="getIconClassByComponentName(wfNode?.wfComponent?.name || '')" :icon="getIconByComponentName(wfNode?.wfComponent?.name || '')" />
           <NInput v-model:value="nodeTitle" placeholder="节点名称" class="h-8 border-gray-100" style="font-size: 1rem;line-height: 1.5rem;font-weight: 700;" />
         </div>
-        <div class="text-sm text-gray-500">组件功能：{{ wfNode.wfComponent.remark }}</div>
+        <div class="text-sm text-gray-500">组件功能：{{ wfNode?.wfComponent?.remark || '' }}</div>
       </div>
       <div class="overflow-y-auto" :style="`height:${innerHeight - 250}px`">
         <component :is="resolvedPropertyComponent" :workflow="workflow" :ui-workflow="uiWorkflow" :wf-node="wfNode" />

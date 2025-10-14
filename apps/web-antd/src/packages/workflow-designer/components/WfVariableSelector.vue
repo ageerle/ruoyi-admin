@@ -152,7 +152,7 @@ function removeVariable(index: number) {
         <div v-for="(sv, idx) in selectedVars" :key="idx" class="flex items-center gap-2">
           <div class="min-w-36 text-gray-600 flex items-center justify-between pr-2">
             <NInput v-model:value="keysRef[idx]" placeholder="var_xxx" size="small" />
-            <span class="text-gray-400 ml-2">{{ getLabelByValue(sv) }}</span>
+            <!-- <span class="text-gray-400 ml-2">{{ getLabelByValue(sv) }}</span> -->
           </div>
           <NSelect
             :value="sv"

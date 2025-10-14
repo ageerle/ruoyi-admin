@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { nextTick, onUnmounted, reactive, ref } from 'vue'
+import { nextTick, onUnmounted, reactive, ref, watch } from 'vue'
 import { NButton, NInput, NInputNumber, NP, NSwitch, NTab, NTabPane, NTabs, NText, NUpload, NUploadDragger, useMessage } from 'naive-ui'
 import type { UploadFileInfo, UploadInst } from 'naive-ui'
 import RuntimeNodes from './RuntimeNodes.vue'
@@ -18,16 +18,11 @@ const wfStore = useWfStore()
 const token = ref<string>('')
 const ms = useMessage()
 const submitting = ref<boolean>(wfStore.submitting)
-const startNode = wfStore.getStartNode(props.workflow.uuid)
+const startNode = ref<any>(null)
 const wfRuntimeUuid = ref<string>('')
 const runtimeNodes = reactive<any[]>([])
 const runtimeErrorMsg = ref<string>('')
-const userInputs = ref<any[]>(startNode?.inputConfig.user_inputs.map((input: any) => ({
-  uuid: input.uuid,
-  name: input.name,
-  content: { title: input.title, value: null, type: input.type },
-  required: input.required,
-})) || [])
+const userInputs = ref<any[]>([])
 const errorMsg = ref<string>('')
 const currWfUuid = props.workflow.uuid
 const showCurrentExecution = ref<boolean>(false)
@@ -65,8 +60,11 @@ async function run() {
 
   if (fileListLength.value > 0 && uploadedFileUuids.value.length !== fileListLength.value) { uploadBeforeRun(); return }
   else {
-    const fileInput = userInputs.value.find((input: any) => input.content.type === 4 && input.content.value === null)
-    if (fileInput) fileInput.content.value = uploadedFileUuids.value
+    // 若存在文件输入但未走上传控件回调，直接将已上传的uuid写入
+    const fileInput = userInputs.value.find((input: any) => input.content.type === 4)
+    if (fileInput && (!fileInput.content.value || fileInput.content.value.length === 0)) {
+      fileInput.content.value = uploadedFileUuids.value
+    }
   }
 
   if (userInputs.value.some((input: any) => input.required && input.content.value === null)) { ms.warning('请输入所有必填参数'); return }
@@ -181,6 +179,32 @@ function handleClick() {
   showCurrentExecution.value = !showCurrentExecution.value
   tabObj.value.tab = showCurrentExecution.value ? `${tabObj.value.defaultTab} ↓` : `${tabObj.value.defaultTab} ↑`
 }
+
+function findStartNodeFromWorkflow() {
+  return Array.isArray(props.workflow?.nodes)
+    ? props.workflow.nodes.find((n: any) => n?.wfComponent?.name === 'Start')
+    : null
+}
+
+function rebuildUserInputs() {
+  const storeStart = wfStore.getStartNode(props.workflow.uuid)
+  const localStart = findStartNodeFromWorkflow()
+  startNode.value = storeStart || localStart || null
+  if (startNode.value && Array.isArray(startNode.value.inputConfig?.user_inputs)) {
+    userInputs.value = startNode.value.inputConfig.user_inputs.map((input: any) => ({
+      uuid: input.uuid,
+      name: input.name,
+      content: { title: input.title, value: null, type: input.type },
+      required: input.required,
+    }))
+  } else {
+    userInputs.value = []
+  }
+}
+
+rebuildUserInputs()
+
+watch(() => props.workflow, () => rebuildUserInputs(), { deep: true })
 
 headers.Authorization = token.value
 onUnmounted(() => { if (wfStore.wfUuidToWfRuntimeLoading.get(currWfUuid)) controller.abort() })

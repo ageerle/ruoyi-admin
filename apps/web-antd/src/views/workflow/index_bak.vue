@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import WorkflowDesigner from '#/packages/workflow-designer/StandaloneWorkflowDesigner.vue'
-import type { WorkflowInfo, WorkflowComponent, WorkflowNode } from '#/packages/workflow-designer/types/index.d'
+import type { WorkflowInfo, WorkflowComponent } from '#/packages/workflow-designer/types/index.d'
 import { NMessageProvider } from 'naive-ui'
 
+/**
+ * 备份文件，用于对比新旧版本
+ * 用于测试工作流编辑器
+ */
 // 要使用的节点列表，不使用时可以注释掉
 const wfComponents: WorkflowComponent[] = [
   { name: 'Start', title: '开始' },
@@ -24,6 +28,11 @@ const wfComponents: WorkflowComponent[] = [
   { name: 'HttpRequest', title: 'HTTP 请求' },
   { name: 'Test', title: '测试' },
 ]
+
+// 简单的组件ID映射：使用索引生成（示例/演示用）
+const componentIdMap: Record<number, string> = Object.fromEntries(
+  wfComponents.map((c, idx) => [idx + 1, c.name]),
+) as Record<number, string>
 
 const workflow = ref<WorkflowInfo>({
   uuid: 'demo-1',
@@ -56,7 +65,7 @@ function handleRun(payload: { workflow: WorkflowInfo }) {
 <template>
   <div class="h-full">
     <n-message-provider>
-      <WorkflowDesigner :workflow="workflow" :wf-components="wfComponents" @save="handleSave" @run="handleRun" />
+      <WorkflowDesigner :workflow="workflow" :wf-components="wfComponents" :component-id-map="componentIdMap" @save="handleSave" @run="handleRun" />
     </n-message-provider>
   </div>
   

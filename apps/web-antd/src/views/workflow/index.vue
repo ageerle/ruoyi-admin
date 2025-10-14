@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import WorkflowDesigner from '#/packages/workflow-designer/StandaloneWorkflowDesigner.vue'
 import WorkflowSidebar from './components/WorkflowSidebar.vue'
 import type { WorkflowInfo, WorkflowComponent } from '#/packages/workflow-designer/types/index.d'
-import { NMessageProvider, NModal, NButton } from 'naive-ui'
+import { NMessageProvider, NModal } from 'naive-ui'
 import { workflowApi } from '#/api/workflow'
 import RunDetail from '#/packages/workflow-designer/components/RunDetail.vue'
 import { message } from 'ant-design-vue'
@@ -97,6 +97,9 @@ async function handleSave(updated: WorkflowInfo) {
         // 使用 name -> id 映射，确保为 number 类型
         node.workflowComponentId = nameToIdMap.value[node.wfComponent?.name || ''] ?? 0
       }
+      if (node.nodeConfig === undefined) {
+        node.nodeConfig = {}
+      }
     })
     console.log('handleSave', updated)
     await workflowApi.workflowUpdate({
@@ -158,7 +161,7 @@ onMounted(() => {
         </div>
       </div>
       <NModal v-model:show="showRun" preset="card" title="运行" :mask-closable="false" style="width:95%;max-width:800px">
-        <RunDetail :workflow="workflow" @run-done="showRun=false" />
+        <RunDetail :workflow="workflow" />
       </NModal>
     </n-message-provider>
   </div>

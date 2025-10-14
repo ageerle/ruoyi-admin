@@ -81,11 +81,9 @@ function handleRun(payload: { workflow: Workflow.WorkflowInfo }) {
   - `createNewEdge` / `updateEdgeBySourceHandle` / `deleteEdgesBySourceHandle` 可复用，按需调用。
 
 ### 节点中调用后端的规范建议
-- 子包不直接发起请求；把一切 I/O 通过“宿主注入”的方式提供：
-  - 方案 A（推荐）：在宿主上给组件传 `services`/`adapters`（对象），节点面板中通过 `inject('services')` 使用。
-  - 方案 B：通过 `props` 传入回调（如 `onUpload`, `onFetchModels`），属性面板调用这些回调获取数据或提交。
-- 返回的数据写入到 `wfNode.nodeConfig`，保持与后端字段一一对应，便于持久化时 `@save` 一次提交。
-- 任何需要鉴权的细节放在宿主实现，不在子包中出现 `token/用户信息` 等逻辑。
+- 建议由“各节点的 Property 组件”各自发起所需请求；注意使用自己项目的请求示例发起请求，可以保证权限问题。
+- 请求结果写入 `wfNode.nodeConfig`，与后端字段一一对应，便于在 `@save` 时一次性提交。
+- 鉴权、token 等细节全部由宿主的请求实例处理，子包不关心用户态信息。
 
 ### 命名与约定
 - 节点 `name` 使用帕斯卡命名（如 `HttpRequest`），自动注册时将文件 `HttpRequestNode.vue` 转为小写键 `httprequest`。

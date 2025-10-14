@@ -31,6 +31,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 interface Emit {
   (e: 'variableSelected', nodeUuidParanmName: string[]): void
+  (e: 'update:modelValue', value: Array<{ node_uuid: string; node_param_name: string }>): void
+  (e: 'update:displayKeys', value: string[]): void
 }
 const emit = defineEmits<Emit>()
 

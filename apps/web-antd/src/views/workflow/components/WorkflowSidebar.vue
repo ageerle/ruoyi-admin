@@ -241,6 +241,8 @@ onMounted(() => {
                 </n-icon>
                 <n-popconfirm 
                   v-if="activeTab === 'my'"
+                  positive-text="确定"
+                  negative-text="取消"
                   @positive-click="handleDeleteWorkflow(workflow)"
                 >
                   <template #trigger>

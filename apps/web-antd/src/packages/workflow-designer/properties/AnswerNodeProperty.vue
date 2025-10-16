@@ -11,17 +11,19 @@ interface Props {
 }
 const props = defineProps<Props>()
 const nodeConfig = props.wfNode.nodeConfig as any
+if (nodeConfig.vategory === undefined) nodeConfig.vategory = ''
 
 // 模型下拉选项
-const modelOptions = ref<Array<{ label: string; value: string }>>([]);
+const modelOptions = ref<Array<{ label: string; value: string; category?: string }>>([]);
 
 async function fetchModels() {
   try {
     const res: any = await requestClient.get('/system/model/list', { params: {} })
     const records = (res?.records || res?.rows || res || []) as Array<any>
     modelOptions.value = records.map((m: any) => ({
-      label: m.name ?? m.modelName ?? String(m.id ?? m.modelCode ?? ''),
-      value: m.name ?? m.modelName ?? String(m.id ?? m.modelCode ?? ''),
+      label: m.modelName ?? m.name ?? String(m.id ?? m.modelCode ?? ''),
+      value: m.modelName ?? m.name ?? String(m.id ?? m.modelCode ?? ''),
+      category: m.category ?? '',
     }))
   } catch (e) {
     modelOptions.value = []
@@ -35,6 +37,8 @@ watch(() => nodeConfig.model_code, (val) => {
   if (!val) { nodeConfig.model_name = ''; return }
   const hit = modelOptions.value.find(opt => opt.value === String(val))
   nodeConfig.model_name = hit ? hit.label : String(val)
+  // 同步保存分类到 nodeConfig.category（来自后端的 category 字段）
+  nodeConfig.category = hit?.category ?? ''
 })
 </script>
 

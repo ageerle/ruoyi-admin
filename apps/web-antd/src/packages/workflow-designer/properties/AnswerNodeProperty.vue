@@ -11,7 +11,7 @@ interface Props {
 }
 const props = defineProps<Props>()
 const nodeConfig = props.wfNode.nodeConfig as any
-if (nodeConfig.vategory === undefined) nodeConfig.vategory = ''
+if (nodeConfig.category === undefined) nodeConfig.category = ''
 
 // 模型下拉选项
 const modelOptions = ref<Array<{ label: string; value: string; category?: string }>>([]);
@@ -21,8 +21,8 @@ async function fetchModels() {
     const res: any = await requestClient.get('/system/model/list', { params: {} })
     const records = (res?.records || res?.rows || res || []) as Array<any>
     modelOptions.value = records.map((m: any) => ({
-      label: m.modelName ?? m.name ?? String(m.id ?? m.modelCode ?? ''),
-      value: m.modelName ?? m.name ?? String(m.id ?? m.modelCode ?? ''),
+      label: m.modelName,
+      value: m.modelName,
       category: m.category ?? '',
     }))
   } catch (e) {
@@ -33,7 +33,7 @@ async function fetchModels() {
 onMounted(() => { fetchModels() })
 
 // 监听编码变化，自动写回可读名称，保证画布节点始终展示名称
-watch(() => nodeConfig.model_code, (val) => {
+watch(() => nodeConfig.model_name, (val) => {
   if (!val) { nodeConfig.model_name = ''; return }
   const hit = modelOptions.value.find(opt => opt.value === String(val))
   nodeConfig.model_name = hit ? hit.label : String(val)
@@ -50,7 +50,7 @@ watch(() => nodeConfig.model_code, (val) => {
     <WfVariableSelector :workflow="workflow" :wf-node="wfNode" :exclude-nodes="[wfNode.uuid]" />
     <div class="mt-2">
       <div class="text-sm mb-1">模型名</div>
-      <NSelect v-model:value="nodeConfig.model_code" :options="modelOptions" filterable clearable placeholder="请选择模型" />
+      <NSelect v-model:value="nodeConfig.model_name" :options="modelOptions" filterable clearable placeholder="请选择模型" />
     </div>
     <div class="mt-4">
       <div class="text-sm mb-1">提示词</div>

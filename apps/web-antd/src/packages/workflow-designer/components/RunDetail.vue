@@ -34,6 +34,12 @@ const humanFeedback = ref<boolean>(false)
 const humanFeedbackTip = ref<string>('')
 const humanFeedbackContent = ref<string>('')
 let controller = new AbortController()
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    if (!submitting.value) run()
+  }
+}
 
 async function uploadBeforeRun() {
   uploadedFileUuids.value = []
@@ -232,7 +238,7 @@ onUnmounted(() => { if (wfStore.wfUuidToWfRuntimeLoading.get(currWfUuid)) contro
 </script>
 
 <template>
-  <div class="w-full max-w-screen-xl m-auto z-10">
+  <div class="w-full max-w-screen-xl m-auto z-10" @keydown="onKeydown">
     <NTabs type="line" justify-content="space-evenly" animated default-value="runtimes">
       <NTab name="runtimes" @click="handleClick">{{ tabObj.tab }}</NTab>
     </NTabs>
@@ -267,8 +273,9 @@ onUnmounted(() => { if (wfStore.wfUuidToWfRuntimeLoading.get(currWfUuid)) contro
           </NUpload>
           <NSwitch v-if="userInput.content.type === 5" v-model:value="userInput.content.value" />
         </div>
-        <div class="w-full flex justify-end">
-          <NButton type="primary" :disabled="submitting" :loading="submitting" @click="run" @keydown.enter="run">提交</NButton>
+        <div class="w-full flex items-center justify-between text-xs text-gray-400" @keydown.enter="run">
+          <div>按 Enter 提交，Shift + Enter 换行</div>
+          <NButton type="primary" :disabled="submitting" :loading="submitting" @click="run">提交</NButton>
         </div>
       </template>
       <template v-if="humanFeedback">

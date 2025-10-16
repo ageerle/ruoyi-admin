@@ -62,6 +62,40 @@ function handleRun(payload: { workflow: Workflow.WorkflowInfo }) {
   - 文件名 `MyNode.vue` 会被转换成 `mynode` 键名并注入 `nodeTypes`。
   - 如果没有提供该文件，会自动回退到通用外观 `NodeShell`。
 
+#### 节点的图标与配色（可选，但强烈建议配置）
+左侧组件面板、节点头部会调用两个方法来渲染图标与配色：
+
+- `getIconByComponentName(name: string)` → 返回图标名称（如 `carbon:http`）
+- `getIconClassByComponentName(name: string)` → 返回 Tailwind/类名，用于给图标着色
+
+这两个方法位于 `packages/workflow-designer/utils/workflow-util.ts`，内部根据“节点名的小写”做 `switch` 映射：
+
+```ts
+// 文件：packages/workflow-designer/utils/workflow-util.ts
+export function getIconByComponentName(name: string) {
+  switch (name.toLowerCase()) {
+    case 'httprequest': return 'carbon:http'
+    // ... 其他节点
+    default: return '' // 未配置时不显示图标
+  }
+}
+
+export function getIconClassByComponentName(name: string) {
+  switch (name.toLowerCase()) {
+    case 'httprequest': return 'text-slate-800'
+    // ... 其他节点
+    default: return '' // 未配置时使用默认颜色
+  }
+}
+```
+
+新增节点时如需自定义图标和颜色，请：
+1) 以节点的 `name` 转小写为 `case` 值，分别在上述两个方法中添加一条映射；
+2) 图标使用 `Iconify` 风格的标识（本包默认的 `SvgIcon` 支持）；
+3) 颜色类名可用现有的 Tailwind 色值类（或你项目中可用的类名）。
+
+不配置时不影响功能，只是左侧面板与节点标题处不显示/不着色。
+
 2) 专属属性面板（可选）
 - 在 `packages/workflow-designer/properties/` 下新增 `YourNodeProperty.vue`，只需编辑 `wfNode.nodeConfig` 相关字段。
 - 无需修改任何分支或注册代码：系统会自动扫描 `*NodeProperty.vue` 并按文件名映射到节点类型：
@@ -81,7 +115,7 @@ function handleRun(payload: { workflow: Workflow.WorkflowInfo }) {
   - `createNewEdge` / `updateEdgeBySourceHandle` / `deleteEdgesBySourceHandle` 可复用，按需调用。
 
 ### 节点中调用后端的规范建议
-- 建议由“各节点的 Property 组件”各自发起所需请求；注意使用自己项目的请求示例发起请求，可以保证权限问题。
+- 建议由“各节点的 Property 组件”各自发起所需请求；注意使用自己项目的请求实例发起请求，可以保证权限问题。
 - 请求结果写入 `wfNode.nodeConfig`，与后端字段一一对应，便于在 `@save` 时一次性提交。
 - 鉴权、token 等细节全部由宿主的请求实例处理，子包不关心用户态信息。
 

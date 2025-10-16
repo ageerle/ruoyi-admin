@@ -79,16 +79,7 @@ const options = computed<Array<SelectOption | SelectGroupOption>>(() => {
   return opts
 })
 
-function getLabelByValue(val: string): string {
-  const arr = options.value
-  for (const group of arr) {
-    // @ts-ignore
-    const children = (group.children || []) as any[]
-    const hit = children.find(c => c.value === val)
-    if (hit) return hit.label as string
-  }
-  return ''
-}
+// function getLabelByValue(val: string): string { /* 保留备选 */ return '' }
 
 // 初始化：从节点自身读取
 function rebuildSelectedVars() {
@@ -100,12 +91,18 @@ function rebuildSelectedVars() {
 
 rebuildSelectedVars()
 
-// 占位默认 key（如需外部未传时的回填可启用）
-// function defaultKeyAt(idx: number) { return `var_${idx + 1}` }
+function two(n: number) { return String(n).padStart(2, '0') }
+function defaultKeyAt(idx: number) { return `var_${two(idx + 1)}` }
+function nextAutoKey(list: string[]) {
+  const nums = list
+    .map((k) => (k && /^var_(\d+)$/.test(k) ? Number((k.match(/^var_(\d+)$/) as RegExpMatchArray)[1]) : 0))
+  const max = nums.length ? Math.max(...nums) : 0
+  return `var_${two(max + 1)}`
+}
 function syncKeysLength() {
   const targetLen = selectedVars.value.length
   if (!Array.isArray(keysRef.value)) keysRef.value = []
-  while (keysRef.value.length < targetLen) keysRef.value.push('')
+  while (keysRef.value.length < targetLen) keysRef.value.push(nextAutoKey(keysRef.value))
   while (keysRef.value.length > targetLen) keysRef.value.pop()
 }
 
@@ -127,7 +124,7 @@ function handleSelectAt(index: number, value: string) {
 
 function addVariable() {
   selectedVars.value = [...selectedVars.value, '']
-  keysRef.value = [...keysRef.value, '']
+  keysRef.value = [...keysRef.value, nextAutoKey(keysRef.value)]
   handleSelectAt(selectedVars.value.length - 1, '')
 }
 

@@ -106,6 +106,7 @@ async function run() {
             wfStore.appendRuntimeNode(wfRuntimeUuid.value, runtimeNode)
             runtimeNodes.push(runtimeNode)
           } else if (eventName.includes('[NODE_CHUNK_')) {
+            console.log('NODE_CHUNK_', eventName, chunk)
             const nodeUuid = eventName.replace('[NODE_CHUNK_', '').replace(']', '')
             const runtimeNodeUuid = nodeUuidToRuntimeNodeUuid.get(nodeUuid) || ''
             wfStore.appendChunkToRuntimeNode(wfRuntimeUuid.value, runtimeNodeUuid, chunk)
@@ -267,7 +268,7 @@ onUnmounted(() => { if (wfStore.wfUuidToWfRuntimeLoading.get(currWfUuid)) contro
           <NSwitch v-if="userInput.content.type === 5" v-model:value="userInput.content.value" />
         </div>
         <div class="w-full flex justify-end">
-          <NButton type="primary" :disabled="submitting" :loading="submitting" @click="run">提交</NButton>
+          <NButton type="primary" :disabled="submitting" :loading="submitting" @click="run" @keydown.enter="run">提交</NButton>
         </div>
       </template>
       <template v-if="humanFeedback">

@@ -40,7 +40,12 @@ function getRealFileUrl(fileUrl: string) {
           <div>{{ content.value || '无内容' }}</div>
         </div>
         <div class="text-base border-b border-gray-200 py-1">输出</div>
-        <div v-for="(content, name) in node.output" :key="`onput_${name}`" class="flex">
+        <!-- 优先展示流式增量（chunks），用于未产出最终输出时的实时渲染 -->
+        <div v-if="node.chunks" class="flex">
+          <!-- <div class="min-w-24 pr-2">回复</div> -->
+          <div class="whitespace-pre-wrap break-words">{{ node.chunks }}</div>
+        </div>
+        <div v-else v-for="(content, name) in node.output" :key="`onput_${name}`" class="flex">
           <template v-if="content.type === 4">
             <NImageGroup>
               <NImage v-for="url in content.value" :key="url" :src="`${getRealFileUrl(url)}?token=${token || ''}`" width="100" />

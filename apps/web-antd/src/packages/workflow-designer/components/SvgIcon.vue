@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { VbenIcon } from '@vben/icons'
 
 interface Props { icon: string }
 defineProps<Props>()
 </script>
 
 <template>
-  <Icon :icon="icon" />
-  
+  <VbenIcon :icon="icon" />
 </template>
 
 

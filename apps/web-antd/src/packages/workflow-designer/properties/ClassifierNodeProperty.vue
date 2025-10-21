@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { v4 as uuidv4 } from 'uuid'
-import { NButton, NCollapse, NCollapseItem, NInput } from 'naive-ui'
+import { Button, Collapse, Input } from 'ant-design-vue'
 import type { WorkflowInfo, WorkflowNode, UIWorkflow } from '../types/index.d'
 import { createNewEdge, deleteEdgesBySourceHandle, updateEdgeBySourceHandle } from '../utils/workflow-util'
 
@@ -38,33 +38,33 @@ function onDeleteCategory(category: Category) {
   <div class="flex flex-col w-full">
     <div class="mt-2">
       <div class="text-sm mb-1">模型名</div>
-      <NInput v-model:value="nodeConfig.model_name" placeholder="如: classify-model" />
+      <Input v-model:value="nodeConfig.model_name" placeholder="如: classify-model" />
     </div>
     <div class="mt-4 flex flex-col">
       <div class="text-sm mb-1">类别</div>
-      <NCollapse :default-expanded-names="['0']">
-        <NCollapseItem v-for="(category, idx) in nodeConfig.categories" :key="category.category_uuid" :name="`${idx}`" class="border border-gray-200 rounded-md m-2">
+      <Collapse :default-active-key="['0']">
+        <Collapse.Panel v-for="(category, idx) in nodeConfig.categories" :key="category.category_uuid" class="border border-gray-200 rounded-md m-2">
           <template #header>
-            <div class="pl-1">分类{{ idx + 1 }}：{{ category.category_name?.substring(0, 30) }}</div>
-          </template>
-          <template #header-extra>
-            <div v-show="nodeConfig.categories.length > 2" class="p-2 cursor-pointer" @click="onDeleteCategory(category)">X</div>
+            <div class="pl-1 flex justify-between items-center w-full">
+              <span>分类{{ idx + 1 }}：{{ category.category_name?.substring(0, 30) }}</span>
+              <span v-show="nodeConfig.categories.length > 2" class="p-2 cursor-pointer" @click.stop="onDeleteCategory(category)">X</span>
+            </div>
           </template>
           <div class="flex flex-col w-full bg-gray-100 px-3">
             <div class="mt-2">类别名称</div>
             <div class="mb-2">
-              <NInput v-model:value="category.category_name" type="textarea" :autosize="{ minRows: 1, maxRows: 3 }" />
+              <Input v-model:value="category.category_name" type="textarea" :auto-size="{ minRows: 1, maxRows: 3 }" />
             </div>
             <div class="mb-3">下一步节点 UUID</div>
             <div class="mb-3">
-              <NInput v-model:value="category.target_node_uuid" placeholder="在宿主中实现 UUID 选择器可替换此输入" @update:value="(val) => onCategoryTargetSelected(category, val || '')" />
+              <Input v-model:value="category.target_node_uuid" placeholder="在宿主中实现 UUID 选择器可替换此输入" @update:value="(val: string) => onCategoryTargetSelected(category, val || '')" />
             </div>
           </div>
-        </NCollapseItem>
-      </NCollapse>
+        </Collapse.Panel>
+      </Collapse>
     </div>
     <br>
-    <NButton dashed @click="onAdd">+新增类别</NButton>
+    <Button type="dashed" @click="onAdd">+新增类别</Button>
   </div>
 </template>
  

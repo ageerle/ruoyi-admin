@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NInput, NInputNumber } from 'naive-ui'
+import { Input, InputNumber } from 'ant-design-vue'
 import type { WorkflowInfo, WorkflowNode } from '../types/index.d'
 
 interface Props {
@@ -21,11 +21,11 @@ export function getDefaultNodeConfig(_workflow: any) {
   <div class="flex flex-col w-full">
     <div class="mt-2">
       <div class="text-sm mb-1">消息</div>
-      <NInput v-model:value="nodeConfig.message" placeholder="例如：hello" />
+      <Input v-model:value="nodeConfig.message" placeholder="例如：hello" />
     </div>
     <div class="mt-4">
       <div class="text-sm mb-1">次数</div>
-      <NInputNumber v-model:value="nodeConfig.count" :min="0" :max="999" />
+      <InputNumber v-model:value="nodeConfig.count" :min="0" :max="999" class="w-full" />
     </div>
   </div>
 </template>

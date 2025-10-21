@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, h, reactive, ref } from 'vue'
-import { NButton, NCollapse, NCollapseItem, NDataTable, NFlex, NInput, NInputNumber, NModal, NSelect, NSwitch } from 'naive-ui'
+import { Button, Collapse, Table, Space, Input, InputNumber, Modal, Select, Switch } from 'ant-design-vue'
 import { v4 as uuidv4 } from 'uuid'
 import SvgIcon from '../components/SvgIcon.vue'
 import { getNameByInputType } from '../utils/workflow-util'
@@ -23,16 +23,27 @@ const options = [
 ]
 
 const columns = [
-  { title: '变量名', key: 'name' },
-  { title: '标题', key: 'title' },
-  { title: '类型', key: 'type', render: (row: { type: number }) => getNameByInputType(row.type) },
-  { title: '必填', key: 'required', render: (row: { required: boolean }) => (row.required ? '是' : '否') },
+  { title: '变量名', dataIndex: 'name', key: 'name' },
+  { title: '标题', dataIndex: 'title', key: 'title' },
+  { 
+    title: '类型', 
+    dataIndex: 'type', 
+    key: 'type',
+    customRender: ({ record }: { record: { type: number } }) => getNameByInputType(record.type)
+  },
+  { 
+    title: '必填', 
+    dataIndex: 'required', 
+    key: 'required',
+    customRender: ({ record }: { record: { required: boolean } }) => (record.required ? '是' : '否')
+  },
   {
-    title: '操作', key: 'actions',
-    render: (row: NodeIODefinition) => h('div', { class: 'flex gap-2' }, {
+    title: '操作',
+    key: 'actions',
+    customRender: ({ record }: { record: NodeIODefinition }) => h('div', { class: 'flex gap-2' }, {
       default: () => [
-        h(SvgIcon, { icon: 'carbon:edit', class: 'text-base cursor-pointer', onClick: () => onEdit(row) }),
-        h(SvgIcon, { icon: 'carbon:delete', class: 'text-base cursor-pointer', onClick: () => onDelete(row) }),
+        h(SvgIcon, { icon: 'carbon:edit', class: 'text-base cursor-pointer', onClick: () => onEdit(record) }),
+        h(SvgIcon, { icon: 'carbon:delete', class: 'text-base cursor-pointer', onClick: () => onDelete(record) }),
       ],
     }),
   },
@@ -91,33 +102,30 @@ function submitForm() {
     <div>
       <div class="text-xl mb-1">开场白</div>
       <div>
-        <NInput v-model:value="(wfNode.nodeConfig as any).prologue" type="textarea" :autosize="{ minRows: 2, maxRows: 6 }" />
+        <Input v-model:value="(wfNode.nodeConfig as any).prologue" type="textarea" :auto-size="{ minRows: 2, maxRows: 6 }" />
       </div>
     </div>
     <br />
-    <NCollapse :default-expanded-names="['1']">
-      <NCollapseItem name="1" class="border border-gray-200 rounded-md m-2 px-3 pb-3">
-        <template #header>
-          <div class="text-xl">输入</div>
-        </template>
-        <NDataTable :columns="columns" :data="wfNode.inputConfig.user_inputs" />
-      </NCollapseItem>
-    </NCollapse>
+    <Collapse :default-active-key="['1']">
+      <Collapse.Panel key="1" header="输入" class="border border-gray-200 rounded-md m-2 px-3 pb-3">
+        <Table :columns="columns" :data-source="wfNode.inputConfig.user_inputs" :pagination="false" />
+      </Collapse.Panel>
+    </Collapse>
     <br />
-    <NButton @click="onShowModal">+新增</NButton>
+    <Button @click="onShowModal">+新增</Button>
   </div>
-  <NModal v-model:show="showModal" style="width: 90%; max-height: 700px; max-width: 600px" preset="card" title="变量设置">
+  <Modal v-model:open="showModal" title="变量设置" width="600px" :footer="null">
     <div class="flex flex-col w-full justify-between space-y-4">
-      <div>类型<NSelect v-model:value="tmpItem.type" :options="options" /></div>
-      <div>名称<NInput v-model:value="tmpItem.name" maxlength="50" show-count /></div>
-      <div>标题（显示名称）<NInput v-model:value="tmpItem.title" maxlength="50" show-count /></div>
-      <div>是否必须<NSwitch v-model:value="tmpItem.required" size="small" /></div>
-      <div v-if="tmpItem.type === 3">多选<NSwitch v-model:value="tmpItem.multiple" /></div>
-      <div v-if="tmpItem.type === 4">最大文件数量<NInputNumber v-model:value="tmpItem.limit" /></div>
-      <NFlex justify="end" style="margin-top: 20px">
-        <NButton block type="primary" :disabled="!submitStatus" @click="submitForm">确认</NButton>
-      </NFlex>
+      <div>类型<Select v-model:value="tmpItem.type" :options="options" class="w-full" /></div>
+      <div>名称<Input v-model:value="tmpItem.name" :maxlength="50" show-count /></div>
+      <div>标题（显示名称）<Input v-model:value="tmpItem.title" :maxlength="50" show-count /></div>
+      <div>是否必须<Switch v-model:checked="tmpItem.required" size="small" /></div>
+      <div v-if="tmpItem.type === 3">多选<Switch v-model:checked="tmpItem.multiple" /></div>
+      <div v-if="tmpItem.type === 4">最大文件数量<InputNumber v-model:value="tmpItem.limit" class="w-full" /></div>
+      <Space class="w-full justify-end" style="margin-top: 20px">
+        <Button block type="primary" :disabled="!submitStatus" @click="submitForm">确认</Button>
+      </Space>
     </div>
-  </NModal>
+  </Modal>
 </template>
  

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { NImage, NImageGroup } from 'naive-ui'
+import { Image } from 'ant-design-vue'
 import SvgIcon from './SvgIcon.vue'
 import { getIconByComponentName, getIconClassByComponentName } from '../utils/workflow-util'
 
@@ -47,9 +47,9 @@ function getRealFileUrl(fileUrl: string) {
         </div>
         <div v-else v-for="(content, name) in node.output" :key="`onput_${name}`" class="flex">
           <template v-if="content.type === 4">
-            <NImageGroup>
-              <NImage v-for="url in content.value" :key="url" :src="`${getRealFileUrl(url)}?token=${token || ''}`" width="100" />
-            </NImageGroup>
+            <Image.PreviewGroup>
+              <Image v-for="url in content.value" :key="url" :src="`${getRealFileUrl(url)}?token=${token || ''}`" :width="100" />
+            </Image.PreviewGroup>
           </template>
           <template v-else>
             <div class="min-w-24 pr-2">{{ name }}</div>

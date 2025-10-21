@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { NInput, NInputNumber, NSwitch } from 'naive-ui'
+import { Input, InputNumber, Switch } from 'ant-design-vue'
 import type { WorkflowInfo, WorkflowNode, UIWorkflow } from '../types/index.d'
 
 interface Props {
@@ -45,19 +45,19 @@ function setFromJson(key: string, json: string) {
     <div v-for="[k, v] in entries" :key="k" class="space-y-1">
       <div class="text-xs text-neutral-500">{{ k }}</div>
       <div v-if="typeof v === 'boolean'">
-        <NSwitch :value="getVal(k)" @update:value="(val) => setVal(k, val)" />
+        <Switch :checked="getVal(k)" @update:checked="(val: boolean) => setVal(k, val)" />
       </div>
       <div v-else-if="typeof v === 'number'">
-        <NInputNumber :value="getVal(k)" @update:value="(val) => setVal(k, val)" />
+        <InputNumber :value="getVal(k)" @update:value="(val: number) => setVal(k, val)" class="w-full" />
       </div>
       <div v-else-if="typeof v === 'string'">
-        <NInput :value="getVal(k)" @update:value="(val) => setVal(k, val)" />
+        <Input :value="getVal(k)" @update:value="(val: string) => setVal(k, val)" />
       </div>
       <div v-else-if="Array.isArray(v)">
-        <NInput type="textarea" :value="toJson(getVal(k))" :autosize="{ minRows: 3, maxRows: 12 }" @update:value="(val) => setFromJson(k, val)" />
+        <Input type="textarea" :value="toJson(getVal(k))" :auto-size="{ minRows: 3, maxRows: 12 }" @update:value="(val: string) => setFromJson(k, val)" />
       </div>
       <div v-else-if="typeof v === 'object' && v !== null">
-        <NInput type="textarea" :value="toJson(getVal(k))" :autosize="{ minRows: 3, maxRows: 12 }" @update:value="(val) => setFromJson(k, val)" />
+        <Input type="textarea" :value="toJson(getVal(k))" :auto-size="{ minRows: 3, maxRows: 12 }" @update:value="(val: string) => setFromJson(k, val)" />
       </div>
       <div v-else class="text-neutral-400">Unsupported</div>
     </div>

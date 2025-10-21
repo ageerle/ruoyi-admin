@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { message, Modal } from 'ant-design-vue';
+import { message, Modal, Spin, Empty } from 'ant-design-vue';
 import { Page } from '@vben/common-ui';
 
 import WorkflowDesigner from '#/packages/workflow-designer/StandaloneWorkflowDesigner.vue';
@@ -159,9 +159,9 @@ onMounted(async () => {
     @back="handleCancel"
   >
     <div v-if="loading" class="flex items-center justify-center h-full">
-      <a-spin size="large" tip="加载中..." />
+      <Spin size="large" tip="加载中..." />
     </div>
-    <div v-else class="workflow-edit-page">
+    <div v-else-if="workflow.uuid" class="workflow-edit-page">
       <WorkflowDesigner 
         :workflow="workflow" 
         :wf-components="wfComponents" 
@@ -170,6 +170,9 @@ onMounted(async () => {
         @save="handleSave" 
         @run="handleRun" 
       />
+    </div>
+    <div v-else class="flex items-center justify-center h-full">
+      <Empty description="工作流加载失败" />
     </div>
   </Page>
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { message } from 'ant-design-vue';
+import { message, Spin, Empty } from 'ant-design-vue';
 import { Page } from '@vben/common-ui';
 
 import RunDetail from '#/packages/workflow-designer/components/RunDetail.vue';
@@ -53,10 +53,13 @@ onMounted(async () => {
     :show-back="true"
   >
     <div v-if="loading" class="flex items-center justify-center h-full">
-      <a-spin size="large" tip="加载中..." />
+      <Spin size="large" tip="加载中..." />
     </div>
-    <div v-else class="p-6 bg-white rounded-lg">
+    <div v-else-if="workflow.uuid" class="p-6 bg-white rounded-lg">
       <RunDetail :workflow="workflow" />
+    </div>
+    <div v-else class="flex items-center justify-center h-full">
+      <Empty description="工作流加载失败" />
     </div>
   </Page>
 </template>

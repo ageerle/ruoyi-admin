@@ -66,7 +66,6 @@ const initLive2D = async () => {
     });
 
     // 使用默认模型路径
-    // 使用传入的默认模型路径，如果没有则使用备用路径
     const defaultPath = props.defaultModelPath || '/Live2D/models/梅朵吉祥物/梅朵吉祥物.model3.json';
     const cubism4Model = defaultPath;
 
@@ -77,22 +76,10 @@ const initLive2D = async () => {
     // 添加模型到舞台并设置属性
     models.forEach((model: any) => {
       app.stage.addChild(model);
-      // 添加一个查找初始加载模型的相关代码位置，修改缩放逻辑
-      // 假设在某个加载模型的地方有类似这样的代码:
-      // 原来的代码可能是这样的:
-      // const scaleX = window.innerWidth / model.width;
-      // const scaleY = window.innerHeight / model.height;
-      // model.scale.set(Math.min(scaleX, scaleY) * 0.6);
-
-      // 修改为使用固定基准缩放值
       const baseScale = 0.3;
       model.scale.set(baseScale * modelScale.value);
       model.y = window.innerHeight / 16;
       model.x = window.innerWidth / 16;
-
-      // 设置模型居中
-      //centerModel();
-
       draggable(model);
     });
 
@@ -100,12 +87,82 @@ const initLive2D = async () => {
     model4.x = window.innerWidth / 16;
     model4.y = window.innerHeight / 16;
 
-    model4.on('hit', (hitAreas: string[]) => {
-      if (hitAreas.includes('Body')) {
-        model4.motion('Tap');
+    // 设置初始动作 - 根据参考代码添加idle动作
+    if (model4 && typeof model4.startRandomMotion === 'function') {
+      model4.startRandomMotion('idle');
+      console.log('已启动idle动作');
+    }
+
+    // 添加鼠标点击事件 - 根据参考代码实现
+    model4.buttonMode = true;
+    model4.interactive = true;
+
+    // 修改点击事件处理逻辑
+    model4.on('click', (evt: any) => {
+      try {
+        const point = evt.data.global;
+        console.log(`点击坐标: X=${point.x}, Y=${point.y}`);
+
+        // 检查是否点击了身体部位
+        if (typeof model4.hitTest === 'function') {
+          // 尝试检测body区域 - 使用tap_body动作
+          if (model4.hitTest('body', point.x, point.y) ||
+              model4.hitTest('Body', point.x, point.y) ||
+              model4.hitTest('HitArea2', point.x, point.y)) { // 添加对HitArea2的支持
+            console.log('检测到点击身体');
+            if (typeof model4.startRandomMotionOnce === 'function') {
+              model4.startRandomMotionOnce('Idle');
+            } else if (typeof model4.motion === 'function') {
+              model4.motion('TapBody'); // 修改为tap_body
+            }
+          }
+          // 尝试检测head区域 - 也使用tap_body动作（根据参考代码）
+          else if (model4.hitTest('head', point.x, point.y) ||
+                   model4.hitTest('Head', point.x, point.y) ||
+                   model4.hitTest('HitArea', point.x, point.y)) { // 添加对HitArea的支持
+            console.log('检测到点击头部');
+            // 根据参考代码，头部点击也使用tap_body动作
+            if (typeof model4.startRandomMotionOnce === 'function') {
+              model4.startRandomMotionOnce('Idle');
+            } else if (typeof model4.motion === 'function') {
+              model4.motion('TapBody');
+            }
+            // 可以保留声音播放，但不是必须的
+            if (typeof model4.playSound === 'function') {
+              try {
+                model4.playSound('星のカケラ.mp3', 'sound/');
+              } catch (soundError) {
+                console.warn('播放声音失败，可能路径不正确:', soundError);
+              }
+            }
+          }
+        } else {
+          console.warn('模型不支持hitTest方法');
+          // 备用方案：使用原有的hit事件
+          if (model4._hitAreas) {
+            // 这里可以添加自定义的区域检测逻辑
+          }
+        }
+      } catch (error) {
+        console.error('处理点击事件时出错:', error);
       }
-      if (hitAreas.includes('Head')) {
-        model4.expression();
+    });
+
+    // 添加鼠标移动事件 - 根据参考代码实现视角跟随
+    model4.on('mousemove', (evt: any) => {
+      try {
+        const point = evt.data.global;
+        // 只有在眼神跟随开启时才设置视角
+        if (internalEyeMode.value === 'true') {
+          if (typeof model4.setViewPoint === 'function') {
+            model4.setViewPoint(point.x, point.y);
+          } else if (typeof model4.lookAt === 'function') {
+            // 某些实现可能使用lookAt方法
+            model4.lookAt(point.x, point.y);
+          }
+        }
+      } catch (error) {
+        console.error('处理鼠标移动事件时出错:', error);
       }
     });
 
@@ -137,21 +194,34 @@ const fetchConfigData = async () => {
 // 使模型可拖拽
 const draggable = (model: any) => {
   model.buttonMode = true;
+  model.interactive = true;
+
+  // 使用pointer事件以兼容触摸设备
   model.on('pointerdown', (e: any) => {
     model.dragging = true;
     model._pointerX = e.data.global.x - model.x;
     model._pointerY = e.data.global.y - model.y;
+    // 阻止事件冒泡，避免与点击事件冲突
+    e.stopPropagation();
   });
+
   model.on('pointermove', (e: any) => {
     if (model.dragging) {
       model.position.x = e.data.global.x - model._pointerX;
       model.position.y = e.data.global.y - model._pointerY;
-      // 添加日志输出，显示拖动时的坐标位置
       console.log(`数字人位置 - X: ${model.position.x.toFixed(2)}, Y: ${model.position.y.toFixed(2)}`);
+      // 阻止事件冒泡
+      e.stopPropagation();
     }
   });
-  model.on('pointerupoutside', () => (model.dragging = false));
-  model.on('pointerup', () => (model.dragging = false));
+
+  model.on('pointerupoutside', () => {
+    model.dragging = false;
+  });
+
+  model.on('pointerup', () => {
+    model.dragging = false;
+  });
 };
 
 // 让模型说话
@@ -201,13 +271,6 @@ const updateModel = async (modelPath: string) => {
   }
 };
 
-// 停止讲话
-const stopSpeaking = () => {
-  if (model4) {
-    model4.stopSpeaking();
-  }
-};
-
 // 添加方法用于更新眼神模式
 const updateEyeMode = (mode: string) => {
   internalEyeMode.value = mode;
@@ -253,6 +316,69 @@ const centerModel = () => {
 };
 
 
+// 播放指定肢体动作 - 仅支持动作类型
+const playMotion = (motionType: string) => {
+  try {
+    console.log(`播放肢体动作: 类型=${motionType}`);
+    if (model4) {
+      // 1. 首先尝试停止所有动作和讲话，确保彻底清除当前状态
+      try {
+        // 停止讲话 - 确保在播放动作前停止任何正在进行的讲话
+        // if (typeof model4.stopSpeaking === 'function') {
+        //   model4.stopSpeaking();
+        //   console.log('已停止讲话');
+        // }
+        // 优先尝试stopAllMotions方法（如果存在）
+        if (typeof model4.stopAllMotions === 'function') {
+          model4.stopAllMotions();
+          console.log('已停止所有动作');
+        }
+        // 同时也尝试stopMotion方法作为备份
+        if (typeof model4.stopMotion === 'function') {
+          model4.stopMotion(motionType);
+          console.log(`已停止特定动作: ${motionType}`);
+        }
+      } catch (e) {
+        console.log('停止动作方法调用失败，继续尝试播放');
+      }
+
+      // 2. 使用setTimeout创建一个小延迟，确保状态清理完成
+      setTimeout(() => {
+        try {
+          if (model4) {
+            // 3. 重新播放动作
+            if (typeof model4.startRandomMotionOnce === 'function') {
+              console.log(`使用startRandomMotionOnce方法播放: ${motionType}`);
+              model4.startRandomMotionOnce(motionType);
+            } else if (typeof model4.motion === 'function') {
+              console.log(`使用model.motion方法播放: ${motionType}`);
+              model4.motion(motionType);
+            }
+          }
+        } catch (playError) {
+          console.error(`重新播放肢体动作失败: ${playError}`);
+        }
+      }, 50); // 50毫秒延迟，足够让状态清理但对用户无感知
+    }
+  } catch (error) {
+    console.error(`播放肢体动作失败: ${error}`);
+  }
+};
+
+// 停止讲话
+const stopSpeaking = () => {
+  try {
+    console.log('停止讲话');
+    if (model4 && typeof model4.stopSpeaking === 'function') {
+      model4.stopSpeaking();
+    }
+  } catch (e) {
+    console.error('停止讲话失败:', e);
+  }
+};
+
+
+// 在defineExpose中取消注释playMotion
 defineExpose({
   testAudio,
   updateModel,
@@ -264,7 +390,8 @@ defineExpose({
   adjustModelSize,
   modelScale,
   talk,
-  playExpression
+  playExpression,
+  playMotion  // 确保playMotion被正确暴露
 });
 
 onMounted(async () => {

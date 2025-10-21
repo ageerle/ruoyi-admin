@@ -3,10 +3,9 @@ import { ref, onMounted } from 'vue'
 import WorkflowDesigner from '#/packages/workflow-designer/StandaloneWorkflowDesigner.vue'
 import WorkflowSidebar from './components/WorkflowSidebar.vue'
 import type { WorkflowInfo, WorkflowComponent } from '#/packages/workflow-designer/types/index.d'
-import { NMessageProvider, NModal } from 'naive-ui'
+import { Modal, message } from 'ant-design-vue'
 import { workflowApi } from '#/api/workflow'
 import RunDetail from '#/packages/workflow-designer/components/RunDetail.vue'
-import { message } from 'ant-design-vue'
 
 // 工作流组件列表，从后端接口获取
 const wfComponents = ref<WorkflowComponent[]>([])
@@ -136,67 +135,79 @@ onMounted(() => {
 
 <template>
   <div class="workflow-page">
-    <n-message-provider>
-      <div class="workflow-container">
-        <!-- 左侧面板 -->
-        <div class="left-panel" :class="{ collapsed: sidebarCollapsed }">
-          <WorkflowSidebar 
-            :collapsed="sidebarCollapsed"
-            :wf-components="wfComponents"
-            @update:collapsed="sidebarCollapsed = $event"
-            @select-workflow="handleSelectWorkflow"
-          />
-        </div>
-        
-        <!-- 右侧工作流编辑器 -->
-        <div class="right-panel">
-          <WorkflowDesigner 
-            :workflow="workflow" 
-            :wf-components="wfComponents" 
-            :component-id-map="componentIdMap"
-            :saving="saving"
-            @save="handleSave" 
-            @run="handleRun" 
-          />
-        </div>
+    <div class="workflow-container">
+      <!-- 左侧面板 -->
+      <div class="left-panel" :class="{ collapsed: sidebarCollapsed }">
+        <WorkflowSidebar 
+          :collapsed="sidebarCollapsed"
+          :wf-components="wfComponents"
+          @update:collapsed="sidebarCollapsed = $event"
+          @select-workflow="handleSelectWorkflow"
+        />
       </div>
-      <NModal v-model:show="showRun" preset="card" title="运行" :mask-closable="false" style="width:95%;max-width:800px">
-        <RunDetail :workflow="workflow" />
-      </NModal>
-    </n-message-provider>
+      
+      <!-- 右侧工作流编辑器 -->
+      <div class="right-panel">
+        <WorkflowDesigner 
+          :workflow="workflow" 
+          :wf-components="wfComponents" 
+          :component-id-map="componentIdMap"
+          :saving="saving"
+          @save="handleSave" 
+          @run="handleRun" 
+        />
+      </div>
+    </div>
+    
+    <!-- 运行对话框 -->
+    <Modal 
+      v-model:open="showRun" 
+      title="运行工作流" 
+      :mask-closable="false" 
+      :footer="null"
+      width="95%"
+      :style="{ maxWidth: '800px' }"
+    >
+      <RunDetail :workflow="workflow" />
+    </Modal>
   </div>
 </template>
 
 <style scoped>
 .workflow-page {
-  height: 100%; /* 页面容器占满视窗，并裁剪滚动 */
+  height: 100%;
   overflow: hidden;
+  background: #f5f5f5;
 }
+
 .workflow-container {
   display: flex;
-  height: 100%; /* 跟随父级高度，避免叠加头部造成溢出 */
+  height: 100%;
   width: 100%;
-  overflow: hidden; /* 禁止页面级滚动，仅区域滚动 */
+  overflow: hidden;
 }
 
 .left-panel {
   width: 300px;
-  transition: width 0.3s ease;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-right: 1px solid #e0e0e0;
   background: white;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
+  z-index: 10;
 }
 
 .left-panel.collapsed {
   width: 0;
   background: transparent;
   border-right: none;
+  box-shadow: none;
   overflow: visible;
 }
 
 .right-panel {
   flex: 1;
   min-width: 0;
-  background: #f5f5f5;
-  overflow: hidden; /* 右侧由内部编辑器掌控滚动（通常为画布，不滚动）*/
+  background: #fafafa;
+  overflow: hidden;
 }
 </style>

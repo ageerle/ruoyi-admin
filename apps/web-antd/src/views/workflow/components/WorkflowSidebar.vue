@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed, watch } from 'vue'
-import { NButton, NModal, NForm, NFormItem, NInput, NSwitch, NIcon, NPopconfirm, useMessage, NSpin, NEmpty } from 'naive-ui'
+import { Button, Modal, Form, FormItem, Input, Switch, Popconfirm, Spin, Empty, Tabs, message } from 'ant-design-vue'
 import { Plus, UserRoundPen, X, LockKeyhole, ExternalLink, ChevronLeft, ChevronRight } from '@vben/icons'
 import { workflowApi } from '#/api/workflow'
 import type { WorkflowInfo, WorkflowComponent } from '#/packages/workflow-designer/types/index.d'
@@ -19,8 +19,6 @@ const emit = defineEmits<{
   (e: 'update:collapsed', collapsed: boolean): void
   (e: 'selectWorkflow', workflow: WorkflowInfo): void
 }>()
-
-const message = useMessage()
 
 // 响应式数据
 const activeTab = ref<'my' | 'public'>('my')
@@ -184,39 +182,28 @@ onMounted(() => {
     <div class="workflow-list-section">
       <!-- 侧边栏头部 -->
       <div class="sidebar-header">
-        <div class="header-tabs">
-          <div 
-            class="tab-item" 
-            :class="{ active: activeTab === 'my' }"
-            @click="activeTab = 'my'"
-          >
-            我的
-          </div>
-          <div 
-            class="tab-item" 
-            :class="{ active: activeTab === 'public' }"
-            @click="activeTab = 'public'"
-          >
-            公开
-          </div>
-        </div>
-        <n-button 
+        <Tabs v-model:active-key="activeTab" class="header-tabs">
+          <Tabs.TabPane key="my" tab="我的工作流" />
+          <Tabs.TabPane key="public" tab="公开工作流" />
+        </Tabs>
+        <Button 
           type="primary" 
-          size="small" 
+          size="middle" 
           @click="handleNewWorkflow"
           class="new-btn"
+          block
         >
           <template #icon>
-            <n-icon><Plus /></n-icon>
+            <Plus class="text-base" />
           </template>
-          新建应用
-        </n-button>
+          新建工作流
+        </Button>
       </div>
 
       <!-- 工作流列表 -->
       <div class="workflow-list">
-        <n-spin :show="loading">
-          <n-empty v-if="!loading && currentWorkflows.length === 0" description="暂无工作流" />
+        <Spin :spinning="loading">
+          <Empty v-if="!loading && currentWorkflows.length === 0" description="暂无工作流" />
           <div v-else class="workflow-items">
             <div 
               v-for="workflow in currentWorkflows" 
@@ -231,78 +218,73 @@ onMounted(() => {
                   <span class="version">{{ workflow.createTime }}</span>
                 </div>
               </div>
-              <div class="workflow-actions">
-                <n-icon 
+              <div class="workflow-actions" @click.stop>
+                <UserRoundPen 
                   v-if="activeTab === 'my'"
                   class="action-icon edit"
-                  @click.stop="handleEditWorkflow(workflow)"
-                >
-                  <UserRoundPen />
-                </n-icon>
-                <n-popconfirm 
+                  @click="handleEditWorkflow(workflow)"
+                />
+                <Popconfirm 
                   v-if="activeTab === 'my'"
-                  positive-text="确定"
-                  negative-text="取消"
-                  @positive-click="handleDeleteWorkflow(workflow)"
+                  title="确定要删除这个工作流吗？"
+                  ok-text="确定"
+                  cancel-text="取消"
+                  @confirm="handleDeleteWorkflow(workflow)"
                 >
-                  <template #trigger>
-                    <n-icon class="action-icon delete">
-                      <X />
-                    </n-icon>
-                  </template>
-                  确定要删除这个工作流吗？
-                </n-popconfirm>
-              <n-icon 
-                class="action-icon lock"
-                :title="workflow.isPublic ? '已发布' : '未发布'"
-              >
-                <LockKeyhole v-if="!workflow.isPublic" />
-                <ExternalLink v-if="workflow.isPublic" />
-              </n-icon>
+                  <X class="action-icon delete" />
+                </Popconfirm>
+                <LockKeyhole 
+                  v-if="!workflow.isPublic"
+                  class="action-icon lock"
+                  title="未发布"
+                />
+                <ExternalLink 
+                  v-if="workflow.isPublic"
+                  class="action-icon lock"
+                  title="已发布"
+                />
               </div>
             </div>
           </div>
-        </n-spin>
+        </Spin>
       </div>
     </div>
 
     <!-- 收起/展开按钮 -->
     <div class="collapse-btn" @click="toggleCollapsed">
-      <n-icon>
-        <ChevronLeft v-if="!collapsed" />
-        <ChevronRight v-if="collapsed" />
-      </n-icon>
+      <ChevronLeft v-if="!collapsed" class="text-base" />
+      <ChevronRight v-if="collapsed" class="text-base" />
     </div>
 
     <!-- 新建/编辑工作流弹窗 -->
-    <n-modal v-model:show="showModal" preset="card" :title="modalTitle" style="width: 500px">
-      <n-form :model="formData" label-placement="left" label-width="80px">
-        <n-form-item label="标题" required>
-          <n-input v-model:value="formData.title" placeholder="如：翻译" />
-        </n-form-item>
-        <n-form-item label="备注">
-          <n-input v-model:value="formData.remark" placeholder="请输入" />
-        </n-form-item>
-        <n-form-item label="是否公开">
-          <n-switch v-model:value="formData.isPublic" />
-        </n-form-item>
-      </n-form>
+    <Modal v-model:open="showModal" :title="modalTitle" width="500px">
+      <Form :model="formData" :label-col="{ span: 5 }" :wrapper-col="{ span: 19 }">
+        <FormItem label="标题" required>
+          <Input v-model:value="formData.title" placeholder="如：翻译" />
+        </FormItem>
+        <FormItem label="备注">
+          <Input v-model:value="formData.remark" placeholder="请输入" />
+        </FormItem>
+        <FormItem label="是否公开">
+          <Switch v-model:checked="formData.isPublic" />
+        </FormItem>
+      </Form>
       <template #footer>
         <div class="modal-footer">
-          <n-button @click="showModal = false">取消</n-button>
-          <n-button 
+          <Button @click="showModal = false">取消</Button>
+          <Button 
             v-if="editingWorkflow" 
-            type="error" 
+            danger 
             @click="handleDeleteWorkflow(editingWorkflow!)"
           >
             删除
-          </n-button>
-          <n-button type="primary" @click="handleSaveWorkflow">
+          </Button>
+          <Button type="primary" @click="handleSaveWorkflow">
             {{ editingWorkflow ? '更新' : '新增' }}
-          </n-button>
+          </Button>
         </div>
       </template>
-    </n-modal>
+    </Modal>
   </div>
 </template>
 
@@ -334,41 +316,57 @@ onMounted(() => {
 .sidebar-header {
   padding: 16px;
   border-bottom: 1px solid #e0e0e0;
-  position: sticky; /* 顶部固定 */
+  position: sticky;
   top: 0;
   background: #fff;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .header-tabs {
-  display: flex;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
-.tab-item {
-  flex: 1;
-  padding: 8px 12px;
-  text-align: center;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
+.header-tabs :deep(.ant-tabs-nav) {
+  margin-bottom: 0;
+}
+
+.header-tabs :deep(.ant-tabs-tab) {
+  padding: 8px 0;
   font-size: 14px;
-}
-
-.tab-item.active {
-  background: #18a058;
-  color: white;
 }
 
 .new-btn {
   width: 100%;
+  height: 36px;
+  font-weight: 500;
 }
 
 .workflow-list {
   flex: 1;
-  overflow-y: auto; /* 内容过多时滚动 */
-  padding: 8px;
-  min-height: 0; /* 避免子元素把容器撑开 */
+  overflow-y: auto;
+  padding: 12px;
+  min-height: 0;
+}
+
+/* 美化滚动条 */
+.workflow-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.workflow-list::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.workflow-list::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 3px;
+}
+
+.workflow-list::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
 }
 
 .workflow-items {
@@ -390,20 +388,21 @@ onMounted(() => {
 }
 
 .workflow-item:hover {
-  border-color: #18a058;
-  box-shadow: 0 2px 8px rgba(24, 160, 88, 0.1);
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+  transform: translateY(-1px);
 }
 
 .workflow-item-selected {
-  border-color: #18a058 !important;
-  background-color: #f0f9ff;
-  box-shadow: 0 2px 8px rgba(24, 160, 88, 0.2);
+  border-color: #1890ff !important;
+  background-color: #e6f7ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
 }
 
 .workflow-item-selected:hover {
-  border-color: #18a058 !important;
-  background-color: #e6f7ff;
-  box-shadow: 0 2px 8px rgba(24, 160, 88, 0.3);
+  border-color: #1890ff !important;
+  background-color: #bae7ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
 }
 
 .workflow-info {
@@ -431,22 +430,32 @@ onMounted(() => {
 }
 
 .action-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: all 0.2s;
 }
 
 .action-icon.edit {
-  color: #18a058;
+  color: #1890ff;
+}
+
+.action-icon.edit:hover {
+  color: #40a9ff;
+  transform: scale(1.1);
 }
 
 .action-icon.delete {
-  color: #d03050;
+  color: #ff4d4f;
+}
+
+.action-icon.delete:hover {
+  color: #ff7875;
+  transform: scale(1.1);
 }
 
 .action-icon.lock {
-  color: #666;
+  color: #8c8c8c;
 }
 
 /* 工作流组件面板部分 */
@@ -527,7 +536,10 @@ onMounted(() => {
 }
 
 .collapse-btn:hover {
-  background: #f5f5f5;
+  background: #f0f9ff;
+  border-color: #1890ff;
+  color: #1890ff;
+  transform: translateY(-50%) scale(1.05);
 }
 
 .modal-footer {

@@ -10,7 +10,8 @@ const props = defineProps<Props>()
 const emit = defineEmits<{ (e: 'deleteNode', nodeUuid: string): void }>()
 const injectedDelete = inject<(uuid: string) => void>('wfOnDeleteNode')
 
-function handleMenuClick({ key }: { key: string }) {
+function handleMenuClick(info: { key: string | number }) {
+  const key = String(info.key)
   if (key === 'delete') {
     // 兼容两种触发：向上冒泡 或 直接注入调用
     if (injectedDelete) injectedDelete(props.wfNode.uuid)
@@ -34,8 +35,8 @@ const menuItems = [
     </div>
     <div class="flex-1 max-h-6 overflow-hidden text-nowrap">{{ wfNode.title }}</div>
     <div class="w-6 ml-2">
-      <Dropdown v-if="wfNode.wfComponent.name !== 'Start'" :menu="{ items: menuItems, onClick: handleMenuClick }">
-        <SvgIcon class="cursor-pointer" icon="ri:more-fill" />
+      <Dropdown v-if="wfNode.wfComponent.name !== 'Start'" :menu="{ items: menuItems, onClick: handleMenuClick }" trigger="hover">
+        <SvgIcon class="cursor-pointer hover:text-blue-500 transition-colors" icon="ri:more-fill" />
       </Dropdown>
     </div>
   </div>

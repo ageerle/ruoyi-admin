@@ -23,6 +23,9 @@ const props = withDefaults(defineProps<Props>(), {
   saving: false,
 })
 
+// 组件库收起状态
+const siderCollapsed = ref(false)
+
 const emit = defineEmits<{
   (e: 'save', workflow: WorkflowInfo): void
   (e: 'run', payload: { workflow: WorkflowInfo }): void
@@ -340,10 +343,20 @@ provide('wfOnDeleteNode', (uuid: string) => onDeleteNode(uuid))
 <template>
   <div class="workflow-designer-root">
     <!-- 左侧组件面板 -->
-    <div class="workflow-sider">
+    <div class="workflow-sider" :class="{ collapsed: siderCollapsed }">
       <div class="sider-header">
-        <div class="header-title">组件库</div>
-        <div class="header-subtitle">拖拽组件到画布</div>
+        <div class="header-content">
+          <div class="header-title">组件库</div>
+          <div class="header-subtitle">拖拽组件到画布</div>
+        </div>
+        <Button 
+          size="small" 
+          type="text" 
+          class="collapse-toggle"
+          @click="siderCollapsed = !siderCollapsed"
+        >
+          <SvgIcon :icon="siderCollapsed ? 'ri:arrow-right-s-line' : 'ri:arrow-left-s-line'" class="text-lg" />
+        </Button>
       </div>
       <div class="component-list">
         <template v-for="component in wfComponents" :key="component.name">
@@ -360,6 +373,11 @@ provide('wfOnDeleteNode', (uuid: string) => onDeleteNode(uuid))
           </div>
         </template>
       </div>
+    </div>
+    
+    <!-- 展开按钮（当侧边栏收起时显示） -->
+    <div v-if="siderCollapsed" class="sider-expand-btn" @click="siderCollapsed = false">
+      <SvgIcon icon="ri:arrow-right-s-line" class="text-lg" />
     </div>
     
     <!-- 右侧画布区域 -->
@@ -398,6 +416,14 @@ provide('wfOnDeleteNode', (uuid: string) => onDeleteNode(uuid))
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  overflow: hidden;
+}
+
+.workflow-sider.collapsed {
+  width: 0;
+  opacity: 0;
+  border-right: none;
 }
 
 /* 侧边栏头部 */
@@ -405,6 +431,15 @@ provide('wfOnDeleteNode', (uuid: string) => onDeleteNode(uuid))
   padding: 16px;
   border-bottom: 1px solid #e0e0e0;
   background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.header-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .header-title {
@@ -412,11 +447,54 @@ provide('wfOnDeleteNode', (uuid: string) => onDeleteNode(uuid))
   font-weight: 600;
   color: #333;
   margin-bottom: 4px;
+  white-space: nowrap;
 }
 
 .header-subtitle {
   font-size: 12px;
   color: #999;
+  white-space: nowrap;
+}
+
+.collapse-toggle {
+  padding: 4px;
+  height: auto;
+  min-width: auto;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.collapse-toggle:hover {
+  color: #1890ff;
+  background: #f0f9ff;
+}
+
+/* 展开按钮 */
+.sider-expand-btn {
+  position: absolute;
+  left: 0;
+  top: 16px;
+  width: 32px;
+  height: 48px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  color: #666;
+}
+
+.sider-expand-btn:hover {
+  background: #f0f9ff;
+  border-color: #1890ff;
+  color: #1890ff;
+  width: 36px;
 }
 
 /* 组件列表 */

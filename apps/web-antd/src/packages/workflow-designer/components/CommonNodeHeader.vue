@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { h, inject } from 'vue'
-import { Dropdown } from 'ant-design-vue'
+import { inject } from 'vue'
+import { Dropdown, Menu, MenuItem } from 'ant-design-vue'
 import SvgIcon from '../components/SvgIcon.vue'
 import { getIconByComponentName, getIconClassByComponentName } from '../utils/workflow-util'
 
@@ -18,14 +18,6 @@ function handleMenuClick(info: { key: string | number }) {
     else emit('deleteNode', props.wfNode.uuid)
   }
 }
-
-const menuItems = [
-  {
-    key: 'delete',
-    label: '删除',
-    icon: h(SvgIcon, { icon: 'ri:delete-bin-line', class: 'text-base cursor-pointer' }),
-  },
-]
 </script>
 
 <template>
@@ -34,9 +26,25 @@ const menuItems = [
       <SvgIcon class="text-xl" :class="getIconClassByComponentName(wfNode.wfComponent.name)" :icon="getIconByComponentName(wfNode.wfComponent.name)" />
     </div>
     <div class="flex-1 max-h-6 overflow-hidden text-nowrap">{{ wfNode.title }}</div>
-    <div class="w-6 ml-2">
-      <Dropdown v-if="wfNode.wfComponent.name !== 'Start'" :menu="{ items: menuItems, onClick: handleMenuClick }" trigger="hover">
-        <SvgIcon class="cursor-pointer hover:text-blue-500 transition-colors" icon="ri:more-fill" />
+    <div class="w-6 ml-2" @click.stop>
+      <Dropdown 
+        v-if="wfNode.wfComponent.name !== 'Start'" 
+        :trigger="['hover']"
+        placement="bottomRight"
+      >
+        <div class="dropdown-trigger">
+          <SvgIcon class="cursor-pointer hover:text-blue-500 transition-colors" icon="ri:more-fill" />
+        </div>
+        <template #overlay>
+          <Menu @click="handleMenuClick">
+            <MenuItem key="delete">
+              <div class="flex items-center gap-2">
+                <SvgIcon icon="ri:delete-bin-line" class="text-base" />
+                <span>删除</span>
+              </div>
+            </MenuItem>
+          </Menu>
+        </template>
       </Dropdown>
     </div>
   </div>

@@ -3,7 +3,7 @@ import type { VbenFormProps } from '@vben/common-ui';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 import type { WorkflowInfo } from '#/packages/workflow-designer/types/index.d';
 
-import { Page } from '@vben/common-ui';
+import { Page, useVbenModal } from '@vben/common-ui';
 import { getVxePopupContainer } from '@vben/utils';
 import { Modal, Popconfirm, Space, Button } from 'ant-design-vue';
 import { useRouter } from 'vue-router';
@@ -12,6 +12,7 @@ import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
 import { workflowApi } from '#/api/workflow';
 
 import { columns, querySchema } from './data';
+import WorkflowModal from './workflow-modal.vue';
 
 const router = useRouter();
 
@@ -58,32 +59,51 @@ const [BasicTable, tableApi] = useVbenVxeGrid({
   gridOptions,
 });
 
+const [WorkflowModalComponent, workflowModalApi] = useVbenModal({
+  connectedComponent: WorkflowModal,
+});
+
 // 新建工作流
-async function handleAdd() {
-  try {
-    const newWorkflow = await workflowApi.workflowUpdate({
-      uuid: `workflow-${Date.now()}`,
-      title: '新建工作流',
-      remark: '',
-      isPublic: false,
-      nodes: [],
-      edges: [],
-    });
-    
-    // 跳转到编辑页面
-    router.push({
-      name: 'WorkflowEdit',
-      params: { uuid: newWorkflow.uuid || newWorkflow.data?.uuid },
-    });
-  } catch (error: any) {
-    Modal.error({
-      title: '创建失败',
-      content: error.message || '创建工作流失败',
-    });
+function handleAdd() {
+  workflowModalApi.setData({});
+  workflowModalApi.open();
+}
+
+// 编辑工作流基本信息
+function handleEditInfo(record: WorkflowInfo) {
+  workflowModalApi.setData({
+    uuid: record.uuid,
+    title: record.title,
+    remark: record.remark,
+    isPublic: record.isPublic,
+  });
+  workflowModalApi.open();
+}
+
+// Modal操作成功回调
+async function handleReload(result?: any) {
+  // 判断是新建还是编辑
+  const data = workflowModalApi.getData() as { uuid?: string };
+  const isEdit = data?.uuid;
+  
+  if (isEdit) {
+    // 编辑模式：刷新列表
+    await tableApi.query();
+  } else {
+    // 新建模式：跳转到编辑页面
+    const uuid = result?.data?.uuid || result?.uuid;
+    if (uuid) {
+      router.push({
+        name: 'WorkflowEdit',
+        params: { uuid },
+      });
+    } else {
+      await tableApi.query();
+    }
   }
 }
 
-// 编辑工作流
+// 进入编辑器
 function handleEdit(record: WorkflowInfo) {
   router.push({
     name: 'WorkflowEdit',
@@ -141,8 +161,11 @@ function handleMultiDelete() {
       </template>
       <template #action="{ row }">
         <Space>
+          <ghost-button @click.stop="handleEditInfo(row)">
+            信息
+          </ghost-button>
           <ghost-button @click.stop="handleEdit(row)">
-            编辑
+            设计
           </ghost-button>
           <ghost-button @click.stop="handleRun(row)">
             运行
@@ -160,5 +183,6 @@ function handleMultiDelete() {
         </Space>
       </template>
     </BasicTable>
+    <WorkflowModalComponent @reload="handleReload" />
   </Page>
 </template>

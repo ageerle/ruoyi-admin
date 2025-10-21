@@ -37,6 +37,30 @@ const localRoutes: RouteRecordStringComponent[] = [
     },
     name: 'RoleAssign',
     path: '/system/role-assign/:roleId',
+  },
+  {
+    component: '/workflow/edit',
+    meta: {
+      activePath: '/workflow',
+      icon: 'carbon:flow',
+      title: '编辑工作流',
+      hideInMenu: true,
+      hideInTab: false,
+    },
+    name: 'WorkflowEdit',
+    path: '/workflow/edit/:uuid',
+  },
+  {
+    component: '/workflow/run',
+    meta: {
+      activePath: '/workflow',
+      icon: 'carbon:play',
+      title: '运行工作流',
+      hideInMenu: true,
+      hideInTab: false,
+    },
+    name: 'WorkflowRun',
+    path: '/workflow/run/:uuid',
   }
 ];
 

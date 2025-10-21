@@ -91,13 +91,15 @@ async function handleReload(result?: any) {
     await tableApi.query();
   } else {
     // 新建模式：跳转到编辑页面
-    const uuid = result?.data?.uuid || result?.uuid;
+    // 注意：requestClient 会自动解析响应，直接返回 data 字段
+    const uuid = result?.uuid;
     if (uuid) {
       router.push({
         name: 'WorkflowEdit',
         params: { uuid },
       });
     } else {
+      console.error('创建工作流成功，但未返回 uuid', result);
       await tableApi.query();
     }
   }

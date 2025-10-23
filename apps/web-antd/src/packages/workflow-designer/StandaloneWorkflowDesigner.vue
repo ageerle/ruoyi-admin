@@ -473,7 +473,7 @@ provide('wfOnDeleteNode', (uuid: string) => onDeleteNode(uuid))
 .sider-expand-btn {
   position: absolute;
   left: 0;
-  top: 16px;
+  top: 100px;
   width: 32px;
   height: 48px;
   background: white;

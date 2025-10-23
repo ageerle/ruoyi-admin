@@ -105,7 +105,12 @@ async function run() {
             const wfNodeMeta = (props.workflow?.nodes || []).find((n: any) => n.uuid === nodeUuid)
             if (wfNodeMeta) {
               ;(runtimeNode as any).nodeTitle = wfNodeMeta.title
-              ;(runtimeNode as any).wfComponent = wfNodeMeta.wfComponent
+              // 设置组件信息，支持两种数据结构
+              if (wfNodeMeta.wfComponent) {
+                ;(runtimeNode as any).wfComponent = wfNodeMeta.wfComponent
+              } else if (wfNodeMeta.workflowComponentId) {
+                ;(runtimeNode as any).workflowComponentId = wfNodeMeta.workflowComponentId
+              }
             }
             wfStore.appendRuntimeNode(wfRuntimeUuid.value, runtimeNode)
             runtimeNodes.push(runtimeNode)
@@ -265,7 +270,7 @@ onUnmounted(() => { if (wfStore.wfUuidToWfRuntimeLoading.get(currWfUuid)) contro
       <template v-if="!humanFeedback">
         <div v-for="(userInput, idx) in userInputs" :key="`${idx}_${userInput.name}`" class="w-full flex">
           <div class="min-w-24">{{ userInput.content.title }}</div>
-          <Input v-if="userInput.content.type === 1" v-model:value="userInput.content.value" type="textarea" :auto-size="{ minRows: 1, maxRows: 5 }" />
+          <Input.TextArea v-if="userInput.content.type === 1" v-model:value="userInput.content.value" :auto-size="{ minRows: 1, maxRows: 5 }" />
           <InputNumber v-if="userInput.content.type === 2" v-model:value="userInput.content.value" class="w-full" />
           <div v-if="userInput.content.type === 3" />
           <Upload v-if="userInput.content.type === 4" ref="uploadRef" multiple :action="getUploadAction()" :max-count="startNode?.inputConfig.user_inputs.find((item: any) => item.uuid === userInput.uuid)?.limit || 10" :headers="headers" :file-list="fileList" @change="handleFileListChange">
@@ -288,7 +293,7 @@ onUnmounted(() => { if (wfStore.wfUuidToWfRuntimeLoading.get(currWfUuid)) contro
           </div>
           <div class="flex flex-col w-full">
             <div v-if="humanFeedbackTip" class="text-sm leading-8">提示：{{ humanFeedbackTip }}</div>
-            <Input v-model:value="humanFeedbackContent" type="textarea" :auto-size="{ minRows: 2, maxRows: 5 }" />
+            <Input.TextArea v-model:value="humanFeedbackContent" :auto-size="{ minRows: 2, maxRows: 5 }" />
           </div>
           <div class="flex justify-end"><Button type="primary" @click="resume">提交</Button></div>
         </div>

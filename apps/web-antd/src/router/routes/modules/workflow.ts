@@ -26,7 +26,7 @@ const routes: RouteRecordRaw[] = [
         meta: {
           hideInMenu: true,
           hideInTab: false,
-          title: '编辑工作流',
+          title: '设计工作流',
           activePath: '/workflow',
         },
       },

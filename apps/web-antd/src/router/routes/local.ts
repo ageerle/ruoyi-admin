@@ -43,7 +43,7 @@ const localRoutes: RouteRecordStringComponent[] = [
     meta: {
       activePath: '/workflow',
       icon: 'carbon:flow',
-      title: '编辑工作流',
+      title: '设计工作流',
       hideInMenu: true,
       hideInTab: false,
     },

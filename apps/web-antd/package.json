@@ -28,6 +28,7 @@
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
     "@antv/g6": "^5.0.49",
+    "@iconify/vue": "^5.0.0",
     "@tinymce/tinymce-vue": "^6.0.1",
     "@vben/access": "workspace:*",
     "@vben/common-ui": "workspace:*",
@@ -43,6 +44,8 @@
     "@vben/styles": "workspace:*",
     "@vben/types": "workspace:*",
     "@vben/utils": "workspace:*",
+    "@vue-flow/background": "^1.3.2",
+    "@vue-flow/core": "^1.46.5",
     "@vueuse/core": "catalog:",
     "ant-design-vue": "catalog:",
     "cropperjs": "^1.6.2",
@@ -53,9 +56,11 @@
     "echarts-gl": "^2.0.9",
     "jsencrypt": "^3.3.2",
     "lodash-es": "^4.17.21",
+    "naive-ui": "^2.43.1",
     "pinia": "catalog:",
     "tinymce": "^7.3.0",
     "unplugin-vue-components": "^0.27.3",
+    "uuid": "^9.0.0",
     "vue": "catalog:",
     "vue-router": "catalog:"
   },

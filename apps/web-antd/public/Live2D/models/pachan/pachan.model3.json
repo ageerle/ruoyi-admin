@@ -1,0 +1,23 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "pachirisu anime girl - top half.moc3",
+		"Textures": [
+			"pachirisu anime girl - top half.4096/texture_00.png"
+		],
+		"Physics": "pachirisu anime girl - top half.physics3.json",
+		"DisplayInfo": "pachirisu anime girl - top half.cdi3.json"
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": []
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": []
+		}
+	]
+}

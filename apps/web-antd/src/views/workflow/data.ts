@@ -2,6 +2,7 @@ import type { FormSchemaGetter } from '#/adapter/form';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 
 import { h } from 'vue';
+import { Tag } from 'ant-design-vue';
 import { getPopupContainer } from '@vben/utils';
 
 export const querySchema: FormSchemaGetter = () => [
@@ -55,9 +56,9 @@ export const columns: VxeGridProps['columns'] = [
     slots: {
       default: ({ row }) => {
         if (row.isPublic) {
-          return h('span', { class: 'text-green-600' }, '是');
+          return h(Tag, { color: 'green' }, () => '公开');
         }
-        return h('span', { class: 'text-gray-400' }, '否');
+        return h(Tag, { color: 'default' }, () => '私有');
       },
     },
   },

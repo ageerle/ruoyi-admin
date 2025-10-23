@@ -26,7 +26,7 @@ export const workflowApi = {
   },
 
   workflowGet<T = any>(uuid: string) {
-    return adapters.httpGet<T>(`/workflow/get/${uuid}`)
+    return adapters.httpGet<T>(`/workflow/${uuid}`)
   },
 
   workflowPage<T = any>(params: { 

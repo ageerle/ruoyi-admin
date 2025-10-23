@@ -209,7 +209,14 @@ function handleClick() {
 
 function findStartNodeFromWorkflow() {
   return Array.isArray(props.workflow?.nodes)
-    ? props.workflow.nodes.find((n: any) => n?.wfComponent?.name === 'Start')
+    ? props.workflow.nodes.find((n: any) => {
+        // 优先检查 wfComponent.name（编辑时的数据结构）
+        if (n?.wfComponent?.name === 'Start') return true;
+        // 检查 workflowComponentId（后端返回的数据结构）
+        // 后端返回的是字符串，需要转换为数字比较
+        if (Number(n?.workflowComponentId) === 1) return true;
+        return false;
+      })
     : null
 }
 

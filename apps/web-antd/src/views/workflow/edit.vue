@@ -137,11 +137,26 @@ function handleCancel() {
   });
 }
 
-// 运行工作流（暂不实现，跳转到运行页面）
-function handleRun() {
-  Modal.warning({
+// 运行工作流
+async function handleRun() {
+  Modal.confirm({
     title: '提示',
-    content: '请先保存工作流后再运行',
+    content: '运行前需要先保存工作流，是否继续？',
+    okText: '保存并运行',
+    cancelText: '取消',
+    onOk: async () => {
+      try {
+        // 先保存工作流
+        await handleSave(workflow.value);
+        // 保存成功后跳转到运行页面
+        router.push({
+          name: 'WorkflowRun',
+          params: { uuid: workflow.value.uuid },
+        });
+      } catch (error) {
+        message.error('保存失败，无法运行工作流');
+      }
+    },
   });
 }
 

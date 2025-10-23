@@ -29,8 +29,19 @@ export const workflowApi = {
     return adapters.httpGet<T>(`/workflow/get/${uuid}`)
   },
 
-  workflowPage<T = any>(params: { pageNum: number; pageSize: number; title?: string; type?: string }) {
-    return adapters.httpPost<T>('/workflow/page', params)
+  workflowPage<T = any>(params: { 
+    currentPage: number; 
+    pageSize: number; 
+    wfSearchReq: { 
+      title?: string; 
+      isEnable?: boolean; 
+      isPublic?: boolean; 
+    } 
+  }) {
+    const { currentPage, pageSize, wfSearchReq } = params
+    return adapters.httpPost<T>('/admin/workflow/search', wfSearchReq, {
+      params: { currentPage, pageSize }
+    })
   },
 
   workflowComponents<T = any>() {

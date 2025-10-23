@@ -40,11 +40,17 @@ const gridOptions: VxeGridProps = {
     ajax: {
       query: async ({ page }, formValues = {}) => {
         const result = await workflowApi.workflowPage({
-          pageNum: page.currentPage,
+          currentPage: page.currentPage,
           pageSize: page.pageSize,
-          ...formValues,
+          wfSearchReq: {
+            ...formValues,
+          },
         });
-        return result;
+        // 转换数据结构以匹配 VXE 表格期望的格式
+        return {
+          rows: result.records,
+          total: result.total,
+        };
       },
     },
   },
@@ -164,7 +170,7 @@ function handleMultiDelete() {
       <template #action="{ row }">
         <Space>
           <ghost-button @click.stop="handleEditInfo(row)">
-            信息
+            编辑
           </ghost-button>
           <ghost-button @click.stop="handleEdit(row)">
             设计

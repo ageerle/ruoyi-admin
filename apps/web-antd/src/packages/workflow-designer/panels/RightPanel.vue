@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { NInput } from 'naive-ui'
+import { Input } from 'ant-design-vue'
 import SvgIcon from '../components/SvgIcon.vue'
 import { getIconByComponentName, getIconClassByComponentName } from '../utils/workflow-util'
 import GenericNodeProperty from '../properties/GenericNodeProperty.vue'
@@ -53,7 +53,7 @@ const resolvedPropertyComponent = computed(() => {
       <div class="w-full flex flex-col border-b divide-gray-400 pb-3 mb-5">
         <div class="text-3xl flex items-center h-10 mb-2">
           <SvgIcon class="mt-1 mr-2" :class="getIconClassByComponentName(wfNode?.wfComponent?.name || '')" :icon="getIconByComponentName(wfNode?.wfComponent?.name || '')" />
-          <NInput v-model:value="nodeTitle" placeholder="节点名称" class="h-8 border-gray-100" style="font-size: 1rem;line-height: 1.5rem;font-weight: 700;" />
+          <Input v-model:value="nodeTitle" placeholder="节点名称" class="h-8 border-gray-100" style="font-size: 1rem;line-height: 1.5rem;font-weight: 700;" />
         </div>
         <div class="text-sm text-gray-500">组件功能：{{ wfNode?.wfComponent?.remark || '' }}</div>
       </div>

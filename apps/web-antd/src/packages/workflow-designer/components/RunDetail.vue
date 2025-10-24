@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { nextTick, onUnmounted, reactive, ref, watch } from 'vue'
-import { NButton, NInput, NInputNumber, NP, NSwitch, NTab, NTabPane, NTabs, NText, NUpload, NUploadDragger, useMessage } from 'naive-ui'
-import type { UploadFileInfo, UploadInst } from 'naive-ui'
+import { Button, Input, InputNumber, Switch, Tabs, Upload, message } from 'ant-design-vue'
+import type { UploadFile } from 'ant-design-vue'
 import RuntimeNodes from './RuntimeNodes.vue'
 import SvgIcon from './SvgIcon.vue'
 import { workflowRun, workflowRuntimeResume, getUploadAction } from '#/api/workflow'
@@ -16,7 +16,6 @@ const emit = defineEmits<Emit>()
 const headers: Record<string, string> = { Authorization: '' }
 const wfStore = useWfStore()
 const token = ref<string>('')
-const ms = useMessage()
 const submitting = ref<boolean>(wfStore.submitting)
 const startNode = ref<any>(null)
 const wfRuntimeUuid = ref<string>('')
@@ -28,7 +27,8 @@ const currWfUuid = props.workflow.uuid
 const showCurrentExecution = ref<boolean>(false)
 const tabObj = ref<TabObj>({ name: 'runtimes', defaultTab: '流程执行详情', tab: '流程执行详情 ↓' })
 const fileListLength = ref(0)
-const uploadRef = ref<UploadInst | null>(null)
+const uploadRef = ref<any>(null)
+const fileList = ref<UploadFile[]>([])
 const uploadedFileUuids = ref<string[]>([])
 const humanFeedback = ref<boolean>(false)
 const humanFeedbackTip = ref<string>('')
@@ -43,13 +43,11 @@ function onKeydown(e: KeyboardEvent) {
 
 async function uploadBeforeRun() {
   uploadedFileUuids.value = []
-  if (uploadRef.value && Array.isArray(uploadRef.value) && uploadRef.value.length > 0) uploadRef.value[0]?.submit()
-  else if (uploadRef.value) uploadRef.value?.submit()
+  // Antd的Upload组件自动提交，无需手动调用submit
 }
 
 async function resetInputs() {
-  if (uploadRef.value && Array.isArray(uploadRef.value) && uploadRef.value.length > 0) uploadRef.value.forEach((item: any) => item.clear())
-  else if (uploadRef.value) uploadRef.value?.clear()
+  fileList.value = []
   uploadedFileUuids.value = []
   userInputs.value.forEach((input: any) => { input.content.value = null })
 }
@@ -59,7 +57,7 @@ async function run() {
 
   for (const input of userInputs.value) {
     if (input.required && input.content.type === 4 && input.content.value === null && fileListLength.value === 0) {
-      ms.warning('请上传文件')
+      message.warning('请上传文件')
       return
     }
   }
@@ -73,7 +71,7 @@ async function run() {
     }
   }
 
-  if (userInputs.value.some((input: any) => input.required && input.content.value === null)) { ms.warning('请输入所有必填参数'); return }
+  if (userInputs.value.some((input: any) => input.required && input.content.value === null)) { message.warning('请输入所有必填参数'); return }
 
   submitting.value = true
   showCurrentExecution.value = true
@@ -88,7 +86,7 @@ async function run() {
       options: { uuid: currWfUuid, inputs: userInputs.value },
       signal: controller.signal,
       startCallback: (wfRuntimeJson) => {
-        if (!wfRuntimeJson) { ms.error('启动失败'); return }
+        if (!wfRuntimeJson) { message.error('启动失败'); return }
         const wfRuntime = JSON.parse(wfRuntimeJson)
         wfRuntime.input = {}
         userInputs.value.forEach((item: any) => { wfRuntime.input[item.name] = { ...item.content } })
@@ -107,7 +105,12 @@ async function run() {
             const wfNodeMeta = (props.workflow?.nodes || []).find((n: any) => n.uuid === nodeUuid)
             if (wfNodeMeta) {
               ;(runtimeNode as any).nodeTitle = wfNodeMeta.title
-              ;(runtimeNode as any).wfComponent = wfNodeMeta.wfComponent
+              // 设置组件信息，支持两种数据结构
+              if (wfNodeMeta.wfComponent) {
+                ;(runtimeNode as any).wfComponent = wfNodeMeta.wfComponent
+              } else if (wfNodeMeta.workflowComponentId) {
+                ;(runtimeNode as any).workflowComponentId = wfNodeMeta.workflowComponentId
+              }
             }
             wfStore.appendRuntimeNode(wfRuntimeUuid.value, runtimeNode)
             runtimeNodes.push(runtimeNode)
@@ -141,7 +144,7 @@ async function run() {
           } else if (eventName.includes('[NODE_WAIT_FEEDBACK_BY_')) {
             humanFeedback.value = true
             humanFeedbackTip.value = chunk || ''
-            ms.info(humanFeedbackTip.value)
+            message.info(humanFeedbackTip.value)
           }
         } catch (error) { console.error(error) }
       },
@@ -151,14 +154,14 @@ async function run() {
           resetInputs()
           wfStore.updateSuccess(currWfUuid, wfRuntimeUuid.value, chunk)
           runtimeErrorMsg.value = ''
-          ms.success('执行成功')
+          message.success('执行成功')
           emit('runDone')
         })
       },
       errorCallback: (error) => {
         submitting.value = false
         resetInputs()
-        ms.error(`系统提示：${error}`)
+        message.error(`系统提示：${error}`)
         wfStore.updateErrorMsg(currWfUuid, wfRuntimeUuid.value, error)
         runtimeErrorMsg.value = error || ''
         emit('runError', error)
@@ -166,7 +169,7 @@ async function run() {
     })
   } catch (error: any) {
     const errorMessage = error?.message ?? '执行出错'
-    ms.error(errorMessage)
+    message.error(errorMessage)
     submitting.value = false
   }
 }
@@ -176,7 +179,7 @@ async function resume() {
   try {
     await workflowRuntimeResume({ runtimeUuid: wfRuntimeUuid.value, feedbackContent: humanFeedbackContent.value })
   } catch (e) {
-    ms.error(`系统提示：${e}`)
+    message.error(`系统提示：${e}`)
   } finally {
     humanFeedback.value = false
     humanFeedbackTip.value = ''
@@ -184,17 +187,19 @@ async function resume() {
   }
 }
 
-function onUploadChange(options: { fileList: UploadFileInfo[] }) { console.log('onUploadChange', options) }
-
-function handleFileListChange(fileList: UploadFileInfo[]) {
-  fileListLength.value = fileList.length
-  if (uploadedFileUuids.value.length === fileListLength.value) run()
-}
-
-function onUploadFinish({ file, event }: { file: UploadFileInfo; event?: ProgressEvent }) {
-  const res = JSON.parse((event?.target as XMLHttpRequest).response)
-  if (res.success) uploadedFileUuids.value.push(res.data.uuid)
-  return file
+function handleFileListChange(info: any) {
+  fileList.value = info.fileList
+  fileListLength.value = info.fileList.length
+  
+  if (info.file.status === 'done') {
+    const res = info.file.response
+    if (res && res.success) {
+      uploadedFileUuids.value.push(res.data.uuid)
+      if (uploadedFileUuids.value.length === fileListLength.value) {
+        run()
+      }
+    }
+  }
 }
 
 function handleStop() {
@@ -209,7 +214,14 @@ function handleClick() {
 
 function findStartNodeFromWorkflow() {
   return Array.isArray(props.workflow?.nodes)
-    ? props.workflow.nodes.find((n: any) => n?.wfComponent?.name === 'Start')
+    ? props.workflow.nodes.find((n: any) => {
+        // 优先检查 wfComponent.name（编辑时的数据结构）
+        if (n?.wfComponent?.name === 'Start') return true;
+        // 检查 workflowComponentId（后端返回的数据结构）
+        // 后端返回的是字符串，需要转换为数字比较
+        if (Number(n?.workflowComponentId) === 1) return true;
+        return false;
+      })
     : null
 }
 
@@ -239,43 +251,39 @@ onUnmounted(() => { if (wfStore.wfUuidToWfRuntimeLoading.get(currWfUuid)) contro
 
 <template>
   <div class="w-full max-w-screen-xl m-auto z-10" @keydown="onKeydown">
-    <NTabs type="line" justify-content="space-evenly" animated default-value="runtimes">
-      <NTab name="runtimes" @click="handleClick">{{ tabObj.tab }}</NTab>
-    </NTabs>
-    <NTabs type="line" justify-content="space-evenly" animated>
-      <NTabPane name="runtimes" display-directive="show" :tab-props="{ style: 'display:none' }">
-        <transition name="collapse">
-          <div v-show="showCurrentExecution" class="max-h-[500px] overflow-y-auto mb-2">
-            <RuntimeNodes :nodes="runtimeNodes" :workflow="workflow" :error-msg="runtimeErrorMsg" :token="token" />
-            <div class="sticky bottom-0 left-0 flex justify-center">
-              <NButton v-show="submitting" size="tiny" @click="handleStop">
-                <template #icon><SvgIcon icon="ri:stop-circle-line" /></template>
-                停止请求
-              </NButton>
-            </div>
-          </div>
-        </transition>
-      </NTabPane>
-    </NTabs>
+    <Tabs :active-key="tabObj.name" type="line" @click="handleClick">
+      <Tabs.TabPane key="runtimes" :tab="tabObj.tab" />
+    </Tabs>
+    <transition name="collapse">
+      <div v-show="showCurrentExecution" class="max-h-[500px] overflow-y-auto mb-2">
+        <RuntimeNodes :nodes="runtimeNodes" :workflow="workflow" :error-msg="runtimeErrorMsg" :token="token" />
+        <div class="sticky bottom-0 left-0 flex justify-center">
+          <Button v-show="submitting" size="small" @click="handleStop">
+            <template #icon><SvgIcon icon="ri:stop-circle-line" /></template>
+            停止请求
+          </Button>
+        </div>
+      </div>
+    </transition>
     <div v-if="errorMsg">{{ errorMsg }}</div>
     <div class="flex flex-col items-center justify-between space-y-2 max-h-[300px] overflow-y-auto">
       <template v-if="!humanFeedback">
         <div v-for="(userInput, idx) in userInputs" :key="`${idx}_${userInput.name}`" class="w-full flex">
           <div class="min-w-24">{{ userInput.content.title }}</div>
-          <NInput v-if="userInput.content.type === 1" v-model:value="userInput.content.value" type="textarea" :autosize="{ minRows: 1, maxRows: 5 }" />
-          <NInputNumber v-if="userInput.content.type === 2" v-model:value="userInput.content.value" />
+          <Input.TextArea v-if="userInput.content.type === 1" v-model:value="userInput.content.value" :auto-size="{ minRows: 1, maxRows: 5 }" />
+          <InputNumber v-if="userInput.content.type === 2" v-model:value="userInput.content.value" class="w-full" />
           <div v-if="userInput.content.type === 3" />
-          <NUpload v-if="userInput.content.type === 4" ref="uploadRef" multiple directory-dnd :action="getUploadAction()" :default-upload="false" :max="startNode?.inputConfig.user_inputs.find((item: any) => item.uuid === userInput.uuid)?.limit || 10" :headers="headers" @update:file-list="handleFileListChange" @finish="onUploadFinish" @change="onUploadChange">
-            <NUploadDragger>
-              <NText style="font-size: 16px">点击或者拖动文件到该区域来上传</NText>
-              <NP depth="2" style="margin: 4px 0 0 0">文件格式: TXT、PDF、DOC、DOCX、XLS、XLXS、PPT、PPTX；文件大小：不超过10M</NP>
-            </NUploadDragger>
-          </NUpload>
-          <NSwitch v-if="userInput.content.type === 5" v-model:value="userInput.content.value" />
+          <Upload v-if="userInput.content.type === 4" ref="uploadRef" multiple :action="getUploadAction()" :max-count="startNode?.inputConfig.user_inputs.find((item: any) => item.uuid === userInput.uuid)?.limit || 10" :headers="headers" :file-list="fileList" @change="handleFileListChange">
+            <Upload.Dragger>
+              <div style="font-size: 16px">点击或者拖动文件到该区域来上传</div>
+              <div style="margin: 4px 0 0 0; color: #999">文件格式: TXT、PDF、DOC、DOCX、XLS、XLXS、PPT、PPTX；文件大小：不超过10M</div>
+            </Upload.Dragger>
+          </Upload>
+          <Switch v-if="userInput.content.type === 5" v-model:checked="userInput.content.value" />
         </div>
         <div class="w-full flex items-center justify-between text-xs text-gray-400" @keydown.enter="run">
           <div>按 Enter 提交，Shift + Enter 换行</div>
-          <NButton type="primary" :disabled="submitting" :loading="submitting" @click="run">提交</NButton>
+          <Button type="primary" :disabled="submitting" :loading="submitting" @click="run">提交</Button>
         </div>
       </template>
       <template v-if="humanFeedback">
@@ -285,9 +293,9 @@ onUnmounted(() => { if (wfStore.wfUuidToWfRuntimeLoading.get(currWfUuid)) contro
           </div>
           <div class="flex flex-col w-full">
             <div v-if="humanFeedbackTip" class="text-sm leading-8">提示：{{ humanFeedbackTip }}</div>
-            <NInput v-model:value="humanFeedbackContent" type="textarea" :autosize="{ minRows: 2, maxRows: 5 }" />
+            <Input.TextArea v-model:value="humanFeedbackContent" :auto-size="{ minRows: 2, maxRows: 5 }" />
           </div>
-          <div class="flex justify-end"><NButton type="primary" @click="resume">提交</NButton></div>
+          <div class="flex justify-end"><Button type="primary" @click="resume">提交</Button></div>
         </div>
       </template>
     </div>

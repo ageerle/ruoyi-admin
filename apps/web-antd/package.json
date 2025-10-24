@@ -27,7 +27,6 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
-    "@iconify/vue": "^5.0.0",
     "@tinymce/tinymce-vue": "^6.0.1",
     "@vben/access": "workspace:*",
     "@vben/common-ui": "workspace:*",
@@ -53,7 +52,6 @@
     "echarts": "^5.5.1",
     "jsencrypt": "^3.3.2",
     "lodash-es": "^4.17.21",
-    "naive-ui": "^2.43.1",
     "pinia": "catalog:",
     "tinymce": "^7.3.0",
     "unplugin-vue-components": "^0.27.3",

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import { NInput, NSelect } from 'naive-ui'
+import { Input, Select } from 'ant-design-vue'
 import type { WorkflowInfo, WorkflowNode } from '../types/index.d'
 import { requestClient } from '#/api/request'
 import WfVariableSelector from '../components/WfVariableSelector.vue'
@@ -50,11 +50,11 @@ watch(() => nodeConfig.model_name, (val) => {
     <WfVariableSelector :workflow="workflow" :wf-node="wfNode" :exclude-nodes="[wfNode.uuid]" />
     <div class="mt-2">
       <div class="text-sm mb-1">模型名</div>
-      <NSelect v-model:value="nodeConfig.model_name" :options="modelOptions" filterable clearable placeholder="请选择模型" />
+      <Select v-model:value="nodeConfig.model_name" :options="modelOptions" show-search :allow-clear="true" placeholder="请选择模型" class="w-full" />
     </div>
     <div class="mt-4">
       <div class="text-sm mb-1">提示词</div>
-      <NInput v-model:value="nodeConfig.prompt" type="textarea" :autosize="{ minRows: 3, maxRows: 8 }" />
+      <Input v-model:value="nodeConfig.prompt" type="textarea" :auto-size="{ minRows: 3, maxRows: 8 }" />
     </div>
   </div>
 </template>

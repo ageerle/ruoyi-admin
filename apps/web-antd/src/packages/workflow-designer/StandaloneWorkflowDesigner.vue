@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onMounted, reactive, ref, computed, provide, watch, markRaw } from 'vue'
-import { NButton, NLayout, NLayoutContent, NLayoutSider, useMessage } from 'naive-ui'
+import { Button, message } from 'ant-design-vue'
 import type { Edge, Node, NodeChange, EdgeChange, Connection, NodeMouseEvent } from '@vue-flow/core'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
@@ -23,13 +23,15 @@ const props = withDefaults(defineProps<Props>(), {
   saving: false,
 })
 
+// 组件库收起状态
+const siderCollapsed = ref(false)
+
 const emit = defineEmits<{
   (e: 'save', workflow: WorkflowInfo): void
   (e: 'run', payload: { workflow: WorkflowInfo }): void
   (e: 'deleteNode', nodeUuid: string): void
 }>()
 
-const ms = useMessage()
 const hidePropertyPanel = ref<boolean>(true)
 const selectedWfNode = ref<WorkflowNode>()
 const { onInit, fitView, onConnect, onEdgesChange, onNodesChange, onNodeClick, onEdgeClick, onNodeDragStop, addSelectedNodes, project, getNodes } = useVueFlow()
@@ -221,8 +223,8 @@ const wrapper = ref()
 function onDrop(event: DragEvent) {
   const comName = event.dataTransfer?.getData('application/vueflow') as string
   const component = props.wfComponents.find((c: WorkflowComponent) => c.name === comName)
-  if (!component) { ms.warning('组件未找到'); return }
-  if (comName === 'Start' && props.workflow.nodes.some((n: WorkflowNode) => n.wfComponent?.name === 'Start')) { ms.warning('开始节点只能有一个'); return }
+  if (!component) { message.warning('组件未找到'); return }
+  if (comName === 'Start' && props.workflow.nodes.some((n: WorkflowNode) => n.wfComponent?.name === 'Start')) { message.warning('开始节点只能有一个'); return }
   const flowbounds = (wrapper.value as any).$el.getBoundingClientRect()
   const position = project({ x: event.clientX - flowbounds.left, y: event.clientY - flowbounds.top })
   createNewNode(props.workflow, uiWorkflow, component, position)
@@ -339,39 +341,56 @@ provide('wfOnDeleteNode', (uuid: string) => onDeleteNode(uuid))
 </script>
 
 <template>
-  <div class="chat-box flex flex-col w-full h-full">
-    <main class="flex-1 overflow-hidden">
-      <div class="h-full overflow-hidden overflow-y-auto">
-        <div class="flex h-full">
-          <div class="flex-1 dndflow" @drop="onDrop">
-            <NLayout has-sider class="h-full">
-              <NLayoutSider collapse-mode="transform" show-trigger="bar" :collapsed-width="12" :width="240" :show-collapsed-content="false" content-style="padding: 12px;" bordered>
-                <aside>
-                  <div class="flex flex-col w-full">
-                    <template v-for="component in wfComponents" :key="component.name">
-                      <div v-if="component.isEnable !== false" class="flex mt-2 border border-gray-200 cursor-grab text-base h-10 pl-1.5 rounded" :draggable="true" @dragstart="onPaletteDragStart($event, component.name)">
-                        <SvgIcon class="mt-3 mr-2" :class="getIconClassByComponentName(component.name)" :icon="getIconByComponentName(component.name)" />
-                        <div class="leading-10">{{ component.title }}</div>
-                      </div>
-                    </template>
-                  </div>
-                </aside>
-              </NLayoutSider>
-              <NLayoutContent class="h-full" style="background:#f5f5f5">
-                <VueFlow ref="wrapper" :nodes="uiWorkflow.nodes" :edges="uiWorkflow.edges" :node-types="nodeTypes" :edge-types="edgeTypes" fit-view-on-init @dragover="onDragOver">
-                  <Background />
-                </VueFlow>
-                <RightPanel :workflow="props.workflow" :ui-workflow="uiWorkflow" :hide-property-panel="hidePropertyPanel" :wf-node="selectedWfNode" />
-                <div class="absolute right-5 top-3 flex items-center">
-                  <NButton :disabled="props.saving" text-color="black" color="white" style="margin-right:1.5rem" class="shadow-lg" @click="onRun">运 行</NButton>
-                  <NButton :disabled="props.saving" :loading="props.saving" type="info" class="shadow-lg" @click="onSave">保 存</NButton>
-                </div>
-              </NLayoutContent>
-            </NLayout>
-          </div>
+  <div class="workflow-designer-root">
+    <!-- 左侧组件面板 -->
+    <div class="workflow-sider" :class="{ collapsed: siderCollapsed }">
+      <div class="sider-header">
+        <div class="header-content">
+          <div class="header-title">组件库</div>
+          <div class="header-subtitle">拖拽组件到画布</div>
         </div>
+        <Button 
+          size="small" 
+          type="text" 
+          class="collapse-toggle"
+          @click="siderCollapsed = !siderCollapsed"
+        >
+          <SvgIcon :icon="siderCollapsed ? 'ri:arrow-right-s-line' : 'ri:arrow-left-s-line'" class="text-lg" />
+        </Button>
       </div>
-    </main>
+      <div class="component-list">
+        <template v-for="component in wfComponents" :key="component.name">
+          <div 
+            v-if="component.isEnable !== false" 
+            class="component-item" 
+            :draggable="true" 
+            @dragstart="onPaletteDragStart($event, component.name)"
+          >
+            <div class="component-icon">
+              <SvgIcon :class="getIconClassByComponentName(component.name)" :icon="getIconByComponentName(component.name)" />
+            </div>
+            <div class="component-name">{{ component.title }}</div>
+          </div>
+        </template>
+      </div>
+    </div>
+    
+    <!-- 展开按钮（当侧边栏收起时显示） -->
+    <div v-if="siderCollapsed" class="sider-expand-btn" @click="siderCollapsed = false">
+      <SvgIcon icon="ri:arrow-right-s-line" class="text-lg" />
+    </div>
+    
+    <!-- 右侧画布区域 -->
+    <div class="workflow-canvas-container" @drop="onDrop" @dragover="onDragOver">
+      <VueFlow ref="wrapper" :nodes="uiWorkflow.nodes" :edges="uiWorkflow.edges" :node-types="nodeTypes" :edge-types="edgeTypes" fit-view-on-init class="workflow-canvas">
+        <Background />
+      </VueFlow>
+      <RightPanel :workflow="props.workflow" :ui-workflow="uiWorkflow" :hide-property-panel="hidePropertyPanel" :wf-node="selectedWfNode" />
+      <div class="canvas-toolbar">
+        <Button :disabled="props.saving" class="toolbar-btn toolbar-btn-default" @click="onRun">运 行</Button>
+        <Button :disabled="props.saving" :loading="props.saving" type="primary" class="toolbar-btn" @click="onSave">保 存</Button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -379,17 +398,284 @@ provide('wfOnDeleteNode', (uuid: string) => onDeleteNode(uuid))
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 
-.dndflow { flex-direction: column; display: flex; height: 100%; }
-.dndflow aside { border-right: 1px solid #eee; padding: 15px 10px; font-size: 12px; background: #fcfcfc; }
-.dndflow aside>* { margin-bottom: 10px; }
-.vue-flow__node { border: 1px solid #eee; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); padding: 10px; border-radius: 10px; background: #FFF; display: flex; flex-direction: column; justify-content: space-between; align-items: center; gap: 10px; width: 220px; }
-.vue-flow__node.selected { border: 1px solid #2563eb; padding: 10px; border-radius: 10px; }
-.vue-flow__node.selected .vue-flow__handle { background: #2563eb; }
-.vue-flow__edge.selected .vue-flow__edge-path { stroke: #2563eb; stroke-width: 1.5; }
-.vue-flow__handle { background: #555; height: 16px; width: 8px; border-radius: 4px }
-.vue-flow__node .header { height: 45px; line-height: 45px; margin-bottom: 10px; text-align: center; font-weight: 600; }
-.vue-flow__node .content_line { height: 40px; line-height: 40px; background: #9696961a; margin-bottom: 10px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-@media screen and (min-width: 768px) { .dndflow { flex-direction: row; } }
+/* 工作流设计器根容器 */
+.workflow-designer-root {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+/* 左侧组件面板 */
+.workflow-sider { 
+  width: 260px; 
+  height: 100%;
+  background: white;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  overflow: hidden;
+}
+
+.workflow-sider.collapsed {
+  width: 0;
+  opacity: 0;
+  border-right: none;
+}
+
+/* 侧边栏头部 */
+.sider-header {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
+.header-subtitle {
+  font-size: 12px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.collapse-toggle {
+  padding: 4px;
+  height: auto;
+  min-width: auto;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.collapse-toggle:hover {
+  color: #1890ff;
+  background: #f0f9ff;
+}
+
+/* 展开按钮 */
+.sider-expand-btn {
+  position: absolute;
+  left: 0;
+  top: 100px;
+  width: 32px;
+  height: 48px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+  color: #666;
+}
+
+.sider-expand-btn:hover {
+  background: #f0f9ff;
+  border-color: #1890ff;
+  color: #1890ff;
+  width: 36px;
+}
+
+/* 组件列表 */
+.component-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+/* 美化滚动条 */
+.component-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.component-list::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.component-list::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 3px;
+}
+
+.component-list::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}
+
+/* 组件项 */
+.component-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.component-item:hover {
+  border-color: #1890ff;
+  background: #f0f9ff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.component-item:active {
+  cursor: grabbing;
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(24, 144, 255, 0.2);
+}
+
+.component-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.component-name {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.vue-flow__node { 
+  border: 1px solid #eee; 
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); 
+  padding: 10px; 
+  border-radius: 10px; 
+  background: #FFF; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: space-between; 
+  align-items: center; 
+  gap: 10px; 
+  width: 220px; 
+}
+
+.vue-flow__node.selected { 
+  border: 1px solid #2563eb; 
+  padding: 10px; 
+  border-radius: 10px; 
+}
+
+.vue-flow__node.selected .vue-flow__handle { 
+  background: #2563eb; 
+}
+
+.vue-flow__edge.selected .vue-flow__edge-path { 
+  stroke: #2563eb; 
+  stroke-width: 1.5; 
+}
+
+.vue-flow__handle { 
+  background: #555; 
+  height: 16px; 
+  width: 8px; 
+  border-radius: 4px;
+}
+
+.vue-flow__node .header { 
+  height: 45px; 
+  line-height: 45px; 
+  margin-bottom: 10px; 
+  text-align: center; 
+  font-weight: 600; 
+}
+
+.vue-flow__node .content_line { 
+  height: 40px; 
+  line-height: 40px; 
+  background: #9696961a; 
+  margin-bottom: 10px; 
+  text-align: center; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+
+/* 工作流画布容器 - 占据剩余空间 */
+.workflow-canvas-container {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  position: relative;
+  background: #fafafa;
+}
+
+/* VueFlow 画布 - 绝对定位占满父容器 */
+.workflow-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 画布工具栏 */
+.canvas-toolbar {
+  position: absolute;
+  right: 20px;
+  top: 16px;
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.toolbar-btn {
+  height: 36px;
+  padding: 0 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+
+.toolbar-btn:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  transform: translateY(-1px);
+}
+
+.toolbar-btn-default {
+  background: white;
+  color: #333;
+  border: 1px solid #e0e0e0;
+}
+
+.toolbar-btn-default:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
 </style>
 
 

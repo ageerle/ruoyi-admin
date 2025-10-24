@@ -3,7 +3,7 @@ import type { VxeGridProps } from '#/adapter/vxe-table';
 
 import { h } from 'vue';
 import { Tag } from 'ant-design-vue';
-import { getPopupContainer } from '@vben/utils';
+// import { getPopupContainer } from '@vben/utils';
 
 export const querySchema: FormSchemaGetter = () => [
   {
@@ -11,19 +11,19 @@ export const querySchema: FormSchemaGetter = () => [
     fieldName: 'title',
     label: '工作流名称',
   },
-  {
-    component: 'Select',
-    componentProps: {
-      getPopupContainer,
-      options: [
-        { label: '全部', value: '' },
-        { label: '我的', value: 'my' },
-        { label: '公开', value: 'public' },
-      ],
-    },
-    fieldName: 'type',
-    label: '类型',
-  },
+  // {
+  //   component: 'Select',
+  //   componentProps: {
+  //     getPopupContainer,
+  //     options: [
+  //       { label: '全部', value: '' },
+  //       { label: '我的', value: 'my' },
+  //       { label: '公开', value: 'public' },
+  //     ],
+  //   },
+  //   fieldName: 'type',
+  //   label: '类型',
+  // },
 ];
 
 export const columns: VxeGridProps['columns'] = [

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebRTC webcam</title>
+    <style>
+        button {
+            padding: 8px 16px;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            max-height: calc(100vh - 150px);
+        }
+
+        .option {
+            margin-bottom: 8px;
+        }
+
+        #media {
+            max-width: 1280px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .layout-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .control-panel {
+            width: 350px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .media-panel {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #coze_response {
+            background-color: #f5f5f5;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout-container">
+        <div class="control-panel">
+            <div class="option">
+                <input id="use-stun" type="checkbox" />
+                <label for="use-stun">Use STUN server</label>
+            </div>
+            <button id="start" onclick="start()">Start</button>
+            <button id="stop" style="display: none" onclick="stop()">Stop</button>
+            <button class="btn btn-primary" id="btn_start_record">Start Recording</button>
+            <button class="btn btn-primary" id="btn_stop_record" disabled>Stop Recording</button>
+            <input type="hidden" id="sessionid" value="0">
+            <form class="form-inline" id="echo-form">
+                <div class="form-group">
+                    <!-- 添加专门发送给Coze的输入框 -->
+                    <p>发送给AI</p>
+                    <input id="coze_input" style="width:100%;margin-bottom:10px;" class="form-control"
+                        placeholder="请输入要发送给AI的内容">
+                    <button type="button" id="send_to_coze" class="btn btn-primary"
+                        style="margin-bottom:10px;">发送到AI</button>
+
+                    <!-- 添加Coze回答显示区域 -->
+                    <p>AI 回答</p>
+                    <textarea cols="2" rows="3" style="width:100%;height:120px;" class="form-control" id="coze_response"
+                        readonly></textarea>
+
+                    <!-- 语音+视频合成 -->
+                    <p>语音+视频合成</p>
+                    <textarea cols="2" rows="3" style="width:100%;height:80px;" class="form-control"
+                        id="message">请输入要合成的文字...</textarea>
+                </div>
+                <button type="submit" id="synthesis-btn" class="btn btn-default">合成</button>
+            </form>
+        </div>
+
+        <div class="media-panel">
+            <div id="media">
+                <h2>实时交互数字人</h2>
+                <audio id="audio" autoplay="true"></audio>
+                <video id="video" autoplay="true" playsinline="true"></video>
+            </div>
+        </div>
+    </div>
+
+    <script src="client.js"></script>
+    <script type="text/javascript" src="http://cdn.sockjs.org/sockjs-0.3.4.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+</body>
+<script type="text/javascript" charset="utf-8">
+    // 用于存储当前会话ID和检查状态的定时器
+    let currentSessionId = null;
+    let speakingCheckInterval = null;
+    // 最大重试次数，防止接口异常时无限请求
+    const MAX_RETRY_COUNT = 5;
+    let currentRetryCount = 0;
+
+    // 检查说话状态的函数
+    async function checkSpeakingStatus() {
+        if (!currentSessionId) {
+            console.log('当前没有有效的会话ID，跳过接口调用');
+            return;
+        }
+
+        try {
+            // 调用is_speaking接口（使用完整URL确保正确性）
+            const response = await fetch('/is_speaking', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ sessionid: currentSessionId })
+            });
+
+            // 检查HTTP响应状态
+            if (!response.ok) {
+                throw new Error(`接口请求失败，状态码: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const synthesisBtn = document.getElementById('synthesis-btn');
+
+            if (!synthesisBtn) return;
+
+            // 重置重试计数（请求成功）
+            currentRetryCount = 0;
+
+            // 根据接口返回数据更新按钮状态
+            if (data.code === 0) {
+                if (data.data === true) {
+                    // 对话未结束，保持"播放中..."状态
+                    synthesisBtn.disabled = true;
+                    synthesisBtn.textContent = '播放中...';
+                } else {
+                    // 对话结束，恢复为"合成"
+                    synthesisBtn.disabled = false;
+                    synthesisBtn.textContent = '合成';
+                    // 清除定时器，停止检查
+                    clearInterval(speakingCheckInterval);
+                    speakingCheckInterval = null;
+                    currentSessionId = null;
+                }
+            } else {
+                console.warn('is_speaking接口返回错误代码:', data.code);
+                // 接口返回错误码时，尝试继续检查
+            }
+
+        } catch (error) {
+            console.error('调用is_speaking接口失败:', error);
+            currentRetryCount++;
+
+            // 超过最大重试次数，停止检查并恢复按钮状态
+            if (currentRetryCount >= MAX_RETRY_COUNT) {
+                console.error(`超过最大重试次数(${MAX_RETRY_COUNT})，停止状态检查`);
+                const synthesisBtn = document.getElementById('synthesis-btn');
+                if (synthesisBtn) {
+                    synthesisBtn.disabled = false;
+                    synthesisBtn.textContent = '合成';
+                }
+                clearInterval(speakingCheckInterval);
+                speakingCheckInterval = null;
+                currentSessionId = null;
+                currentRetryCount = 0;
+            }
+        }
+    }
+
+
+    function sendHumanRequest(text, button) {
+    // 获取sessionId
+    const sessionIdValue = document.getElementById('sessionid').value;
+    const requestSessionId = parseInt(sessionIdValue || 0);
+    
+    // 将请求中使用的sessionid保存为currentSessionId
+    currentSessionId = requestSessionId;
+    console.log(`准备发送请求到human接口，sessionid: ${currentSessionId}`);
+
+    // 执行fetch请求并返回Promise
+    return fetch('/human', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            text: text,
+            type: 'echo',
+            interrupt: true,
+            sessionid: requestSessionId
+        })
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP错误! 状态码: ${response.status}`);
+        }
+        return response.json();
+    }).then(result => {
+        // 只在接口返回成功时进行后续处理
+        if (result && (result.sessionid || result.code === 0)) {
+            // 记录接口返回的sessionid，但保持currentSessionId不变
+            console.log(`human接口返回成功，返回的sessionid: ${result.sessionid || '无'}`);
+            console.log(`继续使用原sessionid: ${currentSessionId}进行状态监控`);
+            // 等待2秒后再执行状态检查和设置定时器
+            setTimeout(() => {
+                // 立即检查一次状态
+                //checkSpeakingStatus();
+                // 清除之前可能存在的检查定时器
+                if (speakingCheckInterval) {
+                    clearInterval(speakingCheckInterval);
+                }
+                // 设置定时器，每1秒检查一次状态
+                speakingCheckInterval = setInterval(checkSpeakingStatus, 1000);
+            }, 2000);
+        }
+        return result;
+    }).catch(error => {
+        console.error('调用human接口失败:', error);
+        if (button) {
+            button.disabled = false;
+            button.textContent = '合成';
+        }
+        throw error;
+    });
+}
+
+    // 设置合成按钮事件处理
+    const setupSynthesisButton = () => {
+        const echoForm = document.getElementById('echo-form');
+        if (!echoForm) return;
+
+        // 表单提交事件处理函数
+        const submitHandler = (e) => {
+            e.preventDefault();
+
+            const synthesisBtn = document.getElementById('synthesis-btn');
+            if (!synthesisBtn) return;
+
+            // 获取用户输入
+            const text = document.getElementById('message').value;
+            if (!text.trim()) {
+                alert("请输入要合成的文字内容");
+                return;
+            }
+
+            // 设置按钮为"处理中"状态
+            synthesisBtn.disabled = true;
+            synthesisBtn.textContent = '处理中...';
+
+            // 清除之前可能存在的检查
+            if (speakingCheckInterval) {
+                clearInterval(speakingCheckInterval);
+                speakingCheckInterval = null;
+            }
+            currentRetryCount = 0;
+
+            // 发送请求并处理sessionid
+            sendHumanRequest(text, synthesisBtn);
+        };
+
+        // 添加表单的submit事件监听器
+        echoForm.addEventListener('submit', submitHandler);
+    };
+
+    // 页面加载完成后执行
+    window.addEventListener('DOMContentLoaded', setupSynthesisButton);
+
+    // 页面卸载时清理资源
+    window.addEventListener('beforeunload', () => {
+        if (speakingCheckInterval) {
+            clearInterval(speakingCheckInterval);
+            speakingCheckInterval = null;
+        }
+    });
+
+    $(document).ready(function () {
+        // 发送到Coze的函数
+        function sendToCoze(userInput) {
+            const startTime = new Date().toISOString();
+            console.log(`[${startTime}] 开始发送请求到Coze，用户输入: ${userInput}`);
+
+            const cozeApiUrl = "https://api.coze.cn/v3/chat";
+            const authorizationToken = "sat_8T9q3ZjHmSFiyfTm5zvAEDv3HaAvLrS3J8aiIKrqP4qgTGCF39J7dRNUMM8NPYAn";
+            const botId = "7509048695061790730";
+            const userId = "7376476310010937396";
+
+            // 清空之前的回答
+            $('#coze_response').val("获取回答中...");
+            $('#message').val("");
+
+            fetch(cozeApiUrl, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${authorizationToken}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    bot_id: botId,
+                    user_id: userId,
+                    stream: true,
+                    auto_save_history: true,
+                    additional_messages: [{
+                        role: "user",
+                        content: userInput,
+                        content_type: "text"
+                    }]
+                })
+            }).then(async response => {
+                console.log(`[${new Date().toISOString()}] Coze API响应成功，状态码: ${response.status}`);
+
+                const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+                let fullAnswer = "";
+                let lastContent = "";
+                let debounceTimer = null;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        console.log(`[${new Date().toISOString()}] Coze响应流读取完成`);
+
+                        // 当回答完成后，确保完整回答显示在输入框
+                        if (fullAnswer) {
+                            console.log(`[${new Date().toISOString()}] Coze完整回答: ${fullAnswer.trim()}`);
+                            $('#coze_response').val(fullAnswer.trim());
+                            $('#message').val(fullAnswer.trim());
+
+                            // 获取合成按钮并设置状态
+                            var submitButton = $('#synthesis-btn');
+                            submitButton.prop('disabled', true).text('合成中...');
+
+                            // 重置重试计数
+                            currentRetryCount = 0;
+
+                            // 自动触发语音视频合成
+                            console.log(`[${new Date().toISOString()}] 自动触发语音视频合成`);
+                            sendHumanRequest(fullAnswer.trim(), null).then(function () {
+                                // 请求成功后，由checkSpeakingStatus更新为播放中
+                            }).catch(function (error) {
+                                console.error(`[${new Date().toISOString()}] 自动合成请求失败:`, error);
+                                submitButton.prop('disabled', false).text('合成');
+                            });
+                        }
+
+                        // 恢复发送按钮状态
+                        console.log(`[${new Date().toISOString()}] 恢复发送到Coze按钮状态`);
+                        $('#send_to_coze').prop('disabled', false).text('发送到AI');
+                        break;
+                    }
+
+                    const lines = value.split("\n").filter(line => line.trim());
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        if (line.startsWith("event:")) {
+                            const eventType = line.replace("event:", "").trim();
+                            const nextLineIndex = i + 1;
+                            if (nextLineIndex >= lines.length) continue;
+                            const dataLine = lines[nextLineIndex];
+
+                            if (dataLine && dataLine.startsWith("data:")) {
+                                const rawData = dataLine.replace("data:", "").trim();
+                                try {
+                                    const data = JSON.parse(rawData);
+
+                                    switch (eventType) {
+                                        case "conversation.message.delta":
+                                            if (data.type === "answer" && data.content_type === "text") {
+                                                const currentContent = data.content || "";
+                                                if (currentContent === lastContent) continue;
+                                                lastContent = currentContent;
+
+                                                fullAnswer += currentContent;
+                                                clearTimeout(debounceTimer);
+                                                debounceTimer = setTimeout(() => {
+                                                    // 同时更新AI回答和合成输入框
+                                                    $('#coze_response').val(fullAnswer.trim());
+                                                    $('#message').val(fullAnswer.trim());
+                                                }, 50);
+                                            }
+                                            break;
+
+                                        case "conversation.message.completed":
+                                            if (data.type === "answer" && data.content_type === "text") {
+                                                fullAnswer = (data.content || "").trim();
+                                                $('#coze_response').val(fullAnswer);
+                                                $('#message').val(fullAnswer);
+                                            }
+                                            break;
+                                    }
+                                } catch (parseError) {
+                                    console.error(`[${new Date().toISOString()}] 解析Coze响应数据失败`, parseError);
+                                }
+                            }
+                        }
+                    }
+                }
+            }).catch(error => {
+                console.error(`[${new Date().toISOString()}] Coze接口调用失败:`, error);
+                alert("聊天请求失败: " + error.message);
+                $('#coze_response').val("获取回答失败: " + error.message);
+                $('#send_to_coze').prop('disabled', false).text('发送到AI');
+            });
+        }
+
+        // 处理发送到Coze的按钮点击事件
+        $('#send_to_coze').on('click', function () {
+            var cozeInput = $('#coze_input').val().trim();
+
+            if (!cozeInput) {
+                alert("请输入要发送给Coze的内容");
+                return;
+            }
+
+            // 禁用按钮，防止重复提交
+            $(this).prop('disabled', true).text('发送中...');
+
+            // 调用发送到Coze的函数
+            sendToCoze(cozeInput);
+        });
+
+        // 录制按钮相关功能
+        $('#btn_start_record').click(function () {
+            // 开始录制
+            console.log(`[${new Date().toISOString()}] 开始录制...`);
+            fetch('/record', {
+                body: JSON.stringify({
+                    type: 'start_record',
+                    sessionid: parseInt(document.getElementById('sessionid').value),
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                method: 'POST'
+            }).then(function (response) {
+                if (response.ok) {
+                    console.log(`[${new Date().toISOString()}] 录制已开始`);
+                    $('#btn_start_record').prop('disabled', true);
+                    $('#btn_stop_record').prop('disabled', false);
+                } else {
+                    console.error(`[${new Date().toISOString()}] 开始录制失败`);
+                }
+            }).catch(function (error) {
+                console.error(`[${new Date().toISOString()}] 录制错误:`, error);
+            });
+        });
+
+        $('#btn_stop_record').click(function () {
+            // 结束录制
+            console.log(`[${new Date().toISOString()}] 停止录制...`);
+            fetch('/record', {
+                body: JSON.stringify({
+                    type: 'end_record',
+                    sessionid: parseInt(document.getElementById('sessionid').value),
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                method: 'POST'
+            }).then(function (response) {
+                if (response.ok) {
+                    console.log(`[${new Date().toISOString()}] 录制已停止`);
+                    $('#btn_start_record').prop('disabled', false);
+                    $('#btn_stop_record').prop('disabled', true);
+                } else {
+                    console.error(`[${new Date().toISOString()}] 停止录制失败`);
+                }
+            }).catch(function (error) {
+                console.error(`[${new Date().toISOString()}] 录制错误:`, error);
+            });
+        });
+    });
+</script>
+
+</html>

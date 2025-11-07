@@ -14,15 +14,15 @@ export default defineConfig(async () => {
         __PROJECT_ROOT__: JSON.stringify((() => {
           const cwd = process.cwd();
           console.log('Vite当前工作目录:', cwd);
-          
+
           // 规范化路径分隔符，统一处理 Windows 和 macOS/Linux
           const normalizedPath = cwd.replace(/\\/g, '/');
-          
+
           // 如果当前目录包含 /apps/web-antd，则向上两级到 ruoyi-admin
           if (normalizedPath.includes('/apps/web-antd')) {
             return resolve(cwd, '../..');
           }
-          // 如果当前目录包含 /apps，则向上一级到 ruoyi-admin  
+          // 如果当前目录包含 /apps，则向上一级到 ruoyi-admin
           else if (normalizedPath.includes('/apps')) {
             return resolve(cwd, '..');
           }

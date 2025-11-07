@@ -1,0 +1,59 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "kei_basic_free.moc3",
+		"Textures": [
+			"kei_basic_free.2048/texture_00.png"
+		],
+		"Physics": "kei_basic_free.physics3.json",
+		"DisplayInfo": "kei_basic_free.cdi3.json",
+		"MotionSync": "kei_basic_free.motionsync3.json",
+		"Motions": {
+			"": [
+				{
+					"File": "motions/01_kei_en.motion3.json",
+					"Sound": "sounds/01_kei_en.wav",
+					"MotionSync": "Basic_CRI"
+				},
+				{
+					"File": "motions/01_kei_jp.motion3.json",
+					"Sound": "sounds/01_kei_jp.wav",
+					"MotionSync": "Basic_CRI"
+				},
+				{
+					"File": "motions/01_kei_ko.motion3.json",
+					"Sound": "sounds/01_kei_ko.wav",
+					"MotionSync": "Basic_CRI"
+				},
+				{
+					"File": "motions/01_kei_zh.motion3.json",
+					"Sound": "sounds/01_kei_zh.wav",
+					"MotionSync": "Basic_CRI"
+				}
+			]
+		}
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": [
+				"ParamMouthOpenY"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		}
+	],
+	"HitAreas": [
+		{
+			"Id": "HitAreaHead",
+			"Name": "Head"
+		}
+	]
+}

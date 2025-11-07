@@ -14,7 +14,7 @@ import axios from 'axios';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 
 // 接口引入 start
-import { aihumanPublishList } from '#/api/aihuman/aihumanPublish';
+import { aihumanPublishList,generateVoiceWithVolcengine } from '#/api/aihuman/aihumanPublish';
 // 接口引入 end
 
 import { columns, querySchema } from './data';
@@ -274,7 +274,25 @@ const fetchConfigParams = async (modelName?: string) => {
             ttsConfig.value.volume = agentParams.voiceConfig.volume || 0; // 音量调整
             ttsConfig.value.pitch = agentParams.voiceConfig.pitch || 0; // 音调调整
 
-          } else if (agentParams.voice) {
+          }
+          // 集成 volcengine-tts
+          else if (agentParams.voice === 'volcengine-tts' && agentParams.voiceConfig) {
+            ttsConfig.value = agentParams.voiceConfig;
+            currentVoiceType.value = 'volcengine-tts';
+
+            // 从配置中提取volcengine-tts所需参数
+            // "ENDPOINT": "wss://openspeech.bytedance.com/api/v3/tts/bidirection",
+            // "appId": "1055299334",
+            // "accessToken": "fOHuq4R4dirMYiOruCU3Ek9q75zV0KVW",
+            // "resourceId": "seed-tts-2.0",
+            // "voice": "zh_female_vv_uranus_bigtts",
+            // "text": "", // 需要从输入框补足
+            // "encoding": "wav"
+
+
+          }
+
+          else if (agentParams.voice) {
             // 预留其他语音平台的处理逻辑
             console.log(`不支持的voice类型: ${agentParams.voice}`);
             currentVoiceType.value = agentParams.voice;
@@ -394,7 +412,60 @@ const startParallel = async () => {
     isLoading.value = true;
 
     // 根据当前语音类型进行不同的处理
-    if (currentVoiceType.value === 'GPT-SoVITS') {
+    if (currentVoiceType.value === 'volcengine-tts') {
+      // volcengine-tts的处理逻辑
+      try {
+        console.log('使用volcengine-tts进行语音合成');
+
+        // 构建请求参数
+        const requestData = {
+          ENDPOINT: ttsConfig.value.ENDPOINT || 'wss://openspeech.bytedance.com/api/v3/tts/bidirection',
+          appId: ttsConfig.value.appId || '1055299334',
+          accessToken: ttsConfig.value.accessToken || 'fOHuq4R4dirMYiOruCU3Ek9q75zV0KVW',
+          resourceId: ttsConfig.value.resourceId || 'seed-tts-2.0',
+          voice: ttsConfig.value.voice || 'zh_female_vv_uranus_bigtts',
+          text: textContent.value, // 从输入框获取文本
+          encoding: ttsConfig.value.encoding || 'wav'
+        };
+
+        // 记录开始时间
+        const startTime = performance.now();
+
+        // 调用volcengine-tts接口
+        const response = await generateVoiceWithVolcengine(requestData);
+
+        // 记录结束时间并计算耗时
+        const endTime = performance.now();
+        const duration = (endTime - startTime).toFixed(2);
+        console.log(`并行推理完成，耗时: ${duration}ms`);
+
+        // 处理返回的音频数据
+        // 由于设置了isReturnNativeResponse为true，这里应该使用response.data
+        const audioBlob = new Blob([response.data], { type: `audio/${requestData.encoding}` });
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        // 播放合成的语音
+        if (viewerRef.value) {
+          viewerRef.value.talk(audioUrl);
+        }
+
+        message.success(`语音合成成功，API封装调用耗时：${duration}ms`);
+
+    } catch (volcengineError) {
+      console.error('volcengine-tts语音合成失败:', volcengineError);
+      console.error('错误详情:', volcengineError.message, volcengineError.response);
+
+      // 针对不同错误类型提供更具体的提示
+      if (volcengineError.code === 'ECONNABORTED') {
+          message.error('语音合成请求超时，请检查网络连接或稍后重试');
+        } else if (volcengineError.message?.includes('Network Error')) {
+          message.error('网络连接失败，请检查网络设置');
+        } else {
+          message.error('语音合成失败，请检查服务是否可用');
+        }
+      }
+    }
+    else if (currentVoiceType.value === 'GPT-SoVITS') {
       // GPT-SoVITS的处理逻辑
       const response = await axios.post(ttsConfig.value.apiUrl, {
         text_lang: ttsConfig.value.textLang,
@@ -479,7 +550,14 @@ const startParallel = async () => {
         console.error('edge-tts语音合成失败:', edgeError);
         message.error('语音合成失败');
       }
-    } else {
+    }
+    // 处理其他语音平台（volcengine-tts）
+    else if (currentVoiceType.value === 'volcengine-tts') {
+      // volcengine-tts的处理逻辑（预留）
+      console.log('volcengine-tts语音合成暂未实现');
+      message.warning('volcengine-tts语音合成功能正在开发中');
+    }
+    else {
       // 默认使用GPT-SoVITS的逻辑
       console.log(`未识别的语音类型: ${currentVoiceType.value}，使用默认处理逻辑`);
       const response = await axios.post(ttsConfig.value.apiUrl, {
@@ -502,6 +580,9 @@ const startParallel = async () => {
         viewerRef.value.talk(audioUrl);
       }
     }
+
+
+
   } catch (error) {
     console.error('并行推理失败:', error);
     message.error('语音合成失败');
@@ -725,6 +806,78 @@ const sendChatMessage = async () => {
   }
 };
 
+// 并行推理（直接调用axios）
+const startParallelDirect = async () => {
+  try {
+    isLoading.value = true;
+    console.log('开始并行推理（直接调用）');
+
+    // 准备请求数据
+    const requestData = {
+      ENDPOINT: 'wss://openspeech.bytedance.com/api/v3/tts/bidirection',
+      appId: '1055299334',
+      accessToken: 'fOHuq4R4dirMYiOruCU3Ek9q75zV0KVW',
+      resourceId: 'seed-tts-2.0',
+      voice: 'saturn_zh_female_tiaopigongzhu_tob',
+      text: textContent.value,
+      encoding: 'wav'
+    };
+
+    console.log('volcengine-tts params (direct):', requestData);
+
+    // 记录开始时间
+    const startTime = performance.now();
+
+    // 直接调用axios
+    const response = await axios.post('http://localhost:6039/aihuman/volcengine/generate-voice-direct',
+           requestData,
+           {
+             responseType: 'arraybuffer',
+             timeout: 30000
+           }
+         );
+
+    // 记录结束时间并计算耗时
+    const endTime = performance.now();
+    const duration = (endTime - startTime).toFixed(2);
+    console.log(`并行推理（直接调用）完成，耗时: ${duration}ms`);
+
+    console.log('volcengine-tts response (direct):', response);
+
+    // 处理返回的音频数据
+    const audioBlob = new Blob([response.data], { type: `audio/wav` });
+    const audioUrl = URL.createObjectURL(audioBlob);
+
+    // 创建音频元素并播放
+    const audio = new Audio(audioUrl);
+    audio.onended = () => {
+      console.log('播放结束');
+      URL.revokeObjectURL(audioUrl); // 释放URL对象
+    };
+
+    // 播放音频
+    await audio.play();
+
+    // 记录语音合成时间
+    message.success(`语音合成成功，直接调用耗时：${duration}ms`);
+
+  } catch (volcengineError) {
+    console.error('volcengine-tts语音合成失败 (direct):', volcengineError);
+    console.error('错误详情:', volcengineError.message, volcengineError.response);
+
+    // 针对不同错误类型提供更具体的提示
+    if (volcengineError.code === 'ECONNABORTED') {
+      message.error('语音合成请求超时，请检查网络连接或稍后重试');
+    } else if (volcengineError.message?.includes('Network Error')) {
+      message.error('网络连接失败，请检查网络设置');
+    } else {
+      message.error('语音合成失败，请检查服务是否可用');
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 // 在变量定义区域之后添加playExpression函数
 const playExpression = (expressionName: string) => {
   try {
@@ -861,23 +1014,27 @@ initModelList();
               placeholder="请输入推理内容"
               style="width: 100%; height: 100px;"
             ></textarea>
-            <div class="button-group mt-2">
+            <div class="button-group mt-2 flex flex-wrap gap-2">
               <Button
                 @click="startParallel"
                 :loading="isLoading"
               >
                 并行推理
               </Button>
+              <!-- <Button
+                @click="startParallelDirect"
+                :loading="isLoading"
+              >
+                并行推理（直接）
+              </Button> -->
               <Button
                 @click="startStream"
                 :loading="isLoading"
-                class="ml-2"
               >
                 流式推理
               </Button>
               <Button
                 @click="handleStopSpeaking"
-                class="ml-2"
               >
                 停止讲话
               </Button>

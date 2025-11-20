@@ -49,6 +49,8 @@ function createRequestClient(baseURL: string) {
     isReturnNativeResponse: false,
     // 需要对返回数据进行处理
     isTransformResponse: true,
+    // 增加默认超时时间，避免短时间内请求超时
+    timeout: 30000,
   });
 
   /**

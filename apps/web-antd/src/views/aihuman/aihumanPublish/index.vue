@@ -14,7 +14,7 @@ import axios from 'axios';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 
 // 接口引入 start
-import { aihumanPublishList } from '#/api/aihuman/aihumanPublish';
+import { aihumanPublishList,generateVoiceWithVolcengine } from '#/api/aihuman/aihumanPublish';
 // 接口引入 end
 
 import { columns, querySchema } from './data';
@@ -23,8 +23,6 @@ import Live2DViewer from './Live2DViewer.vue';
 defineOptions({
   name: 'AihumanAihumanPublish',
 });
-
-const { Option } = Select;
 
 // 控制面板相关变量
 const viewerRef = ref<InstanceType<typeof Live2DViewer> | null>(null);
@@ -37,16 +35,10 @@ const chatText = ref('');
 const chatOutput = ref('');
 const isLoading = ref(false);
 
-// 添加缩放比例相关变量
-const scaleOptions = [
-  { value: 0.6, label: '小 (0.6)' },
-  { value: 1.0, label: '中 (1.0)' },
-  { value: 1.5, label: '大 (1.5)' }
-];
+// 在expressionsList变量附近添加
+const expressionsList = ref<any[]>([]);
+const motionsList = ref<any[]>([]); // 添加肢体交互列表变量
 
-
-// 默认0.6
-const selectedScale = ref<number>(0.6);
 // 添加当前模型缩放比例变量
 const modelScale = ref<number>(0.6);
 
@@ -75,6 +67,10 @@ const ttsConfig = ref({
   mediaType: '',
   speedFactor: ''
 });
+
+// 当前语音类型
+const currentVoiceType = ref(''); // 保存当前的voice类型，如'GPT-SoVITS'或'edge-tts'
+
 
 onMounted(() => {
   // 页面加载时初始化模型列表
@@ -171,34 +167,140 @@ const fetchConfigParams = async (modelName?: string) => {
       );
     }
 
-    // 如果没有找到指定模型的配置或未指定模型，使用第一个有agentParams的配置
+    // 如果没有找到指定模型的配置或未指定模型，使用第一个有modelParams或agentParams的配置
     if (!targetConfig && response.rows && Array.isArray(response.rows)) {
-      targetConfig = response.rows.find((row: AihumanPublishInfo) => row.agentParams);
+      targetConfig = response.rows.find((row: AihumanPublishInfo) => row.modelParams || row.agentParams);
     }
 
-    if (targetConfig && targetConfig.agentParams) {
-      try {
-        const agentParams = JSON.parse(targetConfig.agentParams);
+    if (targetConfig) {
 
-        // 从agentParams.agentConfig获取coze配置
-        if (agentParams.agent === 'coze' && agentParams.agentConfig) {
-          cozeConfig.value = agentParams.agentConfig;
-        } else if (agentParams.agent) {
-          // 预留其他平台的处理逻辑
-          console.log(`不支持的agent类型: ${agentParams.agent}`);
+      // 解析modelParams
+      if (targetConfig.modelParams) {
+        try {
+          // 先处理modelParams文本中的转义字符
+          // 替换所有的\n和\t为对应的实际字符
+          let modelParamsText = targetConfig.modelParams;
+
+          // 处理转义字符
+          modelParamsText = modelParamsText
+            .replace(/\\n/g, '\n')
+            .replace(/\\t/g, '\t');
+
+          // 解析处理后的JSON字符串
+          const params = JSON.parse(modelParamsText);
+
+          // 清空表情列表，避免累积旧数据
+          expressionsList.value = [];
+
+          // 清空肢体交互列表，避免累积旧数据
+          motionsList.value = [];
+
+          // 提取Expressions数组，增加全面的安全检查
+          if (params.FileReferences &&
+              typeof params.FileReferences === 'object' &&
+              Array.isArray(params.FileReferences.Expressions)) {
+            expressionsList.value = params.FileReferences.Expressions;
+            console.log(`成功加载模型表情配置，共${expressionsList.value.length}个表情：`,
+                      expressionsList.value.map(exp => exp.Name).join(', '));
+          } else {
+            console.log('模型配置中未找到有效的Expressions数组');
+          }
+
+          // 提取Motions配置，支持多种结构
+          if (params.FileReferences &&
+              typeof params.FileReferences === 'object' &&
+              params.FileReferences.Motions &&
+              typeof params.FileReferences.Motions === 'object') {
+            // 创建一个存储所有Motions类别的对象
+            const allMotions = {};
+
+            // 获取Motions对象的所有键
+            const motionKeys = Object.keys(params.FileReferences.Motions);
+
+            if (motionKeys.length > 0) {
+              // 遍历所有Motions键
+              motionKeys.forEach(key => {
+                const motionArray = params.FileReferences.Motions[key];
+                if (Array.isArray(motionArray) && motionArray.length > 0) {
+                  allMotions[key] = motionArray;
+                  console.log(`成功加载模型肢体动作类别: ${key}，共${motionArray.length}个动作`);
+                }
+              });
+
+              // 存储所有动作类别
+              allMotionsList.value = allMotions;
+            } else {
+              console.log('模型配置中Motions对象为空');
+            }
+          } else {
+            console.log('模型配置中未找到有效的Motions对象');
+          }
+
+        } catch (modelParseError) {
+          console.error('解析modelParams失败:', modelParseError);
+          console.error('原始modelParams文本:', targetConfig.modelParams);
+          // 解析失败时清空表情和肢体交互列表
+          expressionsList.value = [];
+          motionsList.value = [];
         }
+      }
 
-        // 从agentParams.voiceConfig获取tts配置
-        if (agentParams.voice === 'GPT-SoVITS' && agentParams.voiceConfig) {
-          ttsConfig.value = agentParams.voiceConfig;
-        } else if (agentParams.voice) {
-          // 预留其他语音平台的处理逻辑
-          console.log(`不支持的voice类型: ${agentParams.voice}`);
+      // 现有的agentParams解析逻辑
+      if (targetConfig.agentParams) {
+        try {
+          const agentParams = JSON.parse(targetConfig.agentParams);
+
+          // 从agentParams.agentConfig获取coze配置
+          if (agentParams.agent === 'coze' && agentParams.agentConfig) {
+            cozeConfig.value = agentParams.agentConfig;
+          } else if (agentParams.agent) {
+            // 预留其他平台的处理逻辑
+            console.log(`不支持的agent类型: ${agentParams.agent}`);
+          }
+
+          // 从agentParams.voiceConfig获取tts配置
+          if (agentParams.voice === 'GPT-SoVITS' && agentParams.voiceConfig) {
+            ttsConfig.value = agentParams.voiceConfig;
+            currentVoiceType.value = 'GPT-SoVITS';
+          }
+          // 集成 edge-tts
+          else if (agentParams.voice === 'edge-tts' && agentParams.voiceConfig) {
+            ttsConfig.value = agentParams.voiceConfig;
+            currentVoiceType.value = 'edge-tts';
+
+            // 从配置中提取Edge-tts所需参数
+            ttsConfig.value.voice = agentParams.voiceConfig.voice || 'zh-CN-XiaoxiaoNeural'; // 默认语音包
+            ttsConfig.value.rate = agentParams.voiceConfig.rate || 0; // 语速调整
+            ttsConfig.value.volume = agentParams.voiceConfig.volume || 0; // 音量调整
+            ttsConfig.value.pitch = agentParams.voiceConfig.pitch || 0; // 音调调整
+
+          }
+          // 集成 volcengine-tts
+          else if (agentParams.voice === 'volcengine-tts' && agentParams.voiceConfig) {
+            ttsConfig.value = agentParams.voiceConfig;
+            currentVoiceType.value = 'volcengine-tts';
+
+            // 从配置中提取volcengine-tts所需参数
+            // "ENDPOINT": "wss://openspeech.bytedance.com/api/v3/tts/bidirection",
+            // "appId": "1055299334",
+            // "accessToken": "fOHuq4R4dirMYiOruCU3Ek9q75zV0KVW",
+            // "resourceId": "seed-tts-2.0",
+            // "voice": "zh_female_vv_uranus_bigtts",
+            // "text": "", // 需要从输入框补足
+            // "encoding": "wav"
+
+
+          }
+
+          else if (agentParams.voice) {
+            // 预留其他语音平台的处理逻辑
+            console.log(`不支持的voice类型: ${agentParams.voice}`);
+            currentVoiceType.value = agentParams.voice;
+          }
+          console.log(`成功为模型 ${modelName || '默认'} 加载配置参数`);
+        } catch (parseError) {
+          console.error('解析agentParams失败:', parseError);
         }
-
-        console.log(`成功为模型 ${modelName || '默认'} 加载配置参数`);
-      } catch (parseError) {
-        console.error('解析agentParams失败:', parseError);
       }
     }
   } catch (error) {
@@ -225,11 +327,6 @@ const formatDate = (dateString?: string) => {
   }
 };
 
-// 删除这个错误的非async版本函数定义
-// const initModelList = () => {
-//   ...
-// };
-
 // 测试音频
 const handleTestAudio = () => {
   if (viewerRef.value) {
@@ -239,11 +336,13 @@ const handleTestAudio = () => {
 
 // 更新模型
 const handleUpdateModel = async () => {
-  if (viewerRef.value && selectedModel.value && nameToModelMap.value[selectedModel.value]) {
-    // 根据选中的场景名称查找对应的模型名称
-    const modelName = nameToModelMap.value[selectedModel.value];
-    const newModelPath = `/Live2D/models/${modelName}/${modelName}.model3.json`;
-    viewerRef.value.updateModel(newModelPath);
+  if (viewerRef.value && selectedModel.value) {
+    // 假设nameToModelMap中直接包含modelPath信息
+    // 或者从某个数据源获取与selectedModel对应的modelPath
+    const modelPath = nameToModelMap.value[selectedModel.value] as string;
+    viewerRef.value.updateModel(modelPath);
+
+    console.log(`更新模型为: ${modelPath}`);
 
     // 获取并应用当前模型对应的配置参数
     await fetchConfigParams(selectedModel.value);
@@ -265,8 +364,8 @@ const initModelList = async () => {
       option.textContent = item.name; // 使用场景名称作为显示文本
       selectElement.appendChild(option);
 
-      // 存储场景名称到模型名称的映射
-      nameToModelMap.value[item.name] = item.modelName;
+      // 修改这里：存储场景名称到模型路径的映射，而不是模型名称
+      nameToModelMap.value[item.name] = item.modelPath;
     });
 
     // 确保数组不为空再赋值
@@ -302,13 +401,6 @@ const handleStopSpeaking = () => {
   }
 };
 
-// 刷新配置数据
-const handleRefreshConfig = () => {
-  if (viewerRef.value) {
-    viewerRef.value.fetchConfigData();
-  }
-};
-
 // 并行推理（语音合成）
 const startParallel = async () => {
   if (!textContent.value.trim()) {
@@ -318,25 +410,179 @@ const startParallel = async () => {
 
   try {
     isLoading.value = true;
-    const response = await axios.post(ttsConfig.value.apiUrl, {
-      text_lang: ttsConfig.value.textLang,
-      ref_audio_path: ttsConfig.value.refAudioPath,
-      prompt_lang: ttsConfig.value.promptLang,
-      prompt_text: ttsConfig.value.promptText,
-      text_split_method: ttsConfig.value.textSplitMethod,
-      batch_size: ttsConfig.value.batchSize,
-      media_type: ttsConfig.value.mediaType,
-      speed_factor: ttsConfig.value.speedFactor,
-      text: textContent.value
-    }, {
-      responseType: 'arraybuffer'
-    });
 
-    const audioBlob = new Blob([response.data], { type: `audio/${ttsConfig.value.mediaType}` });
-    const audioUrl = URL.createObjectURL(audioBlob);
-    if (viewerRef.value) {
-      viewerRef.value.talk(audioUrl);
+    // 根据当前语音类型进行不同的处理
+    if (currentVoiceType.value === 'volcengine-tts') {
+      // volcengine-tts的处理逻辑
+      try {
+        console.log('使用volcengine-tts进行语音合成');
+
+        // 构建请求参数
+        const requestData = {
+          ENDPOINT: ttsConfig.value.ENDPOINT || 'wss://openspeech.bytedance.com/api/v3/tts/bidirection',
+          appId: ttsConfig.value.appId || '1055299334',
+          accessToken: ttsConfig.value.accessToken || 'fOHuq4R4dirMYiOruCU3Ek9q75zV0KVW',
+          resourceId: ttsConfig.value.resourceId || 'seed-tts-2.0',
+          voice: ttsConfig.value.voice || 'zh_female_vv_uranus_bigtts',
+          text: textContent.value, // 从输入框获取文本
+          encoding: ttsConfig.value.encoding || 'wav'
+        };
+
+        // 记录开始时间
+        const startTime = performance.now();
+
+        // 调用volcengine-tts接口
+        const response = await generateVoiceWithVolcengine(requestData);
+
+        // 记录结束时间并计算耗时
+        const endTime = performance.now();
+        const duration = (endTime - startTime).toFixed(2);
+        console.log(`并行推理完成，耗时: ${duration}ms`);
+
+        // 处理返回的音频数据
+        // 由于设置了isReturnNativeResponse为true，这里应该使用response.data
+        const audioBlob = new Blob([response.data], { type: `audio/${requestData.encoding}` });
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        // 播放合成的语音
+        if (viewerRef.value) {
+          viewerRef.value.talk(audioUrl);
+        }
+
+        message.success(`语音合成成功，API封装调用耗时：${duration}ms`);
+
+    } catch (volcengineError) {
+      console.error('volcengine-tts语音合成失败:', volcengineError);
+      console.error('错误详情:', volcengineError.message, volcengineError.response);
+
+      // 针对不同错误类型提供更具体的提示
+      if (volcengineError.code === 'ECONNABORTED') {
+          message.error('语音合成请求超时，请检查网络连接或稍后重试');
+        } else if (volcengineError.message?.includes('Network Error')) {
+          message.error('网络连接失败，请检查网络设置');
+        } else {
+          message.error('语音合成失败，请检查服务是否可用');
+        }
+      }
     }
+    else if (currentVoiceType.value === 'GPT-SoVITS') {
+      // GPT-SoVITS的处理逻辑
+      const response = await axios.post(ttsConfig.value.apiUrl, {
+        text_lang: ttsConfig.value.textLang,
+        ref_audio_path: ttsConfig.value.refAudioPath,
+        prompt_lang: ttsConfig.value.promptLang,
+        prompt_text: ttsConfig.value.promptText,
+        text_split_method: ttsConfig.value.textSplitMethod,
+        batch_size: ttsConfig.value.batchSize,
+        media_type: ttsConfig.value.mediaType,
+        speed_factor: ttsConfig.value.speedFactor,
+        text: textContent.value
+      }, {
+        responseType: 'arraybuffer'
+      });
+
+      const audioBlob = new Blob([response.data], { type: `audio/${ttsConfig.value.mediaType}` });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      if (viewerRef.value) {
+        viewerRef.value.talk(audioUrl);
+      }
+    }
+    // 处理其他语音平台（edge-tts）
+    else if (currentVoiceType.value === 'edge-tts') {
+      // edge-tts的处理逻辑（使用浏览器兼容的方式）
+      console.log('使用edge-tts进行语音合成');
+      try {
+        // 由于浏览器环境限制，使用Web Speech API作为替代方案
+        // 这是一个浏览器兼容的文本转语音实现
+        if ('speechSynthesis' in window) {
+          const utterance = new SpeechSynthesisUtterance(textContent.value);
+
+          // 设置语音参数
+          const voices = window.speechSynthesis.getVoices();
+          const voiceName = ttsConfig.value.voice || 'Microsoft Xiaoxiao - Chinese (Simplified)';
+
+          // 尝试找到匹配的语音
+          const selectedVoice = voices.find(v => v.name.includes(voiceName.split('-')[0]));
+          if (selectedVoice) {
+            utterance.voice = selectedVoice;
+          }
+
+          // 设置语速、音量和音调
+          utterance.rate = 1 + (ttsConfig.value.rate || 0) / 100; // 将百分比转换为0.1-10的范围
+          utterance.volume = Math.min(1, (ttsConfig.value.volume || 0) / 100 + 1); // 0-1范围
+          utterance.pitch = Math.min(2, Math.max(0, (ttsConfig.value.pitch || 0) / 50 + 1)); // 0-2范围
+
+          // 播放语音
+          window.speechSynthesis.speak(utterance);
+
+          // 由于Web Speech API不直接提供音频URL，我们可以创建一个简单的反馈
+          message.success('语音合成开始播放');
+        }
+        // 如果浏览器不支持Web Speech API，使用备用方案
+        else {
+          message.warning('您的浏览器不支持语音合成功能');
+          // 备用方案：显示通知并请求服务器进行语音合成
+          if (ttsConfig.value.apiUrl) {
+            // 尝试通过API调用进行语音合成
+            try {
+              const response = await axios.post(ttsConfig.value.apiUrl, {
+                text: textContent.value,
+                voice: ttsConfig.value.voice || 'zh-CN-XiaoxiaoNeural',
+                rate: ttsConfig.value.rate || 0,
+                volume: ttsConfig.value.volume || 0,
+                pitch: ttsConfig.value.pitch || 0
+              }, {
+                responseType: 'arraybuffer'
+              });
+
+              const audioBlob = new Blob([response.data], { type: 'audio/wav' });
+              const audioUrl = URL.createObjectURL(audioBlob);
+              if (viewerRef.value) {
+                viewerRef.value.talk(audioUrl);
+              }
+            } catch (apiError) {
+              console.error('语音合成API调用失败:', apiError);
+              message.error('语音合成服务暂时不可用');
+            }
+          }
+        }
+      } catch (edgeError) {
+        console.error('edge-tts语音合成失败:', edgeError);
+        message.error('语音合成失败');
+      }
+    }
+    // 处理其他语音平台（volcengine-tts）
+    else if (currentVoiceType.value === 'volcengine-tts') {
+      // volcengine-tts的处理逻辑（预留）
+      console.log('volcengine-tts语音合成暂未实现');
+      message.warning('volcengine-tts语音合成功能正在开发中');
+    }
+    else {
+      // 默认使用GPT-SoVITS的逻辑
+      console.log(`未识别的语音类型: ${currentVoiceType.value}，使用默认处理逻辑`);
+      const response = await axios.post(ttsConfig.value.apiUrl, {
+        text_lang: ttsConfig.value.textLang,
+        ref_audio_path: ttsConfig.value.refAudioPath,
+        prompt_lang: ttsConfig.value.promptLang,
+        prompt_text: ttsConfig.value.promptText,
+        text_split_method: ttsConfig.value.textSplitMethod,
+        batch_size: ttsConfig.value.batchSize,
+        media_type: ttsConfig.value.mediaType,
+        speed_factor: ttsConfig.value.speedFactor,
+        text: textContent.value
+      }, {
+        responseType: 'arraybuffer'
+      });
+
+      const audioBlob = new Blob([response.data], { type: `audio/${ttsConfig.value.mediaType}` });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      if (viewerRef.value) {
+        viewerRef.value.talk(audioUrl);
+      }
+    }
+
+
+
   } catch (error) {
     console.error('并行推理失败:', error);
     message.error('语音合成失败');
@@ -354,37 +600,86 @@ const startStream = async () => {
 
   try {
     isLoading.value = true;
-    const data = {
-      text_lang: ttsConfig.value.textLang,
-      ref_audio_path: ttsConfig.value.refAudioPath,
-      prompt_lang: ttsConfig.value.promptLang,
-      prompt_text: ttsConfig.value.promptText,
-      text_split_method: ttsConfig.value.textSplitMethod,
-      batch_size: 1,
-      media_type: 'ogg',
-      speed_factor: ttsConfig.value.speedFactor,
-      text: textContent.value,
-      streaming_mode: 'true'
-    };
 
-    const response = await fetch(ttsConfig.value.apiUrl, {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'Content-Type': 'application/json'
-      },
-    });
+    // 根据当前语音类型进行不同的处理
+    if (currentVoiceType.value === 'GPT-SoVITS') {
+      // GPT-SoVITS的流式处理逻辑
+      const data = {
+        text_lang: ttsConfig.value.textLang,
+        ref_audio_path: ttsConfig.value.refAudioPath,
+        prompt_lang: ttsConfig.value.promptLang,
+        prompt_text: ttsConfig.value.promptText,
+        text_split_method: ttsConfig.value.textSplitMethod,
+        batch_size: 1,
+        media_type: 'ogg',
+        speed_factor: ttsConfig.value.speedFactor,
+        text: textContent.value,
+        streaming_mode: 'true'
+      };
 
-    const reader = response.body?.getReader();
-    if (reader) {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      const response = await fetch(ttsConfig.value.apiUrl, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
 
-        const audioBlob = new Blob([value.buffer], { type: 'audio/ogg' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        if (viewerRef.value) {
-          viewerRef.value.talk(audioUrl);
+      const reader = response.body?.getReader();
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const audioBlob = new Blob([value.buffer], { type: 'audio/ogg' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          if (viewerRef.value) {
+            viewerRef.value.talk(audioUrl);
+          }
+        }
+      }
+    } else if (currentVoiceType.value === 'edge-tts') {
+      // edge-tts的流式处理逻辑（预留）
+      console.log('edge-tts流式语音合成暂未实现');
+      message.warning('edge-tts流式语音合成功能正在开发中');
+
+
+
+    } else {
+      // 默认使用GPT-SoVITS的流式逻辑
+      console.log(`未识别的语音类型: ${currentVoiceType.value}，使用默认流式处理逻辑`);
+      const data = {
+        text_lang: ttsConfig.value.textLang,
+        ref_audio_path: ttsConfig.value.refAudioPath,
+        prompt_lang: ttsConfig.value.promptLang,
+        prompt_text: ttsConfig.value.promptText,
+        text_split_method: ttsConfig.value.textSplitMethod,
+        batch_size: 1,
+        media_type: 'ogg',
+        speed_factor: ttsConfig.value.speedFactor,
+        text: textContent.value,
+        streaming_mode: 'true'
+      };
+
+      const response = await fetch(ttsConfig.value.apiUrl, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
+
+      const reader = response.body?.getReader();
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const audioBlob = new Blob([value.buffer], { type: 'audio/ogg' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          if (viewerRef.value) {
+            viewerRef.value.talk(audioUrl);
+          }
         }
       }
     }
@@ -396,11 +691,14 @@ const startStream = async () => {
   }
 };
 
+
 // 添加处理模型大小调整的方法
 const handleScaleChange = (value: number) => {
+  console.log('滑块值变化:', value); // 增加日志输出滑块值
   if (viewerRef.value) {
     // 直接传入目标缩放比例，不再计算增量
     modelScale.value = value;
+    console.log('设置模型缩放比例:', modelScale.value); // 增加日志输出设置的缩放比例
     viewerRef.value.adjustModelSize(value);
   }
 };
@@ -508,6 +806,119 @@ const sendChatMessage = async () => {
   }
 };
 
+// 并行推理（直接调用axios）
+const startParallelDirect = async () => {
+  try {
+    isLoading.value = true;
+    console.log('开始并行推理（直接调用）');
+
+    // 准备请求数据
+    const requestData = {
+      ENDPOINT: 'wss://openspeech.bytedance.com/api/v3/tts/bidirection',
+      appId: '1055299334',
+      accessToken: 'fOHuq4R4dirMYiOruCU3Ek9q75zV0KVW',
+      resourceId: 'seed-tts-2.0',
+      voice: 'saturn_zh_female_tiaopigongzhu_tob',
+      text: textContent.value,
+      encoding: 'wav'
+    };
+
+    console.log('volcengine-tts params (direct):', requestData);
+
+    // 记录开始时间
+    const startTime = performance.now();
+
+    // 直接调用axios
+    const response = await axios.post('http://localhost:6039/aihuman/volcengine/generate-voice-direct',
+           requestData,
+           {
+             responseType: 'arraybuffer',
+             timeout: 30000
+           }
+         );
+
+    // 记录结束时间并计算耗时
+    const endTime = performance.now();
+    const duration = (endTime - startTime).toFixed(2);
+    console.log(`并行推理（直接调用）完成，耗时: ${duration}ms`);
+
+    console.log('volcengine-tts response (direct):', response);
+
+    // 处理返回的音频数据
+    const audioBlob = new Blob([response.data], { type: `audio/wav` });
+    const audioUrl = URL.createObjectURL(audioBlob);
+
+    // 创建音频元素并播放
+    const audio = new Audio(audioUrl);
+    audio.onended = () => {
+      console.log('播放结束');
+      URL.revokeObjectURL(audioUrl); // 释放URL对象
+    };
+
+    // 播放音频
+    await audio.play();
+
+    // 记录语音合成时间
+    message.success(`语音合成成功，直接调用耗时：${duration}ms`);
+
+  } catch (volcengineError) {
+    console.error('volcengine-tts语音合成失败 (direct):', volcengineError);
+    console.error('错误详情:', volcengineError.message, volcengineError.response);
+
+    // 针对不同错误类型提供更具体的提示
+    if (volcengineError.code === 'ECONNABORTED') {
+      message.error('语音合成请求超时，请检查网络连接或稍后重试');
+    } else if (volcengineError.message?.includes('Network Error')) {
+      message.error('网络连接失败，请检查网络设置');
+    } else {
+      message.error('语音合成失败，请检查服务是否可用');
+    }
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// 在变量定义区域之后添加playExpression函数
+const playExpression = (expressionName: string) => {
+  try {
+    if (viewerRef.value && typeof viewerRef.value.playExpression === 'function') {
+      viewerRef.value.playExpression(expressionName);
+      console.log(`播放表情: ${expressionName}`);
+    } else {
+      console.warn('Live2DViewer组件未初始化或没有playExpression方法');
+    }
+  } catch (error) {
+    console.error(`播放表情失败: ${expressionName}`, error);
+  }
+};
+
+// 播放指定肢体动作 - 仅支持动作类型
+const playMotion = (motionType: string) => {
+  try {
+    console.log(`请求播放肢体动作: 类型=${motionType}`);
+    if (viewerRef.value && typeof viewerRef.value.playMotion === 'function') {
+      console.log(`调用playMotion: 类型=${motionType}`);
+      viewerRef.value.playMotion(motionType);
+    } else {
+      console.warn('Live2DViewer组件未找到或不支持playMotion方法');
+    }
+  } catch (error) {
+    console.error(`播放肢体动作失败: ${error}`);
+  }
+};
+
+// 获取动作类型的显示名称
+const getMotionTypeName = (motionType: string) => {
+  if (motionType === '') {
+    return '默认动作';
+  }
+  // 转换首字母大写的格式为更友好的显示格式
+  return motionType.replace(/([A-Z])/g, ' $1').trim();
+};
+
+// 添加响应式数据
+const allMotionsList = ref({});
+
 // 初始化模型列表
 initModelList();
 
@@ -519,7 +930,7 @@ initModelList();
       <!-- 左侧显示控制面板 -->
       <div class="w-1/3 overflow-hidden border border-gray-200 rounded bg-white">
         <div id="control" class="p-4">
-          <Button @click="handleTestAudio">测试音频</Button>
+          <Button @click="handleTestAudio">讲话测试</Button>
           <br /><br />
 
           <label>选择已发布场景：</label>
@@ -533,14 +944,49 @@ initModelList();
           <input type="radio" name="eyes" value="false" v-model="localEyeMode" class="ml-2"><label> 前方直视</label>
           <br /><br />
 
+          <!-- 表情交互组件 -->
+          <div v-if="expressionsList.length > 0" class="mb-10">
+            <label>表情交互：</label>
+            <br />
+            <Space wrap>
+              <Button
+                v-for="expression in expressionsList"
+                :key="expression.Name"
+                :id="expression.Name"
+                @click="playExpression(expression.Name)"
+                type="primary"
+                size="middle"
+              >
+                {{ expression.Name }}
+              </Button>
+            </Space>
+          </div>
+
+          <div v-if="Object.keys(allMotionsList).length > 0" class="mb-10">
+            <label>肢体交互：</label>
+            <br />
+            <Space wrap>
+              <Button
+                v-for="(motionArray, motionType) in allMotionsList"
+                :key="motionType"
+                @click="playMotion(motionType)"
+                type="primary"
+                size="middle"
+              >
+                {{ getMotionTypeName(motionType) }}
+              </Button>
+            </Space>
+          </div>
+
           <!-- 聊天交互组件 -->
           <div class="chat-section">
             <h3>聊天交互</h3>
+            <br /><br />
             <div class="control-group">
               <Input
                 v-model:value="chatText"
                 placeholder="请输入想要对话的内容"
-                style="width: 300px; margin-bottom: 10px;"
+                style="width: 100%; margin-bottom: 10px;"
               />
               &nbsp
               <Button
@@ -568,47 +1014,33 @@ initModelList();
               placeholder="请输入推理内容"
               style="width: 100%; height: 100px;"
             ></textarea>
-            <div class="button-group mt-2">
+            <div class="button-group mt-2 flex flex-wrap gap-2">
               <Button
                 @click="startParallel"
                 :loading="isLoading"
               >
                 并行推理
               </Button>
+              <!-- <Button
+                @click="startParallelDirect"
+                :loading="isLoading"
+              >
+                并行推理（直接）
+              </Button> -->
               <Button
                 @click="startStream"
                 :loading="isLoading"
-                class="ml-2"
               >
                 流式推理
               </Button>
               <Button
                 @click="handleStopSpeaking"
-                class="ml-2"
               >
                 停止讲话
               </Button>
             </div>
           </div>
 
-          <!-- 配置数据展示区域 -->
-          <!-- <div class="config-data-container mt-4">
-            <h3>已发布配置数据</h3>
-            <div v-if="viewerRef?.configData && viewerRef.configData.length > 0">
-              <div v-for="item in viewerRef.configData" :key="item.id" class="config-item">
-                <div class="config-info">
-                  <p><strong>场景名称:</strong> {{ item.name }}</p>
-                  <p><strong>模型名称:</strong> {{ item.modelName }}</p>
-                  <p><strong>模型路径:</strong> {{ item.modelPath }}</p>
-                  <p><strong>状态:</strong> {{ item.status === 1 ? '正常' : '禁用' }}</p>
-                  <p><strong>发布状态:</strong> {{ item.publish === 1 ? '已发布' : '未发布' }}</p>
-                  <p><strong>创建时间:</strong> {{ formatDate(item.createTime) }}</p>
-                </div>
-              </div>
-            </div>
-            <div v-else class="no-data">暂无配置数据</div>
-            <Button @click="handleRefreshConfig" class="mt-2">刷新配置数据</Button>
-          </div> -->
         </div>
       </div>
 

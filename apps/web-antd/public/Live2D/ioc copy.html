@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>林芝市大数据中心IOC大屏</title>
+    <script src="https://cdn.tailwindcss.com/3.3.3"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.5.0/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #0a192f;
+            color: #e2e8f0;
+            margin: 0;
+            padding: 0;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            gap: 20px;
+            padding: 30px 30px 30px 30px;
+        }
+
+        .left-column {
+            flex: 0 0 95%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .right-column {
+            flex: 0 0 5%;
+        }
+
+        .top-section, .middle-section, .bottom-section {
+            flex: 1;
+        }
+                
+        .glass-panel {
+            background: rgba(16, 24, 48, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+        
+        .section-title {
+            position: relative;
+            padding-left: 16px;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+            border-radius: 2px;
+        }
+        
+        .data-card {
+            transition: all 0.3s ease;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .data-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        
+        .map-container, .chart-container {
+            height: 100%;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .blink {
+            animation: blink 2s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .counter {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* 布局样式 */
+        .top-section {
+            height: 30%;
+            margin-bottom: 20px;
+        }
+        
+        .middle-section {
+            height: 55%;
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .left-section {
+            width: 70%;
+            margin-right: 20px;
+        }
+        
+        .right-section {
+            width: 30%;
+        }
+        
+        .bottom-section {
+            height: 30%;
+        }
+        
+        .grid-3 {
+            display: flex;
+            height: 100%;
+        }
+        
+        .grid-item {
+            flex: 1;
+            margin-right: 15px;
+        }
+        
+        .grid-item:last-child {
+            margin-right: 0;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            margin-top: 5px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-column">
+            <!-- 数字基础设施板块 - 顶部 -->
+        <div class="top-section glass-panel">
+            <div class="section-title">数字基础设施</div>
+            <div style="display: flex; height: calc(100% - 40px);">
+                <!-- 政务云平台 -->
+                <div class="data-card" style="width: 30%; margin-right: 15px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #3b82f6; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                            <i class="fas fa-cloud" style="color: white; font-size: 18px;"></i>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: bold;">政务云平台</h3>
+                    </div>
+                    <div style="display: flex; height: calc(100% - 60px);">
+                        <div style="width: 40%; margin-right: 10px;">
+                            <img src="https://p3-search.byteimg.com/obj/labis/939a18e5ad44fef3195218451e884796" alt="政务云平台架构" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                        </div>
+                        <div style="width: 60%;">
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; height: 100%;">
+                                <div style="background-color: rgba(59, 130, 246, 0.1); padding: 8px; border-radius: 6px;">
+                                    <div style="color: #93c5fd; font-size: 12px;">系统上云</div>
+                                    <div style="font-weight: bold; font-size: 16px;">11/23</div>
+                                </div>
+                                <div style="background-color: rgba(59, 130, 246, 0.1); padding: 8px; border-radius: 6px;">
+                                    <div style="color: #93c5fd; font-size: 12px;">数据对接</div>
+                                    <div style="font-weight: bold; font-size: 16px;">52家</div>
+                                </div>
+                                <div style="background-color: rgba(59, 130, 246, 0.1); padding: 8px; border-radius: 6px;">
+                                    <div style="color: #93c5fd; font-size: 12px;">共享目录</div>
+                                    <div style="font-weight: bold; font-size: 16px;">1554个</div>
+                                </div>
+                                <div style="background-color: rgba(59, 130, 246, 0.1); padding: 8px; border-radius: 6px;">
+                                    <div style="color: #93c5fd; font-size: 12px;">数据总量</div>
+                                    <div style="font-weight: bold; font-size: 16px;">320万条</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 一网通管平台 -->
+                <div class="data-card" style="width: 25%; margin-right: 15px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #8b5cf6; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                            <i class="fas fa-network-wired" style="color: white; font-size: 18px;"></i>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: bold;">"一网通管"平台</h3>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                            <div style="width: 10px; height: 10px; border-radius: 50%; background-color: #f59e0b; margin-right: 5px;"></div>
+                            <span style="color: #f59e0b; font-size: 14px;">建设中</span>
+                        </div>
+                        <div style="font-size: 12px; color: #9ca3af;">预计年底上线部分功能</div>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <div style="color: #a78bfa; font-size: 12px;">项目预算</div>
+                            <div style="font-weight: bold; font-size: 14px;">3000万元</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 60%;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <div style="color: #a78bfa; font-size: 12px;">建设周期</div>
+                            <div style="font-weight: bold; font-size: 14px;">6个月</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 40%;"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <div style="color: #a78bfa; font-size: 12px;">运维服务</div>
+                            <div style="font-weight: bold; font-size: 14px;">1年免费</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 大数据平台 -->
+                <div class="data-card" style="width: 20%; margin-right: 15px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #7c3aed; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                            <i class="fas fa-database" style="color: white; font-size: 18px;"></i>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: bold;">大数据平台</h3>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                            <div style="width: 10px; height: 10px; border-radius: 50%; background-color: #10b981; margin-right: 5px;"></div>
+                            <span style="color: #10b981; font-size: 14px;">已建成</span>
+                        </div>
+                        <div style="font-size: 12px; color: #9ca3af;">实现数据集中管理和共享</div>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <div style="color: #8b5cf6; font-size: 12px;">物联网设施</div>
+                            <div style="font-weight: bold; font-size: 14px;">已完善</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <div style="color: #8b5cf6; font-size: 12px;">电子政务网</div>
+                            <div style="font-weight: bold; font-size: 14px;">优化升级</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 其他基础设施 -->
+                <div class="data-card" style="width: 25%;">
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #3b82f6; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                            <i class="fas fa-server" style="color: white; font-size: 18px;"></i>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: bold;">其他基础设施</h3>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; height: calc(100% - 60px);">
+                        <div style="background-color: rgba(16, 24, 48, 0.5); padding: 10px; border-radius: 8px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                <i class="fas fa-wifi" style="color: #3b82f6; margin-right: 5px;"></i>
+                                <div style="color: #93c5fd; font-size: 12px;">城市物联网</div>
+                            </div>
+                            <div style="font-weight: bold; font-size: 14px;">感知能力提升</div>
+                        </div>
+                        <div style="background-color: rgba(16, 24, 48, 0.5); padding: 10px; border-radius: 8px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                <i class="fas fa-network-wired" style="color: #8b5cf6; margin-right: 5px;"></i>
+                                <div style="color: #a78bfa; font-size: 12px;">电子政务网</div>
+                            </div>
+                            <div style="font-weight: bold; font-size: 14px;">办公效率提高</div>
+                        </div>
+                        <div style="background-color: rgba(16, 24, 48, 0.5); padding: 10px; border-radius: 8px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                <i class="fas fa-shield-alt" style="color: #10b981; margin-right: 5px;"></i>
+                                <div style="color: #6ee7b7; font-size: 12px;">数据安全</div>
+                            </div>
+                            <div style="font-weight: bold; font-size: 14px;">防护体系完善</div>
+                        </div>
+                        <div style="background-color: rgba(16, 24, 48, 0.5); padding: 10px; border-radius: 8px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                                <i class="fas fa-exchange-alt" style="color: #f59e0b; margin-right: 5px;"></i>
+                                <div style="color: #fcd34d; font-size: 12px;">数据交换</div>
+                            </div>
+                            <div style="font-weight: bold; font-size: 14px;">共享机制健全</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 中间区域 - 智慧应用和政务服务 -->
+        <div class="middle-section">
+            <!-- 左侧 - 智慧应用 -->
+            <div class="left-section glass-panel">
+                <div class="section-title">智慧应用</div>
+                <div style="display: flex; height: calc(100% - 40px);">
+                    <!-- 雪亮工程 -->
+                    <div class="data-card" style="width: 40%; margin-right: 15px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #3b82f6; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                                <i class="fas fa-video" style="color: white; font-size: 18px;"></i>
+                            </div>
+                            <h3 style="font-size: 18px; font-weight: bold;">雪崩预警平台</h3>
+                        </div>
+                        <div style="height: 60%; margin-bottom: 10px;">
+                            <img src="https://p3-search.byteimg.com/obj/labis/d07faed6f9367da9ef8aeda10c126202" alt="雪亮工程覆盖区域" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                            <div style="background-color: rgba(59, 130, 246, 0.1); padding: 8px; border-radius: 6px;">
+                                <div style="color: #93c5fd; font-size: 12px;">投入资金</div>
+                                <div style="font-weight: bold; font-size: 16px;">1.52亿元</div>
+                            </div>
+                            <div style="background-color: rgba(59, 130, 246, 0.1); padding: 8px; border-radius: 6px;">
+                                <div style="color: #93c5fd; font-size: 12px;">监控点位</div>
+                                <div style="font-weight: bold; font-size: 16px;">1.54万路</div>
+                            </div>
+                            <div style="background-color: rgba(59, 130, 246, 0.1); padding: 8px; border-radius: 6px;">
+                                <div style="color: #93c5fd; font-size: 12px;">加油站接入</div>
+                                <div style="font-weight: bold; font-size: 16px;">46家</div>
+                            </div>
+                            <div style="background-color: rgba(59, 130, 246, 0.1); padding: 8px; border-radius: 6px;">
+                                <div style="color: #93c5fd; font-size: 12px;">加气站接入</div>
+                                <div style="font-weight: bold; font-size: 16px;">9家</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 智慧食安系统 -->
+                    <div class="data-card" style="width: 30%; margin-right: 15px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #10b981; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                                <i class="fas fa-utensils" style="color: white; font-size: 18px;"></i>
+                            </div>
+                            <h3 style="font-size: 18px; font-weight: bold;">智慧食安系统</h3>
+                        </div>
+                        <!-- <div style="height: 30%; margin-bottom: 10px;">
+                            <div id="food-safety-flowchart"></div>
+                        </div> -->
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; height: calc(60% - 20px);">
+                            <div style="background-color: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 6px;">
+                                <div style="color: #6ee7b7; font-size: 12px;">监管主体</div>
+                                <div style="font-weight: bold; font-size: 16px;">100%覆盖</div>
+                            </div>
+                            <div style="background-color: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 6px;">
+                                <div style="color: #6ee7b7; font-size: 12px;">明厨亮灶</div>
+                                <div style="font-weight: bold; font-size: 16px;">300家</div>
+                            </div>
+                            <div style="background-color: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 6px;">
+                                <div style="color: #6ee7b7; font-size: 12px;">快检批次</div>
+                                <div style="font-weight: bold; font-size: 16px;">7.06万</div>
+                            </div>
+                            <div style="background-color: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 6px;">
+                                <div style="color: #6ee7b7; font-size: 12px;">合格率</div>
+                                <div style="font-weight: bold; font-size: 16px;">98%</div>
+                            </div>
+                        </div>
+                        <div class=" p-4 rounded-lg">
+                            <div class="text-green-300 text-sm mb-2">系统亮点</div>
+                            <ul class="text-white text-sm space-y-2">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                                    <span>AI智能抓拍技术实时监控食品安全违法行为</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                                    <span>无纸化监督执法1800余次</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
+                                    <span>风险等级评定10227次</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- 智慧旅游 -->
+                    <div class="data-card" style="width: 30%;">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                                <i class="fas fa-mountain" style="color: white; font-size: 18px;"></i>
+                            </div>
+                            <h3 style="font-size: 18px; font-weight: bold;">智慧旅游</h3>
+                        </div>
+                        <div style="height: 60%; margin-bottom: 10px;">
+                            <canvas id="tourismChart"></canvas>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <div style="text-align: center;">
+                                <div style="color: #fcd34d; font-size: 12px;">游客满意度</div>
+                                <div style="font-weight: bold; font-size: 18px; color: #f59e0b;">+20%</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: #fcd34d; font-size: 12px;">景区覆盖</div>
+                                <div style="font-weight: bold; font-size: 18px; color: #f59e0b;">88个</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: #fcd34d; font-size: 12px;">智慧化率</div>
+                                <div style="font-weight: bold; font-size: 18px; color: #f59e0b;">100%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧 - 政务服务 -->
+            <div class="right-section glass-panel">
+                <div class="section-title">政务服务</div>
+                <div style="height: calc(100% - 40px);">
+                    <!-- 一网通办 -->
+                    <div class="data-card" style="height: 50%; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #8b5cf6; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                                <i class="fas fa-file-alt" style="color: white; font-size: 18px;"></i>
+                            </div>
+                            <h3 style="font-size: 18px; font-weight: bold;">一网通办</h3>
+                        </div>
+                        <div style="height: 60%; margin-bottom: 10px;">
+                            <canvas id="onlineServicesChart"></canvas>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <div style="text-align: center;">
+                                <div style="color: #a78bfa; font-size: 12px;">办件量</div>
+                                <div style="font-weight: bold; font-size: 16px; color: white;">50万+</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: #a78bfa; font-size: 12px;">增长率</div>
+                                <div style="font-weight: bold; font-size: 16px; color: white;">+271%</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="color: #a78bfa; font-size: 12px;">跨省通办</div>
+                                <div style="font-weight: bold; font-size: 16px; color: white;">11.22万</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 政务数据共享 -->
+                    <div class="data-card" style="height: calc(50% - 15px);">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #7c3aed; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                                <i class="fas fa-exchange-alt" style="color: white; font-size: 18px;"></i>
+                            </div>
+                            <h3 style="font-size: 18px; font-weight: bold;">政务数据共享</h3>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <div style="color: #8b5cf6; font-size: 12px;">数据对接</div>
+                                <div style="font-weight: bold; font-size: 14px;">60家单位</div>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 80%;"></div>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                            <div>
+                                <div style="color: #8b5cf6; font-size: 12px; margin-bottom: 5px;">共享目录</div>
+                                <div style="font-weight: bold; font-size: 14px;">199个</div>
+                            </div>
+                            <div>
+                                <div style="color: #8b5cf6; font-size: 12px; margin-bottom: 5px;">信息项</div>
+                                <div style="font-weight: bold; font-size: 14px;">2167个</div>
+                            </div>
+                            <div>
+                                <div style="color: #8b5cf6; font-size: 12px; margin-bottom: 5px;">数据总量</div>
+                                <div style="font-weight: bold; font-size: 14px;">400万条</div>
+                            </div>
+                            <div>
+                                <div style="color: #8b5cf6; font-size: 12px; margin-bottom: 5px;">热线服务</div>
+                                <div style="font-weight: bold; font-size: 14px;">12345</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+        
+        <div class="right-column">
+        <!-- 数字经济板块 - 底部 -->
+        <div class="bottom-section glass-panel">
+            <div class="section-title">数字经济</div>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <!-- GDP -->
+                <div class="data-card" style="width: 100%; height: 320px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #ef4444; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                            <i class="fas fa-chart-line" style="color: white; font-size: 18px;"></i>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: bold;">GDP</h3>
+                    </div>
+                    <div style="text-align: center; margin-bottom: 10px;">
+                        <div class="counter">200亿</div>
+                        <div style="font-size: 12px; color: #9ca3af;">地区生产总值</div>
+                    </div>
+                    <div style="height: 50%; margin-bottom: 10px;">
+                        <canvas id="gdpChart"></canvas>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <div style="text-align: center;">
+                            <div style="color: #fca5a5; font-size: 12px;">增速</div>
+                            <div style="font-weight: bold; font-size: 16px; color: white;">5.7%</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #fca5a5; font-size: 12px;">招商引资</div>
+                            <div style="font-weight: bold; font-size: 16px; color: white;">40亿</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 工业产值 -->
+                <div class="data-card" style="width: 100%; height: 320px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #f97316; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                            <i class="fas fa-industry" style="color: white; font-size: 18px;"></i>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: bold;">工业产值</h3>
+                    </div>
+                    <div style="text-align: center; margin-bottom: 10px;">
+                        <div class="counter">50亿</div>
+                        <div style="font-size: 12px; color: #9ca3af;">规上企业总产值</div>
+                    </div>
+                    <div style="height: 50%; margin-bottom: 10px;">
+                        <canvas id="industryChart"></canvas>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <div style="text-align: center;">
+                            <div style="color: #fdba74; font-size: 12px;">增速</div>
+                            <div style="font-weight: bold; font-size: 16px; color: white;">24%</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #fdba74; font-size: 12px;">增加值</div>
+                            <div style="font-weight: bold; font-size: 16px; color: white;">3.61亿</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 消费零售总额 -->
+                <div class="data-card" style="width: 100%; height: 320px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #f59e0b; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                            <i class="fas fa-shopping-cart" style="color: white; font-size: 18px;"></i>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: bold;">消费零售总额</h3>
+                    </div>
+                    <div style="text-align: center; margin-bottom: 10px;">
+                        <div class="counter">80亿</div>
+                        <div style="font-size: 12px; color: #9ca3af;">社会消费品零售</div>
+                    </div>
+                    <div style="height: 50%; margin-bottom: 10px;">
+                        <canvas id="retailChart"></canvas>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <div style="text-align: center;">
+                            <div style="color: #fcd34d; font-size: 12px;">增速</div>
+                            <div style="font-weight: bold; font-size: 16px; color: white;">8.7%</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #fcd34d; font-size: 12px;">拉动消费</div>
+                            <div style="font-weight: bold; font-size: 16px; color: white;">4.41亿</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+        
+    </div>
+    
+    <!-- <footer style="position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; color: #9ca3af; font-size: 12px;">
+        <p>created by <a href="https://space.coze.cn" style="color: #93c5fd; text-decoration: none;">coze space</a></p>
+        <p>页面内容均由 AI 生成，仅供参考</p>
+    </footer> -->
+    
+    <script>
+        // 初始化图表
+        document.addEventListener('DOMContentLoaded', function() {
+            // 一网通办事项增长柱状图
+            const onlineServicesCtx = document.getElementById('onlineServicesChart').getContext('2d');
+            new Chart(onlineServicesCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['2023年1-7月', '2023年1-10月', '2024年'],
+                    datasets: [{
+                        label: '办件量(万件)',
+                        data: [17.9, 48.44, 50],
+                        backgroundColor: [
+                            'rgba(99, 102, 241, 0.7)',
+                            'rgba(99, 102, 241, 0.7)',
+                            'rgba(234, 179, 8, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(99, 102, 241, 1)',
+                            'rgba(99, 102, 241, 1)',
+                            'rgba(234, 179, 8, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y + '万件';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 智慧旅游图表
+            const tourismCtx = document.getElementById('tourismChart').getContext('2d');
+            new Chart(tourismCtx, {
+                type: 'line',
+                data: {
+                    labels: ['1月', '2月', '3月', '4月'],
+                    datasets: [{
+                        label: '游客数量(万人次)',
+                        data: [25, 30, 35, 40],
+                        borderColor: 'rgba(234, 179, 8, 1)',
+                        backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // GDP图表
+            const gdpCtx = document.getElementById('gdpChart').getContext('2d');
+            new Chart(gdpCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2023Q1', '2023Q2', '2023Q3', '2023Q4', '2024Q1'],
+                    datasets: [{
+                        label: 'GDP(亿元)',
+                        data: [45, 48, 52, 55, 53.07],
+                        borderColor: 'rgba(239, 68, 68, 1)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 工业产值图表
+            const industryCtx = document.getElementById('industryChart').getContext('2d');
+            new Chart(industryCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['藏医药', '建材加工', '电力生产', '其他'],
+                    datasets: [{
+                        label: '工业增加值(亿元)',
+                        data: [1.2, 1.5, 0.8, 0.11],
+                        backgroundColor: [
+                            'rgba(249, 115, 22, 0.7)',
+                            'rgba(249, 115, 22, 0.7)',
+                            'rgba(249, 115, 22, 0.7)',
+                            'rgba(249, 115, 22, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(249, 115, 22, 1)',
+                            'rgba(249, 115, 22, 1)',
+                            'rgba(249, 115, 22, 1)',
+                            'rgba(249, 115, 22, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgaku(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 消费零售总额图表
+            const retailCtx = document.getElementById('retailChart').getContext('2d');
+            new Chart(retailCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2023Q1', '2023Q2', '2023Q3', '2023Q4', '2024Q1'],
+                    datasets: [{
+                        label: '消费零售总额(亿元)',
+                        data: [15, 18, 20, 15, 17],
+                        borderColor: 'rgba(234, 179, 8, 1)',
+                        backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 智慧食安系统流程图
+            const foodSafetyFlowchart = `
+                flowchart TD
+                    A[食品生产] -->|原料检测| B(生产加工)
+                    B -->|过程监控| C[仓储运输]
+                    C -->|温湿度控制| D{销售环节}
+                    D -->|明厨亮灶| E[消费者]
+                    E -->|反馈评价| F[监管部门]
+                    F -->|数据分析| A
+            `;
+            
+            mermaid.mermaidAPI.render('food-safety-flowchart', foodSafetyFlowchart, (svgCode) => {
+                document.getElementById('food-safety-flowchart').innerHTML = svgCode;
+            });
+        });
+    </script>
+</body>
+</html>

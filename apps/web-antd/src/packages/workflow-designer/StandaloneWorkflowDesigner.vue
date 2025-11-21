@@ -207,9 +207,12 @@ onInit(() => {
 })
 
 onNodeClick(({ node }: NodeMouseEvent) => {
-  if (node && node.selected) {
+  if (node && node.data) {
     selectedWfNode.value = node.data as WorkflowNode
     hidePropertyPanel.value = false
+    if (import.meta.env.DEV) {
+      console.log('节点点击:', node.id, '组件:', node.data?.wfComponent?.name)
+    }
   }
 })
 

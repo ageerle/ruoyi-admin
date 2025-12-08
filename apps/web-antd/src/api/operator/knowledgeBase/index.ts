@@ -15,8 +15,8 @@ export function knowledgeList() {
 }
 
 // 删除
-export function knowledgeDelete(id: any) {
-  return requestClient.post<any>(`${Api.knowledgeDelete}/${id}`);
+export function knowledgeDelete(kid: any) {
+  return requestClient.post<any>(`${Api.knowledgeDelete}/${kid}`);
 }
 
 // 新增

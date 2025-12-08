@@ -157,7 +157,7 @@ const handleAdd = () => {
 
 // 删除
 const handleDelete = (record) => {
-  knowledgeDelete(record.id).then((res) => {
+  knowledgeDelete(record.kid).then((res) => {
     message.success('删除成功');
     getList();
   });

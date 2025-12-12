@@ -4,7 +4,7 @@ import { Button, Input, InputNumber, Switch, Tabs, Upload, message } from 'ant-d
 import type { UploadFile } from 'ant-design-vue'
 import RuntimeNodes from './RuntimeNodes.vue'
 import SvgIcon from './SvgIcon.vue'
-import { workflowRun, workflowRuntimeResume, getUploadAction } from '#/api/workflow'
+import { workflowRun, workflowRuntimeResume, getUploadAction, workflowApi } from '#/api/workflow'
 import { useWfStore } from '#/packages/workflow-designer/store'
 
 interface Props { workflow: any }
@@ -33,6 +33,8 @@ const uploadedFileUuids = ref<string[]>([])
 const humanFeedback = ref<boolean>(false)
 const humanFeedbackTip = ref<string>('')
 const humanFeedbackContent = ref<string>('')
+// 组件ID到组件名称的映射
+const componentIdToNameMap = ref<Record<string, string>>({})
 let controller = new AbortController()
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter' && !e.shiftKey) {
@@ -212,14 +214,50 @@ function handleClick() {
   tabObj.value.tab = showCurrentExecution.value ? `${tabObj.value.defaultTab} ↓` : `${tabObj.value.defaultTab} ↑`
 }
 
+// 获取组件列表并构建映射
+async function fetchWorkflowComponents() {
+  try {
+    const response = await workflowApi.workflowComponents()
+    // 处理可能的响应格式：可能是直接数组，也可能是包装对象
+    const components = Array.isArray(response) ? response : (response?.data || [])
+    const map: Record<string, string> = {}
+    if (Array.isArray(components)) {
+      components.forEach((component: any) => {
+        // 使用 id 作为 key，name 作为 value
+        const id = String(component.id)
+        map[id] = component.name
+      })
+    }
+    componentIdToNameMap.value = map
+    console.log('组件ID映射:', map)
+  } catch (error) {
+    console.error('获取组件列表失败:', error)
+    // 如果获取失败，使用空映射，后续会使用备用方案
+    componentIdToNameMap.value = {}
+  }
+}
+
+// 根据 workflowComponentId 获取组件名称
+function getComponentNameByWorkflowComponentId(workflowComponentId: number | string): string {
+  const id = String(workflowComponentId)
+  return componentIdToNameMap.value[id] || 'Unknown'
+}
+
 function findStartNodeFromWorkflow() {
   return Array.isArray(props.workflow?.nodes)
     ? props.workflow.nodes.find((n: any) => {
         // 优先检查 wfComponent.name（编辑时的数据结构）
         if (n?.wfComponent?.name === 'Start') return true;
         // 检查 workflowComponentId（后端返回的数据结构）
-        // 后端返回的是字符串，需要转换为数字比较
-        if (Number(n?.workflowComponentId) === 1) return true;
+        // 使用映射函数判断组件类型
+        if (n?.workflowComponentId !== undefined) {
+          const componentName = getComponentNameByWorkflowComponentId(n.workflowComponentId);
+          if (componentName === 'Start') return true;
+        }
+        // 备用方案：检查节点标题是否包含"开始"
+        if (n?.title && (n.title === '开始' || n.title.includes('开始'))) {
+          return true;
+        }
         return false;
       })
     : null
@@ -227,7 +265,9 @@ function findStartNodeFromWorkflow() {
 
 function rebuildUserInputs() {
   const storeStart = wfStore.getStartNode(props.workflow.uuid)
+  console.log('storeStart', storeStart);
   const localStart = findStartNodeFromWorkflow()
+  console.log('localStart', localStart);
   startNode.value = storeStart || localStart || null
   if (startNode.value && Array.isArray(startNode.value.inputConfig?.user_inputs)) {
     userInputs.value = startNode.value.inputConfig.user_inputs.map((input: any) => ({
@@ -241,9 +281,16 @@ function rebuildUserInputs() {
   }
 }
 
-rebuildUserInputs()
+// 初始化：获取组件列表并重建用户输入
+async function init() {
+  await fetchWorkflowComponents()
+  rebuildUserInputs()
+}
+
+init()
 
 watch(() => props.workflow, () => rebuildUserInputs(), { deep: true })
+watch(() => componentIdToNameMap.value, () => rebuildUserInputs(), { deep: true })
 
 headers.Authorization = token.value
 onUnmounted(() => { if (wfStore.wfUuidToWfRuntimeLoading.get(currWfUuid)) controller.abort() })

@@ -160,6 +160,7 @@ const getModelCategory = ref([
   { label: '知识库向量模型-vector', value: 'vector' },
   { label: '图片识别模型-image', value: 'image' },
   { label: 'FASTGPT-fastgpt', value: 'fastgpt' },
+  { label: 'RAGFLOW-ragflow', value: 'ragflow' },
 ]);
 
 const getProviderCategory = ref([

@@ -39,7 +39,12 @@ const lines = computed(() => {
     case 'template':
       return [cut(c.content || c.prompt || '')]
     case 'httprequest':
-      return [`${c.method || 'GET'} ${cut(c.url || '')}`]
+      const contentTypeLabel = c.content_type ? c.content_type.split('/')[1] || c.content_type : 'json'
+      return [
+        `方法： ${c.method || 'GET'}  类型： ${contentTypeLabel}`,
+        `URL： ${cut(c.url || '未设置', 35)}`,
+        `超时： ${c.timeout ?? 10}秒  重试： ${c.retry_times ?? 0}次`,
+      ].filter(Boolean)
     case 'mailsend':
       return [`收件人： ${cut(c.to_mails || '')}`, `主题： ${cut(c.subject || '')}`]
     case 'humanfeedback':

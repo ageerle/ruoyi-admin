@@ -21,7 +21,20 @@ export const propertyDefaultGetters: Record<string, DefaultGetter> = {
   google: () => ({ query: '', country: 'cn', language: 'zh-cn', top_n: 5 }),
   humanfeedback: () => ({ tip: '' }),
   mailsend: () => ({ sender_type: 1, cc_mails: '', to_mails: '', subject: '', content: '', smtp: { host: '', port: 465 }, sender: { name: '', mail: '', password: '' } }),
-  httprequest: () => ({ method: 'GET', url: '', content_type: 'text/plain', headers: [{ name: 'Accept', value: '*/*' }], params: [], text_body: '', json_body: {}, form_data_body: [], form_urlencoded_body: [], body: {}, timeout: 10, retry_times: 0, clear_html: false }),
+  httprequest: () => ({ 
+    method: 'GET', 
+    url: '', 
+    content_type: 'application/json', 
+    headers: [{ name: 'Accept', value: '*/*' }], 
+    params: [], 
+    text_body: '', 
+    json_body: {}, 
+    form_data_body: [], 
+    form_urlencoded_body: [], 
+    timeout: 10, 
+    retry_times: 0, 
+    clear_html: false 
+  }),
   classifier: () => ({
     model_name: '',
     categories: [

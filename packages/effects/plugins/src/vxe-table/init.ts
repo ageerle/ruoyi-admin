@@ -6,6 +6,15 @@ import { usePreferences } from '@vben/preferences';
 
 import { useVbenForm } from '@vben-core/form-ui';
 
+/**
+ * 该插件提供了在表格中渲染第三方组件，用于兼容 ant-design-vue 组件库
+ *
+ * 解决组件问题(如select浮层与失焦冲突)
+ *
+ * @see https://vxeui.com/other4/#/plugin-render-antd/start/full/npmInstall
+ * @see https://vxetable.cn/other4/#/table/other/antd
+ */
+import VxeUIPluginRenderAntd from '@vxe-ui/plugin-render-antd';
 import {
   VxeButton,
   VxeCheckbox,
@@ -30,8 +39,8 @@ import {
   VxeSelect,
   VxeTooltip,
   VxeUI,
-  VxeSwitch,
   VxeUpload,
+  // VxeSwitch,
   // VxeTextarea,
 } from 'vxe-pc-ui';
 import enUS from 'vxe-pc-ui/lib/language/en-US';
@@ -46,6 +55,8 @@ import {
 } from 'vxe-table';
 
 import { extendsDefaultFormatter } from './extends';
+
+import '@vxe-ui/plugin-render-antd/dist/style.css';
 
 // 是否加载过
 let isInit = false;
@@ -92,10 +103,11 @@ export function initVxeTable() {
   // VxeUI.component(VxeRadioButton);
   VxeUI.component(VxeRadioGroup);
   VxeUI.component(VxeSelect);
-  VxeUI.component(VxeSwitch);
+  // VxeUI.component(VxeSwitch);
   // VxeUI.component(VxeTextarea);
   VxeUI.component(VxeTooltip);
   VxeUI.component(VxeUpload);
+  VxeUI.use(VxeUIPluginRenderAntd);
 
   isInit = true;
 }
@@ -106,7 +118,7 @@ export function setupVbenVxeTable(setupOptions: SetupVxeTable) {
   initVxeTable();
   useTableForm = useVbenForm;
 
-  const preference = usePreferences();
+  const { isDark, locale } = usePreferences();
 
   const localMap = {
     'zh-CN': zhCN,
@@ -114,11 +126,11 @@ export function setupVbenVxeTable(setupOptions: SetupVxeTable) {
   };
 
   watch(
-    [() => preference.theme.value, () => preference.locale.value],
-    ([theme, locale]) => {
-      VxeUI.setTheme(theme === 'dark' ? 'dark' : 'light');
-      VxeUI.setI18n(locale, localMap[locale]);
-      VxeUI.setLanguage(locale);
+    [() => isDark.value, () => locale.value],
+    ([isDarkValue, localeValue]) => {
+      VxeUI.setTheme(isDarkValue ? 'dark' : 'light');
+      VxeUI.setI18n(localeValue, localMap[localeValue]);
+      VxeUI.setLanguage(localeValue);
     },
     {
       immediate: true,

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type { DeptOption } from '#/api/system/role/model';
 
-import { ref } from 'vue';
-
 import { useVbenModal } from '@vben/common-ui';
-import { cloneDeep } from '@vben/utils';
+import { cloneDeep, findGroupParentIds } from '@vben/utils';
+
+import { uniq } from 'lodash-es';
 
 import { useVbenForm } from '#/adapter/form';
 import { roleDataScope, roleDeptTree, roleInfo } from '#/api/system/role';
-import { TreeSelectPanel } from '#/components/tree';
+import { defaultFormValueGetter, useBeforeCloseDiff } from '#/utils/popup';
 
 import { authModalSchemas } from './data';
 
@@ -25,42 +25,60 @@ const [BasicForm, formApi] = useVbenForm({
   showDefaultActions: false,
 });
 
-const deptTree = ref<DeptOption[]>([]);
+/**
+ * 保存部门数据 用于获取祖先节点
+ */
+let treeData: DeptOption[] = [];
 async function setupDeptTree(id: number | string) {
   const resp = await roleDeptTree(id);
-  formApi.setFieldValue('deptIds', resp.checkedKeys);
-  // 设置菜单信息
-  deptTree.value = resp.depts;
+  const { checkedKeys, depts } = resp;
+
+  /**
+   * 设置部门树数据
+   */
+  formApi.updateSchema([
+    { fieldName: 'deptIds', componentProps: { treeData: depts } },
+  ]);
+  /**
+   * 设置选中 必须先传递treeData
+   * Note: Tree missing follow keys: '1981565541727186945'
+   */
+  await formApi.setFieldValue('deptIds', checkedKeys);
+  treeData = depts;
 }
+
+const { onBeforeClose, markInitialized, resetInitialized } = useBeforeCloseDiff(
+  {
+    initializedGetter: defaultFormValueGetter(formApi),
+    currentGetter: defaultFormValueGetter(formApi),
+  },
+);
 
 const [BasicModal, modalApi] = useVbenModal({
   fullscreenButton: false,
-  onCancel: handleCancel,
+  onBeforeClose,
+  onClosed: handleClosed,
   onConfirm: handleConfirm,
   onOpenChange: async (isOpen) => {
     if (!isOpen) {
+      treeData = [];
       return null;
     }
     modalApi.modalLoading(true);
 
     const { id } = modalApi.getData() as { id: number | string };
 
-    setupDeptTree(id);
-    const record = await roleInfo(id);
+    const [record] = await Promise.all([roleInfo(id), setupDeptTree(id)]);
     await formApi.setValues(record);
+    markInitialized();
 
     modalApi.modalLoading(false);
   },
 });
 
-/**
- * 这里拿到的是一个数组ref
- */
-const deptSelectRef = ref();
-
 async function handleConfirm() {
   try {
-    modalApi.modalLoading(true);
+    modalApi.lock(true);
     const { valid } = await formApi.validate();
     if (!valid) {
       return;
@@ -69,52 +87,38 @@ async function handleConfirm() {
     const data = cloneDeep(await formApi.getValues());
     // 不为自定义权限的话 删除部门id
     if (data.dataScope === '2') {
-      const deptIds = deptSelectRef.value?.[0]?.getCheckedKeys() ?? [];
+      let { deptIds, deptCheckStrictly } = data;
+      // 节点关联 需要拼接上祖级ID(获取的是不带的)
+      if (deptCheckStrictly) {
+        // 找到所有父级ID
+        const parentIds = findGroupParentIds(treeData, deptIds, { id: 'id' });
+        // 去重
+        deptIds = uniq([...parentIds, ...deptIds]);
+      }
+      // 赋值
       data.deptIds = deptIds;
     } else {
       data.deptIds = [];
     }
     await roleDataScope(data);
+    resetInitialized();
     emit('reload');
-    await handleCancel();
+    modalApi.close();
   } catch (error) {
     console.error(error);
   } finally {
-    modalApi.modalLoading(false);
+    modalApi.lock(false);
   }
 }
 
-async function handleCancel() {
-  modalApi.close();
+async function handleClosed() {
   await formApi.resetForm();
-}
-
-/**
- * 通过回调更新 无法通过v-model
- * @param value 菜单选择是否严格模式
- */
-function handleCheckStrictlyChange(value: boolean) {
-  formApi.setFieldValue('deptCheckStrictly', value);
+  resetInitialized();
 }
 </script>
 
 <template>
-  <BasicModal
-    :close-on-click-modal="false"
-    class="min-h-[600px] w-[550px]"
-    title="分配权限"
-  >
-    <BasicForm>
-      <template #deptIds="slotProps">
-        <TreeSelectPanel
-          ref="deptSelectRef"
-          v-bind="slotProps"
-          :check-strictly="formApi.form.values.deptCheckStrictly"
-          :expand-all-on-init="true"
-          :tree-data="deptTree"
-          @check-strictly-change="handleCheckStrictlyChange"
-        />
-      </template>
-    </BasicForm>
+  <BasicModal class="min-h-[600px] w-[550px]" title="分配权限">
+    <BasicForm />
   </BasicModal>
 </template>

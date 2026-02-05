@@ -44,6 +44,7 @@ export class ModalApi {
       confirmDisabled: false,
       confirmLoading: false,
       contentClass: '',
+      destroyOnClose: true,
       draggable: false,
       footer: true,
       footerClass: '',
@@ -58,6 +59,7 @@ export class ModalApi {
       showCancelButton: true,
       showConfirmButton: true,
       title: '',
+      animationType: 'slide',
     };
 
     this.store = new Store<ModalState>(
@@ -105,7 +107,6 @@ export class ModalApi {
       this.store.setState((prev) => ({
         ...prev,
         isOpen: false,
-        submitting: false,
       }));
     }
   }
@@ -123,12 +124,14 @@ export class ModalApi {
     return this.setState({ submitting: isLocked });
   }
 
+  /**
+   * loading和lock的区别
+   * loading允许关闭窗口
+   * lock不允许关闭窗口
+   * @param loading 是否loading
+   */
   modalLoading(loading: boolean) {
-    this.store.setState((prev) => ({
-      ...prev,
-      confirmLoading: loading,
-      loading,
-    }));
+    this.setState({ confirmLoading: loading, loading });
   }
 
   /**
@@ -168,7 +171,11 @@ export class ModalApi {
   }
 
   open() {
-    this.store.setState((prev) => ({ ...prev, isOpen: true }));
+    this.store.setState((prev) => ({
+      ...prev,
+      isOpen: true,
+      submitting: false,
+    }));
   }
 
   setData<T>(payload: T) {

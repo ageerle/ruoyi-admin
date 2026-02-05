@@ -154,10 +154,10 @@ const isSuperAdmin = computed(() => {
       </template>
       <template #status="{ row }">
         <TableSwitch
-          v-model="row.status"
+          v-model:value="row.status"
           :api="() => packageChangeStatus(row)"
           :disabled="!hasAccessByCodes(['system:tenantPackage:edit'])"
-          :reload="() => tableApi.query()"
+          @reload="tableApi.query()"
         />
       </template>
       <template #action="{ row }">

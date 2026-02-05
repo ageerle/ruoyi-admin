@@ -5,6 +5,7 @@ import type { FormSchema, MaybeComponentProps } from '../types';
 
 import { computed, nextTick, onUnmounted, useTemplateRef, watch } from 'vue';
 
+import { CircleAlert } from '@vben-core/icons';
 import {
   FormControl,
   FormDescription,
@@ -12,6 +13,7 @@ import {
   FormItem,
   FormMessage,
   VbenRenderContent,
+  VbenTooltip,
 } from '@vben-core/shadcn-ui';
 import { cn, isFunction, isObject, isString } from '@vben-core/shared/utils';
 
@@ -39,6 +41,7 @@ const {
   emptyStateValue,
   fieldName,
   formFieldProps,
+  hide,
   label,
   labelClass,
   labelWidth,
@@ -57,7 +60,7 @@ const values = useFormValues();
 const errors = useFieldError(fieldName);
 const fieldComponentRef = useTemplateRef<HTMLInputElement>('fieldComponentRef');
 const formApi = formRenderProps.form;
-const compact = formRenderProps.compact;
+const compact = computed(() => formRenderProps.compact);
 const isInValid = computed(() => errors.value?.length > 0);
 
 const FieldComponent = computed(() => {
@@ -93,7 +96,7 @@ const currentRules = computed(() => {
 });
 
 const visible = computed(() => {
-  return isIf.value && isShow.value;
+  return !hide && isIf.value && isShow.value;
 });
 
 const shouldRequired = computed(() => {
@@ -281,7 +284,7 @@ onUnmounted(() => {
 
 <template>
   <FormField
-    v-if="isIf"
+    v-if="!hide && isIf"
     v-bind="fieldProps"
     v-slot="slotProps"
     :name="fieldName"
@@ -293,7 +296,7 @@ onUnmounted(() => {
         'form-is-required': shouldRequired,
         'flex-col': isVertical,
         'flex-row items-center': !isVertical,
-        'pb-6': !compact,
+        'pb-4': !compact,
         'pb-2': compact,
       }"
       class="relative flex"
@@ -354,6 +357,24 @@ onUnmounted(() => {
                 </template>
                 <!-- <slot></slot> -->
               </component>
+              <VbenTooltip
+                v-if="compact && isInValid"
+                :delay-duration="300"
+                side="left"
+              >
+                <template #trigger>
+                  <slot name="trigger">
+                    <CircleAlert
+                      :class="
+                        cn(
+                          'text-foreground/80 hover:text-foreground inline-flex size-5 cursor-pointer',
+                        )
+                      "
+                    />
+                  </slot>
+                </template>
+                <FormMessage />
+              </VbenTooltip>
             </slot>
           </FormControl>
           <!-- 自定义后缀 -->
@@ -365,8 +386,8 @@ onUnmounted(() => {
           </FormDescription>
         </div>
 
-        <Transition name="slide-up">
-          <FormMessage class="absolute bottom-1" />
+        <Transition name="slide-up" v-if="!compact">
+          <FormMessage class="absolute bottom-[-4px]" />
         </Transition>
       </div>
     </FormItem>

@@ -2,10 +2,9 @@
 import type { SelectLabelProps } from 'radix-vue';
 
 import { cn } from '@vben-core/shared/utils';
-
 import { SelectLabel } from 'radix-vue';
 
-const props = defineProps<SelectLabelProps & { class?: any }>();
+const props = defineProps<{ class?: any } & SelectLabelProps>();
 </script>
 
 <template>

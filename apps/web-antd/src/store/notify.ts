@@ -2,20 +2,15 @@ import type { NotificationItem } from '@vben/layouts';
 
 import { computed, ref, watch } from 'vue';
 
-import { useAppConfig } from '@vben/hooks';
 import { SvgMessageUrl } from '@vben/icons';
 import { $t } from '@vben/locales';
-import { useAccessStore, useUserStore } from '@vben/stores';
+import { useUserStore } from '@vben/stores';
 
-import { useEventSource } from '@vueuse/core';
-import { notification } from 'ant-design-vue';
+import { Modal, notification } from 'ant-design-vue';
 import dayjs from 'dayjs';
 import { defineStore } from 'pinia';
 
-const { apiURL, clientId, sseEnable } = useAppConfig(
-  import.meta.env,
-  import.meta.env.PROD,
-);
+import { useSseMessage } from '#/utils/message';
 
 export const useNotifyStore = defineStore(
   'app-notify',
@@ -40,26 +35,18 @@ export const useNotifyStore = defineStore(
      * 开始监听sse消息
      */
     function startListeningMessage() {
-      /**
-       * 未开启 不监听
-       */
-      if (!sseEnable) {
+      // 默认sse 使用 websocket自行开启注释
+      // const websocketReturnData = useWebSocketMessage();
+      // if (!websocketReturnData) {
+      //   return;
+      // }
+      // const { data } = websocketReturnData;
+
+      const sseReturnData = useSseMessage();
+      if (!sseReturnData) {
         return;
       }
-      const accessStore = useAccessStore();
-      const token = accessStore.accessToken;
-
-      const sseAddr = `${apiURL}/resource/sse?clientid=${clientId}&Authorization=Bearer ${token}`;
-
-      const { data } = useEventSource(sseAddr, [], {
-        autoReconnect: {
-          delay: 1000,
-          onFailed() {
-            console.error('sse重连失败.');
-          },
-          retries: 3,
-        },
-      });
+      const { data } = sseReturnData;
 
       watch(data, (message) => {
         if (!message) return;
@@ -103,6 +90,11 @@ export const useNotifyStore = defineStore(
      */
     function setRead(item: NotificationItem) {
       !item.isRead && (item.isRead = true);
+      // 显示信息
+      Modal.info({
+        title: item.title,
+        content: item.message,
+      });
     }
 
     /**

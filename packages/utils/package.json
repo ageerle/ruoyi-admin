@@ -1,6 +1,6 @@
 {
   "name": "@vben/utils",
-  "version": "5.5.4",
+  "version": "5.5.9",
   "homepage": "https://github.com/vbenjs/vue-vben-admin",
   "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
   "repository": {
@@ -22,7 +22,14 @@
   "dependencies": {
     "@vben-core/shared": "workspace:*",
     "@vben-core/typings": "workspace:*",
+    "crypto-js": "^4.2.0",
     "file-type": "^19.5.0",
+    "jsencrypt": "^3.5.4",
+    "sm-crypto": "^0.3.13",
     "vue-router": "catalog:"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/sm-crypto": "^0.3.4"
   }
 }

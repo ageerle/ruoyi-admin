@@ -45,8 +45,16 @@
   );
   --vxe-ui-table-row-current-background-color: hsl(var(--accent));
   --vxe-ui-table-row-hover-current-background-color: hsl(var(--accent-hover));
+  --vxe-ui-font-primary-tinge-color: hsl(var(--primary));
+  --vxe-ui-font-primary-lighten-color: hsl(var(--primary) / 60%);
+  --vxe-ui-font-primary-darken-color: hsl(var(--primary));
+
+  /* 拖拽列宽颜色 */
+  --vxe-ui-table-resizable-drag-line-color: hsl(var(--primary));
 
   /* --vxe-ui-table-fixed-scrolling-box-shadow-color: rgb(0 0 0 / 80%); */
+
+  height: auto !important;
 }
 
 html[data-vxe-ui-theme='dark'] .vxe-grid {
@@ -109,4 +117,32 @@ html[data-vxe-ui-theme='dark'] .vxe-grid {
 
 .vxe-tools--operate:not(:has(button)) {
   margin-left: 0;
+}
+
+.vxe-grid--layout-header-wrapper {
+  overflow: visible;
+}
+
+.vxe-grid--layout-body-content-wrapper {
+  overflow: hidden;
+}
+
+/* modal/drawer中使用 tooltip需要设置更高的z-index 防止被遮挡 */
+body:has(div[data-dismissable-layer]) .vxe-tooltip--wrapper {
+  /* tooltip直接在style中设置 需要!important来实现优先级覆盖 */
+  z-index: calc(var(--popup-z-index) + 1) !important;
+}
+
+/*
+在border: inner场景下 去除下边的边框
+TODO: 最后一条数据hover/check仍会显示边框
+*/
+.vxe-table.border--inner .vxe-table--border-line {
+  border-radius: var(--vxe-ui-table-border-radius)
+    var(--vxe-ui-table-border-radius) 0 0;
+}
+
+/* modal/drawer里使用列配置 重置列弹窗被遮挡 */
+.vxe-dynamics--modal > .vxe-modal--wrapper {
+  z-index: calc(var(--popup-z-index) + 1) !important;
 }

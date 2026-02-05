@@ -4,13 +4,11 @@ import type {
   DropdownMenuSubContentProps,
 } from 'radix-vue';
 
+import { cn } from '@vben-core/shared/utils';
+import { DropdownMenuSubContent, useForwardPropsEmits } from 'radix-vue';
 import { computed } from 'vue';
 
-import { cn } from '@vben-core/shared/utils';
-
-import { DropdownMenuSubContent, useForwardPropsEmits } from 'radix-vue';
-
-const props = defineProps<DropdownMenuSubContentProps & { class?: any }>();
+const props = defineProps<{ class?: any } & DropdownMenuSubContentProps>();
 const emits = defineEmits<DropdownMenuSubContentEmits>();
 
 const delegatedProps = computed(() => {

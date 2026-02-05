@@ -9,7 +9,6 @@ import { userUpdatePassword } from '#/api/system/profile';
 import { useAuthStore } from '#/store';
 
 const [BasicForm, formApi] = useVbenForm({
-  actionWrapperClass: 'text-left mb-[16px] ml-[96px]',
   commonConfig: {
     labelWidth: 90,
   },

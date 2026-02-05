@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue';
 
-import { computed, useTemplateRef } from 'vue';
-
 import { VbenSpineText } from '@vben-core/shadcn-ui';
+import { computed, useTemplateRef } from 'vue';
 
 const props = defineProps<{
   contentStyle: CSSProperties;

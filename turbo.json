@@ -23,6 +23,16 @@
         ".vitepress/dist/**"
       ]
     },
+
+    "@vben/web-antd#build:prod": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "@vben/web-antd#build:test": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+
     "preview": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]

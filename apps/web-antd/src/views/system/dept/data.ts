@@ -30,7 +30,6 @@ export const columns: VxeGridProps['columns'] = [
     field: 'deptName',
     title: '部门名称',
     treeNode: true,
-    width: 200,
   },
   {
     field: 'deptCategory',
@@ -39,11 +38,9 @@ export const columns: VxeGridProps['columns'] = [
   {
     field: 'orderNum',
     title: '排序',
-    width: 180,
   },
   {
     field: 'status',
-    width: 180,
     title: '状态',
     slots: {
       default: ({ row }) => {
@@ -60,7 +57,8 @@ export const columns: VxeGridProps['columns'] = [
     fixed: 'right',
     slots: { default: 'action' },
     title: '操作',
-    width: 200,
+    resizable: false,
+    width: 'auto',
   },
 ];
 
@@ -97,6 +95,7 @@ export const drawerSchema: FormSchemaGetter = () => [
     fieldName: 'orderNum',
     label: '显示排序',
     rules: 'required',
+    defaultValue: 0,
   },
   {
     component: 'Input',

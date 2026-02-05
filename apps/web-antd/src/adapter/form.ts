@@ -10,44 +10,46 @@ import { $t } from '@vben/locales';
 
 import { isArray } from 'lodash-es';
 
-setupVbenForm<ComponentType>({
-  config: {
-    // ant design vue组件库默认都是 v-model:value
-    baseModelPropName: 'value',
+async function initSetupVbenForm() {
+  setupVbenForm<ComponentType>({
+    config: {
+      // ant design vue组件库默认都是 v-model:value
+      baseModelPropName: 'value',
 
-    // 一些组件是 v-model:checked 或者 v-model:fileList
-    modelPropNameMap: {
-      Checkbox: 'checked',
-      Radio: 'checked',
-      RichTextarea: 'modelValue',
-      Switch: 'checked',
-      Upload: 'fileList',
+      // 一些组件是 v-model:checked 或者 v-model:fileList
+      modelPropNameMap: {
+        Checkbox: 'checked',
+        Radio: 'checked',
+        RichTextarea: 'modelValue',
+        Switch: 'checked',
+        Upload: 'fileList',
+      },
     },
-  },
-  defineRules: {
-    // 输入项目必填国际化适配
-    required: (value, _params, ctx) => {
-      if (value === undefined || value === null || value.length === 0) {
-        return $t('ui.formRules.required', [ctx.label]);
-      }
-      return true;
+    defineRules: {
+      // 输入项目必填国际化适配
+      required: (value, _params, ctx) => {
+        if (value === undefined || value === null || value.length === 0) {
+          return $t('ui.formRules.required', [ctx.label]);
+        }
+        return true;
+      },
+      // 选择项目必填国际化适配
+      selectRequired: (value, _params, ctx) => {
+        if (
+          [false, null, undefined].includes(value) ||
+          (isArray(value) && value.length === 0)
+        ) {
+          return $t('ui.formRules.selectRequired', [ctx.label]);
+        }
+        return true;
+      },
     },
-    // 选择项目必填国际化适配
-    selectRequired: (value, _params, ctx) => {
-      if (
-        [false, null, undefined].includes(value) ||
-        (isArray(value) && value.length === 0)
-      ) {
-        return $t('ui.formRules.selectRequired', [ctx.label]);
-      }
-      return true;
-    },
-  },
-});
+  });
+}
 
 const useVbenForm = useForm<ComponentType>;
 
-export { useVbenForm, z };
+export { initSetupVbenForm, useVbenForm, z };
 
 export type VbenFormSchema = FormSchema<ComponentType>;
 export type { VbenFormProps };

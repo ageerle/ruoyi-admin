@@ -7,7 +7,8 @@ import { addFullName, cloneDeep } from '@vben/utils';
 
 import { useVbenForm } from '#/adapter/form';
 import { postAdd, postInfo, postUpdate } from '#/api/system/post';
-import { getDeptTree } from '#/api/operator/user';
+import { getDeptTree } from '#/api/system/user';
+import { defaultFormValueGetter, useBeforeCloseDiff } from '#/utils/popup';
 
 import { drawerSchema } from './data';
 
@@ -50,8 +51,16 @@ async function setupDeptSelect() {
   ]);
 }
 
+const { onBeforeClose, markInitialized, resetInitialized } = useBeforeCloseDiff(
+  {
+    initializedGetter: defaultFormValueGetter(formApi),
+    currentGetter: defaultFormValueGetter(formApi),
+  },
+);
+
 const [BasicDrawer, drawerApi] = useVbenDrawer({
-  onCancel: handleCancel,
+  onBeforeClose,
+  onClosed: handleClosed,
   onConfirm: handleConfirm,
   async onOpenChange(isOpen) {
     if (!isOpen) {
@@ -67,36 +76,38 @@ const [BasicDrawer, drawerApi] = useVbenDrawer({
       const record = await postInfo(id);
       await formApi.setValues(record);
     }
+    await markInitialized();
     drawerApi.drawerLoading(false);
   },
 });
 
 async function handleConfirm() {
   try {
-    drawerApi.drawerLoading(true);
+    drawerApi.lock(true);
     const { valid } = await formApi.validate();
     if (!valid) {
       return;
     }
     const data = cloneDeep(await formApi.getValues());
     await (isUpdate.value ? postUpdate(data) : postAdd(data));
+    resetInitialized();
     emit('reload');
-    await handleCancel();
+    drawerApi.close();
   } catch (error) {
     console.error(error);
   } finally {
-    drawerApi.drawerLoading(false);
+    drawerApi.lock(false);
   }
 }
 
-async function handleCancel() {
-  drawerApi.close();
+async function handleClosed() {
   await formApi.resetForm();
+  resetInitialized();
 }
 </script>
 
 <template>
-  <BasicDrawer :close-on-click-modal="false" :title="title" class="w-[600px]">
+  <BasicDrawer :title="title" class="w-[600px]">
     <BasicForm />
   </BasicDrawer>
 </template>

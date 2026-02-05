@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { DialogContentEmits, DialogContentProps } from 'radix-vue';
 
-import { computed } from 'vue';
-
 import { cn } from '@vben-core/shared/utils';
-
 import { X } from 'lucide-vue-next';
 import {
   DialogClose,
@@ -13,9 +10,10 @@ import {
   DialogPortal,
   useForwardPropsEmits,
 } from 'radix-vue';
+import { computed } from 'vue';
 
 const props = withDefaults(
-  defineProps<DialogContentProps & { class?: any; zIndex?: number }>(),
+  defineProps<{ class?: any; zIndex?: number } & DialogContentProps>(),
   { zIndex: 1000 },
 );
 const emits = defineEmits<DialogContentEmits>();

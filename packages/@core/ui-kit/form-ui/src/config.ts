@@ -6,8 +6,6 @@ import type {
   VbenFormAdapterOptions,
 } from './types';
 
-import { h } from 'vue';
-
 import {
   VbenButton,
   VbenCheckbox,
@@ -18,8 +16,8 @@ import {
   VbenSelect,
 } from '@vben-core/shadcn-ui';
 import { globalShareState } from '@vben-core/shared/global-state';
-
 import { defineRule } from 'vee-validate';
+import { h } from 'vue';
 
 const DEFAULT_MODEL_PROP_NAME = 'modelValue';
 

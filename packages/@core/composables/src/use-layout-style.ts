@@ -1,8 +1,5 @@
-import type { CSSProperties } from 'vue';
-
 import type { VisibleDomRect } from '@vben-core/shared/utils';
-
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import type { CSSProperties } from 'vue';
 
 import {
   CSS_VARIABLE_LAYOUT_CONTENT_HEIGHT,
@@ -11,8 +8,8 @@ import {
   CSS_VARIABLE_LAYOUT_HEADER_HEIGHT,
 } from '@vben-core/shared/constants';
 import { getElementVisibleRect } from '@vben-core/shared/utils';
-
 import { useCssVar, useDebounceFn } from '@vueuse/core';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 /**
  * @zh_CN content style

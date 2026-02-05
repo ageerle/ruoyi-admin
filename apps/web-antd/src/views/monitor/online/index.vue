@@ -10,6 +10,7 @@ import { Page } from '@vben/common-ui';
 import { getVxePopupContainer } from '@vben/utils';
 
 import { Popconfirm } from 'ant-design-vue';
+import { slice } from 'lodash-es';
 
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 import { forceLogout, onlineList } from '#/api/monitor/online';
@@ -32,16 +33,26 @@ const gridOptions: VxeGridProps = {
   columns,
   height: 'auto',
   keepSource: true,
-  pagerConfig: {
-    enabled: false,
-  },
+  pagerConfig: {},
   proxyConfig: {
     ajax: {
-      query: async (_, formValues = {}) => {
+      // 后端其实是一个假分页 返回的是全部数据
+      query: async ({ page }, formValues = {}) => {
         const resp = await onlineList({
           ...formValues,
         });
+        // 设置在线数
         onlineCount.value = resp.total;
+
+        const { currentPage, pageSize } = page;
+        // 当前需要截取的index -> 当前page-1 * 每页条数
+        const currentIndex = (currentPage - 1) * pageSize;
+        // 当前需要截取的endIndex -> currentIndex + 每页条数
+        const endIndex = currentIndex + pageSize;
+        // 截取区间内的数据
+        const sliceRows = slice(resp.rows, currentIndex, endIndex);
+        resp.rows = sliceRows;
+
         return resp;
       },
     },

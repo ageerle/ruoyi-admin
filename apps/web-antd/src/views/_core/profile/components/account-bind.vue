@@ -1,174 +1,142 @@
 <script setup lang="tsx">
-import type { VxeGridProps } from '@vben/plugins/vxe-table';
-
 import type { BindItem } from '../../oauth-common';
 
-import { computed, ref, unref } from 'vue';
+import type { SocialInfo } from '#/api/system/social/model';
 
-import { useVbenVxeGrid } from '@vben/plugins/vxe-table';
+import { onMounted, ref } from 'vue';
 
-import { Alert, Avatar, Card, List, ListItem, Modal } from 'ant-design-vue';
+import { Alert, Avatar, Card, Empty, Modal, Tooltip } from 'ant-design-vue';
 
 import { authUnbinding } from '#/api';
 import { socialList } from '#/api/system/social';
 
 import { accountBindList, handleAuthBinding } from '../../oauth-common';
 
-function buttonText(item: BindItem) {
-  return item.bound ? '已绑定' : '绑定';
+interface BindItemWithInfo extends BindItem {
+  info?: SocialInfo;
+  bind?: boolean;
 }
 
-/**
- * 已经绑定的平台
- */
-const boundPlatformsList = ref<string[]>([]);
-const bindList = computed<BindItem[]>(() => {
-  const list = [...accountBindList];
+const bindList = ref<BindItemWithInfo[]>([]);
+
+async function loadData() {
+  const resp = await socialList();
+
+  const list: BindItemWithInfo[] = [...accountBindList];
   list.forEach((item) => {
-    item.bound = !!unref(boundPlatformsList).includes(item.source);
+    /**
+     * 平台转小写
+     */
+    item.bound = resp
+      .map((social) => social.source.toLowerCase())
+      .includes(item.source.toLowerCase());
+    /**
+     * 添加info信息
+     */
+    if (item.bound) {
+      item.info = resp.find(
+        (social) => social.source.toLowerCase() === item.source,
+      );
+    }
   });
-  return list;
-});
-
-const gridOptions: VxeGridProps = {
-  columns: [
-    {
-      field: 'source',
-      title: '绑定平台',
-    },
-    {
-      slots: {
-        default: ({ row }) => {
-          return <Avatar src={row.avatar} />;
-        },
-      },
-      field: 'avatar',
-      title: '头像',
-    },
-    {
-      align: 'center',
-      field: 'userName',
-      title: '账号',
-    },
-    {
-      align: 'center',
-      slots: {
-        default: 'action',
-      },
-      title: '操作',
-    },
-  ],
-  height: 220,
-  keepSource: true,
-  pagerConfig: {
-    enabled: false,
-  },
-  toolbarConfig: {
-    enabled: false,
-  },
-  proxyConfig: {
-    ajax: {
-      query: async () => {
-        const resp = await socialList();
-        /**
-         * 平台转小写
-         * 已经绑定的平台
-         */
-        boundPlatformsList.value = resp.map((item) =>
-          item.source.toLowerCase(),
-        );
-        return {
-          rows: resp,
-        };
-      },
-    },
-  },
-  rowConfig: {
-    isCurrent: false,
-    keyField: 'id',
-  },
-  id: 'profile-bind-table',
-};
-
-const [BasicTable, tableApi] = useVbenVxeGrid({
-  gridOptions,
-});
+  bindList.value = list;
+}
+onMounted(loadData);
 
 /**
  * 解绑账号
  */
-function handleUnbind(record: Record<string, any>) {
+function handleUnbind(record: BindItemWithInfo) {
+  if (!record.info) {
+    return;
+  }
   Modal.confirm({
-    content: `确定解绑[${record.source}]平台的[${record.userName}]账号吗？`,
+    content: `确定解绑[${record.source}]平台的[${record.info.userName}]账号吗？`,
     async onOk() {
-      await authUnbinding(record.id);
-      await tableApi.reload();
+      await authUnbinding(record.info!.id);
+      await loadData();
     },
     title: '提示',
     type: 'warning',
   });
 }
+
+const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
 </script>
 
 <template>
-  <div class="flex flex-col gap-[16px]">
-    <BasicTable>
-      <template #action="{ row }">
-        <a-button type="link" @click="handleUnbind(row)">解绑</a-button>
-      </template>
-    </BasicTable>
-    <div class="pb-3">
-      <List
-        :data-source="bindList"
-        :grid="{ gutter: 8, xs: 1, sm: 1, md: 2, lg: 3, xl: 3, xxl: 3 }"
+  <div class="flex flex-col gap-4 pb-4">
+    <div
+      v-if="bindList.length > 0"
+      class="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3"
+    >
+      <Card
+        class="transition-shadow duration-300 hover:shadow-md"
+        v-for="item in bindList"
+        :key="item.source"
       >
-        <template #renderItem="{ item }">
-          <ListItem>
-            <Card>
-              <div class="flex w-full items-center gap-4">
-                <component
-                  :is="item.avatar"
-                  v-if="item.avatar"
-                  :style="item?.style ?? {}"
-                  class="size-[40px]"
-                />
-                <div class="flex flex-1 items-center justify-between">
-                  <div class="flex flex-col">
-                    <h4
-                      class="mb-[4px] text-[14px] text-black/85 dark:text-white/85"
-                    >
-                      {{ item.title }}
-                    </h4>
-                    <span class="text-black/45 dark:text-white/45">
-                      {{ item.description }}
-                    </span>
-                  </div>
-                  <a-button
-                    :disabled="item.bound"
-                    size="small"
-                    type="link"
-                    @click="handleAuthBinding(item.source)"
-                  >
-                    {{ buttonText(item) }}
-                  </a-button>
-                </div>
-              </div>
-            </Card>
-          </ListItem>
-        </template>
-      </List>
-      <Alert message="说明" type="info">
-        <template #description>
-          <p>
-            需要添加第三方账号在
-            <span class="font-bold">
-              apps\web-antd\src\views\_core\oauth-common.ts
-            </span>
-            中accountBindList按模板添加
-          </p>
-        </template>
-      </Alert>
+        <div class="flex w-full items-center gap-4">
+          <component
+            :is="item.avatar"
+            v-if="item.avatar"
+            :style="item?.style ?? {}"
+            class="size-[40px]"
+          />
+          <div class="flex flex-1 items-center justify-between">
+            <div class="flex flex-col">
+              <h4 class="mb-[4px] text-[14px] text-black/85 dark:text-white/85">
+                {{ item.title }}
+              </h4>
+              <span class="text-black/45 dark:text-white/45">
+                <template v-if="!item.bound">
+                  {{ item.description }}
+                </template>
+                <template v-if="item.bound && item.info">
+                  <Tooltip>
+                    <template #title>
+                      <div class="flex flex-col items-center gap-2 p-2">
+                        <Avatar :size="36" :src="item.info.avatar" />
+                        <div>绑定时间: {{ item.info.createTime }}</div>
+                      </div>
+                    </template>
+                    <div class="cursor-pointer">
+                      已绑定: {{ item.info.nickName }}
+                    </div>
+                  </Tooltip>
+                </template>
+              </span>
+            </div>
+            <!-- TODO: 这里有优化空间? -->
+            <a-button
+              size="small"
+              :type="item.bound ? 'default' : 'link'"
+              @click="
+                item.bound ? handleUnbind(item) : handleAuthBinding(item.source)
+              "
+            >
+              {{ item.bound ? '取消绑定' : '绑定' }}
+            </a-button>
+          </div>
+        </div>
+      </Card>
     </div>
+    <div
+      v-if="bindList.length === 0"
+      class="flex items-center justify-center rounded-lg border py-4"
+    >
+      <Empty :image="simpleImage" description="暂无可绑定的第三方账户" />
+    </div>
+    <Alert message="说明" type="info">
+      <template #description>
+        <p>
+          需要添加第三方账号在
+          <span class="font-bold">
+            apps\web-antd\src\views\_core\oauth-common.ts
+          </span>
+          中accountBindList按模板添加
+        </p>
+      </template>
+    </Alert>
   </div>
 </template>
 

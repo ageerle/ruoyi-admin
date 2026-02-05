@@ -1,6 +1,6 @@
 {
   "name": "@vben/common-ui",
-  "version": "5.5.4",
+  "version": "5.5.9",
   "homepage": "https://github.com/vbenjs/vue-vben-admin",
   "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
   "repository": {
@@ -17,6 +17,14 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./es/tippy": {
+      "types": "./src/components/tippy/index.ts",
+      "default": "./src/components/tippy/index.ts"
+    },
+    "./es/loading": {
+      "types": "./src/components/loading/index.ts",
+      "default": "./src/components/loading/index.ts"
     }
   },
   "dependencies": {
@@ -41,9 +49,10 @@
     "@vueuse/core": "catalog:",
     "@vueuse/integrations": "catalog:",
     "codemirror": "6.0.1",
+    "json-bigint": "catalog:",
     "qrcode": "catalog:",
     "tippy.js": "catalog:",
-    "vditor": "3.10.7",
+    "vditor": "3.10.9",
     "vue": "catalog:",
     "vue-codemirror6": "1.3.4",
     "vue-json-pretty": "^2.4.0",

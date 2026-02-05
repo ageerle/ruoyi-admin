@@ -17,6 +17,7 @@ const emit = defineEmits<{ reload: [] }>();
 const [BasicDrawer, drawerApi] = useVbenDrawer({
   onConfirm: handleSubmit,
   onCancel: handleReset,
+  destroyOnClose: true,
 });
 
 const route = useRoute();

@@ -1,6 +1,5 @@
-import type { Component, Ref } from 'vue';
-
 import type { MenuRecordBadgeRaw, ThemeModeType } from '@vben-core/typings';
+import type { Component, Ref } from 'vue';
 
 interface MenuProps {
   /**
@@ -41,6 +40,12 @@ interface MenuProps {
    * @default true
    */
   rounded?: boolean;
+
+  /**
+   * @zh_CN 是否自动滚动到激活的菜单项
+   * @default false
+   */
+  scrollToActive?: boolean;
 
   /**
    * @zh_CN 菜单主题

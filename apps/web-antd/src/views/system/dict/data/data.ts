@@ -45,7 +45,8 @@ export const columns: VxeGridProps['columns'] = [
     fixed: 'right',
     slots: { default: 'action' },
     title: '操作',
-    width: 180,
+    resizable: false,
+    width: 'auto',
   },
 ];
 
@@ -98,6 +99,7 @@ export const drawerSchema: FormSchemaGetter = () => [
     fieldName: 'dictSort',
     label: '显示排序',
     rules: 'required',
+    defaultValue: 0,
   },
   {
     component: 'Textarea',

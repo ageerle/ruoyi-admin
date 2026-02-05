@@ -2,10 +2,9 @@
 import type { PrimitiveProps } from 'radix-vue';
 
 import { cn } from '@vben-core/shared/utils';
-
 import { Primitive } from 'radix-vue';
 
-const props = withDefaults(defineProps<PrimitiveProps & { class?: any }>(), {
+const props = withDefaults(defineProps<{ class?: any } & PrimitiveProps>(), {
   as: 'a',
 });
 </script>

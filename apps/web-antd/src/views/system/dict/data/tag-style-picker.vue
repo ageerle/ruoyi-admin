@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import type { RadioChangeEvent } from 'ant-design-vue';
 
-import type { PropType } from 'vue';
-
 import { computed } from 'vue';
 
-import { Input, RadioGroup, Select } from 'ant-design-vue';
+import { usePreferences } from '@vben/preferences';
+
+import { RadioGroup, Select } from 'ant-design-vue';
+import { ColorPicker } from 'vue3-colorpicker';
 
 import { tagSelectOptions } from '#/components/dict';
+
+import 'vue3-colorpicker/style.css';
 
 /**
  * 需要禁止透传
@@ -32,23 +35,26 @@ const computedOptions = computed(
 
 type SelectType = (typeof options)[number]['value'];
 
-const selectType = defineModel('selectType', {
+const selectType = defineModel<SelectType>('selectType', {
   default: 'default',
-  type: String as PropType<SelectType>,
 });
 
 /**
  * color必须为hex颜色或者undefined
  */
-const color = defineModel('value', {
+const color = defineModel<string | undefined>('value', {
   default: undefined,
-  type: String as PropType<string | undefined>,
 });
 
 function handleSelectTypeChange(e: RadioChangeEvent) {
   // 必须给默认hex颜色 不能为空字符串
-  color.value = e.target.value === 'custom' ? '#000000' : undefined;
+  color.value = e.target.value === 'custom' ? '#1677ff' : undefined;
 }
+
+const { isDark } = usePreferences();
+const theme = computed(() => {
+  return isDark.value ? 'black' : 'white';
+});
 </script>
 
 <template>
@@ -69,15 +75,12 @@ function handleSelectTypeChange(e: RadioChangeEvent) {
       placeholder="请选择标签样式"
       @deselect="$emit('deselect')"
     />
-    <Input
+    <ColorPicker
       v-if="selectType === 'custom'"
-      v-model:value="color"
-      class="flex-1"
-      disabled
-    >
-      <template #addonAfter>
-        <input v-model="color" class="rounded-lg" type="color" />
-      </template>
-    </Input>
+      disable-alpha
+      format="hex"
+      v-model:pure-color="color"
+      :theme="theme"
+    />
   </div>
 </template>

@@ -11,14 +11,7 @@ import { useAccess } from '@vben/access';
 import { Page, useVbenDrawer, useVbenModal } from '@vben/common-ui';
 import { getVxePopupContainer } from '@vben/utils';
 
-import {
-  Dropdown,
-  Menu,
-  MenuItem,
-  Modal,
-  Popconfirm,
-  Space,
-} from 'ant-design-vue';
+import { Modal, Popconfirm, Space } from 'ant-design-vue';
 
 import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
 import {
@@ -81,9 +74,6 @@ const gridOptions: VxeGridProps = {
   rowConfig: {
     keyField: 'roleId',
   },
-  toolbarConfig: {
-    search: true,
-  },
   id: 'system-role-index',
 };
 
@@ -145,7 +135,7 @@ function handleAuthEdit(record: Role) {
 
 const router = useRouter();
 function handleAssignRole(record: Role) {
-  router.push(`/system/role-assign/${record.roleId}`);
+  router.push(`/system/role-auth/user/${record.roleId}`);
 }
 </script>
 
@@ -180,14 +170,14 @@ function handleAssignRole(record: Role) {
       </template>
       <template #status="{ row }">
         <TableSwitch
-          v-model="row.status"
+          v-model:value="row.status"
           :api="() => roleChangeStatus(row)"
           :disabled="
             row.roleId === 1 ||
             row.roleKey === 'admin' ||
             !hasAccessByCodes(['system:role:edit'])
           "
-          :reload="() => tableApi.query()"
+          @reload="tableApi.query()"
         />
       </template>
       <template #action="{ row }">
@@ -202,6 +192,18 @@ function handleAssignRole(record: Role) {
               @click.stop="handleEdit(row)"
             >
               {{ $t('pages.common.edit') }}
+            </ghost-button>
+            <ghost-button
+              v-access:code="['system:role:edit']"
+              @click.stop="handleAuthEdit(row)"
+            >
+              权限
+            </ghost-button>
+            <ghost-button
+              v-access:code="['system:role:edit']"
+              @click.stop="handleAssignRole(row)"
+            >
+              分配
             </ghost-button>
             <Popconfirm
               :get-popup-container="getVxePopupContainer"
@@ -218,24 +220,6 @@ function handleAssignRole(record: Role) {
               </ghost-button>
             </Popconfirm>
           </Space>
-          <Dropdown
-            :get-popup-container="getVxePopupContainer"
-            placement="bottomRight"
-          >
-            <template #overlay>
-              <Menu>
-                <MenuItem key="1" @click="handleAuthEdit(row)">
-                  数据权限
-                </MenuItem>
-                <MenuItem key="2" @click="handleAssignRole(row)">
-                  分配用户
-                </MenuItem>
-              </Menu>
-            </template>
-            <a-button size="small" type="link">
-              {{ $t('pages.common.more') }}
-            </a-button>
-          </Dropdown>
         </template>
       </template>
     </BasicTable>

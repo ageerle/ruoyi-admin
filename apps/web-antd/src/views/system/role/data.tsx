@@ -1,11 +1,15 @@
 import type { FormSchemaGetter } from '#/adapter/form';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 
+import { markRaw } from 'vue';
+
 import { DictEnum } from '@vben/constants';
 import { getPopupContainer } from '@vben/utils';
 
 import { Tag } from 'ant-design-vue';
 
+import { DefaultSlot } from '#/components/global/slot';
+import { TreeSelectPanel } from '#/components/tree';
 import { getDictOptions } from '#/utils/dict';
 
 /**
@@ -94,7 +98,8 @@ export const columns: VxeGridProps['columns'] = [
     fixed: 'right',
     slots: { default: 'action' },
     title: '操作',
-    width: 180,
+    resizable: false,
+    width: 'auto',
   },
 ];
 
@@ -126,6 +131,7 @@ export const drawerSchema: FormSchemaGetter = () => [
     fieldName: 'roleSort',
     label: '角色排序',
     rules: 'required',
+    defaultValue: 0,
   },
   {
     component: 'Select',
@@ -176,15 +182,6 @@ export const authModalSchemas: FormSchemaGetter = () => [
     label: '角色ID',
   },
   {
-    component: 'Radio',
-    dependencies: {
-      show: () => false,
-      triggerFields: [''],
-    },
-    fieldName: 'deptCheckStrictly',
-    label: 'deptCheckStrictly',
-  },
-  {
     component: 'Input',
     componentProps: {
       disabled: true,
@@ -212,12 +209,39 @@ export const authModalSchemas: FormSchemaGetter = () => [
     label: '权限范围',
   },
   {
-    component: 'TreeSelect',
+    component: 'Radio',
+    dependencies: {
+      show: () => false,
+      triggerFields: [''],
+    },
+    fieldName: 'deptCheckStrictly',
+    label: 'deptCheckStrictly',
+  },
+  {
+    // 这种的场景基本上是一个组件需要绑定两个或以上的场景
+    component: markRaw(DefaultSlot),
     defaultValue: [],
+    componentProps: {
+      rootDivAttrs: {
+        class: 'w-full',
+      },
+    },
     dependencies: {
       show: (values) => values.dataScope === '2',
       triggerFields: ['dataScope'],
     },
+    renderComponentContent: (model) => ({
+      default: (attrs: any) => {
+        return (
+          <TreeSelectPanel
+            expand-all-on-init={true}
+            treeData={attrs.treeData}
+            v-model:checkStrictly={model.deptCheckStrictly}
+            v-model:value={model.deptIds}
+          />
+        );
+      },
+    }),
     fieldName: 'deptIds',
     help: '更改后立即生效',
     label: '部门权限',

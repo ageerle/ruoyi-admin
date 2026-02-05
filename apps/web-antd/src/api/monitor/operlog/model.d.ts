@@ -2,7 +2,7 @@ export interface OperationLog {
   operId: string;
   tenantId: string;
   title: string;
-  businessType: number;
+  businessType: string;
   businessTypes?: any;
   method: string;
   requestMethod: string;
@@ -14,7 +14,7 @@ export interface OperationLog {
   operLocation: string;
   operParam: string;
   jsonResult: string;
-  status: number;
+  status: string;
   errorMsg: string;
   operTime: string;
   costTime: number;

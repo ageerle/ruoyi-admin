@@ -39,7 +39,8 @@ export const columns: VxeGridProps['columns'] = [
     fixed: 'right',
     slots: { default: 'action' },
     title: '操作',
-    width: 180,
+    resizable: false,
+    width: 'auto',
   },
 ];
 
@@ -71,7 +72,6 @@ export const modalSchema: FormSchemaGetter = () => [
   {
     component: 'Textarea',
     fieldName: 'remark',
-    formItemClass: 'items-start',
     label: '备注',
   },
 ];

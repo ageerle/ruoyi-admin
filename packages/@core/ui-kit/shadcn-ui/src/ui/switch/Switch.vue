@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import type { SwitchRootEmits, SwitchRootProps } from 'radix-vue';
 
+import { cn } from '@vben-core/shared/utils';
+import { SwitchRoot, SwitchThumb, useForwardPropsEmits } from 'radix-vue';
 import { computed } from 'vue';
 
-import { cn } from '@vben-core/shared/utils';
-
-import { SwitchRoot, SwitchThumb, useForwardPropsEmits } from 'radix-vue';
-
-const props = defineProps<SwitchRootProps & { class?: any }>();
+const props = defineProps<{ class?: any } & SwitchRootProps>();
 
 const emits = defineEmits<SwitchRootEmits>();
 

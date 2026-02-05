@@ -4,10 +4,11 @@ import type { AuthApi } from '#/api';
 import { onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { DEFAULT_HOME_PATH, DEFAULT_TENANT_ID } from '@vben/constants';
+import { DEFAULT_TENANT_ID, LOGIN_PATH } from '@vben/constants';
 import { useAccessStore } from '@vben/stores';
+import { cn } from '@vben/utils';
 
-import { message } from 'ant-design-vue';
+import { message, Spin } from 'ant-design-vue';
 
 import { authCallback } from '#/api';
 import { useAuthStore } from '#/store';
@@ -62,22 +63,22 @@ onMounted(async () => {
       await authCallback(data);
       message.success(`${source}授权成功`);
     } else {
-      // todo
+      // 这里内部已经做了跳转到首页的操作
       await authStore.authLogin(data as any);
       message.success(`${source}登录成功`);
     }
-  } catch {
+  } catch (error) {
+    console.error(error);
     // 500 你还没有绑定第三方账号，绑定后才可以登录！
-  } finally {
     setTimeout(() => {
-      router.push(DEFAULT_HOME_PATH);
+      router.push(LOGIN_PATH);
     }, 1500);
   }
 });
 </script>
 
 <template>
-  <div></div>
+  <div :class="cn('flex items-center justify-center', 'h-screen w-screen')">
+    <Spin size="large" />
+  </div>
 </template>
-
-<style scoped></style>

@@ -6,6 +6,11 @@ import type { ModalApi } from './modal-api';
 
 export interface ModalProps {
   /**
+   * 动画类型
+   * @default 'slide'
+   */
+  animationType?: 'scale' | 'slide';
+  /**
    * 是否要挂载到内容区域
    * @default false
    */
@@ -60,6 +65,10 @@ export interface ModalProps {
    * 弹窗描述
    */
   description?: string;
+  /**
+   * 在关闭时销毁弹窗
+   */
+  destroyOnClose?: boolean;
   /**
    * 是否可拖拽
    * @default false
@@ -153,10 +162,6 @@ export interface ModalApiOptions extends ModalState {
    * 独立的弹窗组件
    */
   connectedComponent?: Component;
-  /**
-   * 在关闭时销毁弹窗。仅在使用 connectedComponent 时有效
-   */
-  destroyOnClose?: boolean;
   /**
    * 关闭前的回调，返回 false 可以阻止关闭
    * @returns

@@ -18,7 +18,7 @@ import { useAuthStore } from '#/store';
 defineOptions({ name: 'CodeLogin' });
 
 const loading = ref(false);
-const CODE_LENGTH = 6;
+const CODE_LENGTH = 4;
 
 const tenantInfo = ref<TenantResp>({
   tenantEnabled: false,
@@ -85,8 +85,8 @@ const formSchema = computed((): VbenFormSchema[] => {
                 : $t('authentication.sendCode');
             return text;
           },
-          // 验证码长度 在这设置
-          codeLength: 4,
+          // 验证码长度
+          codeLength: CODE_LENGTH,
           placeholder: $t('authentication.code'),
           handleSendCode: async () => {
             const { valid, value } = await form.validateField('phoneNumber');

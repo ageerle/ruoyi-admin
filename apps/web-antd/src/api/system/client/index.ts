@@ -1,9 +1,9 @@
-import type {Client} from './model';
+import type { Client } from './model';
 
-import type {ID, IDS, PageQuery, PageResult} from '#/api/common';
+import type { ID, IDS, PageQuery, PageResult } from '#/api/common';
 
-import {commonExport} from '#/api/helper';
-import {requestClient} from '#/api/request';
+import { commonExport } from '#/api/helper';
+import { requestClient } from '#/api/request';
 
 enum Api {
   clientChangeStatus = '/system/client/changeStatus',
@@ -18,7 +18,7 @@ enum Api {
  * @returns 列表
  */
 export function clientList(params?: PageQuery) {
-  return requestClient.get<PageResult<Client>>(Api.clientList, {params});
+  return requestClient.get<PageResult<Client>>(Api.clientList, { params });
 }
 
 /**
@@ -59,7 +59,11 @@ export function clientUpdate(data: Partial<Client>) {
  * @param data 状态
  */
 export function clientChangeStatus(data: any) {
-  return requestClient.putWithMsg<void>(Api.clientChangeStatus, data);
+  const requestData = {
+    clientId: data.clientId,
+    status: data.status,
+  };
+  return requestClient.putWithMsg<void>(Api.clientChangeStatus, requestData);
 }
 
 /**

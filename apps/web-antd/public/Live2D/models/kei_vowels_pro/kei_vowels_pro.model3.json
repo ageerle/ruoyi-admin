@@ -11,6 +11,21 @@
 		"Motions": {
 			"": [
 				{
+					"File": "motions/01_kei_en.motion3.json",
+					"Sound": "sounds/01_kei_en.wav",
+					"MotionSync": "Vowels_CRI"
+				},
+				{
+					"File": "motions/01_kei_jp.motion3.json",
+					"Sound": "sounds/01_kei_jp.wav",
+					"MotionSync": "Vowels_CRI"
+				},
+				{
+					"File": "motions/01_kei_ko.motion3.json",
+					"Sound": "sounds/01_kei_ko.wav",
+					"MotionSync": "Vowels_CRI"
+				},
+				{
 					"File": "motions/01_kei_zh.motion3.json",
 					"Sound": "sounds/01_kei_zh.wav",
 					"MotionSync": "Vowels_CRI"

@@ -3,21 +3,18 @@ import type {
   SplitterResizeHandleEmits,
   SplitterResizeHandleProps,
 } from 'radix-vue';
-
 import type { HTMLAttributes } from 'vue';
-
-import { computed } from 'vue';
 
 import { GripVertical } from '@vben-core/icons';
 import { cn } from '@vben-core/shared/utils';
-
 import { SplitterResizeHandle, useForwardPropsEmits } from 'radix-vue';
+import { computed } from 'vue';
 
 const props = defineProps<
-  SplitterResizeHandleProps & {
+  {
     class?: HTMLAttributes['class'];
     withHandle?: boolean;
-  }
+  } & SplitterResizeHandleProps
 >();
 const emits = defineEmits<SplitterResizeHandleEmits>();
 

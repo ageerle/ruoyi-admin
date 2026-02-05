@@ -30,13 +30,23 @@ const captchaInfo = ref<CaptchaResponse>({
   img: '',
   uuid: '',
 });
+// 验证码loading
+const captchaLoading = ref(false);
 
 async function loadCaptcha() {
-  const resp = await captchaImage();
-  if (resp.captchaEnabled) {
-    resp.img = `data:image/png;base64,${resp.img}`;
+  try {
+    captchaLoading.value = true;
+
+    const resp = await captchaImage();
+    if (resp.captchaEnabled) {
+      resp.img = `data:image/png;base64,${resp.img}`;
+    }
+    captchaInfo.value = resp;
+  } catch (error) {
+    console.error(error);
+  } finally {
+    captchaLoading.value = false;
   }
-  captchaInfo.value = resp;
 }
 
 const tenantInfo = ref<TenantResp>({
@@ -116,6 +126,7 @@ const formSchema = computed((): VbenFormSchema[] => {
         class: 'focus:border-primary',
         onCaptchaClick: loadCaptcha,
         placeholder: $t('authentication.code'),
+        loading: captchaLoading.value,
       },
       dependencies: {
         if: () => captchaInfo.value.captchaEnabled,

@@ -12,15 +12,13 @@ function isAccessible(
   el: Element,
   binding: DirectiveBinding<string | string[]>,
 ) {
-  const { accessMode, hasAccessByCodes, hasAccessByRoles } = useAccess();
+  const { hasAccessByCodes, hasAccessByRoles } = useAccess();
 
   const value = binding.value;
 
   if (!value) return;
   const authMethod =
-    accessMode.value === 'frontend' && binding.arg === 'role'
-      ? hasAccessByRoles
-      : hasAccessByCodes;
+    binding.arg === 'role' ? hasAccessByRoles : hasAccessByCodes;
 
   const values = Array.isArray(value) ? value : [value];
 

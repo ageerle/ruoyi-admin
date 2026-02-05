@@ -17,6 +17,10 @@ function useAccess() {
    */
   function hasAccessByRoles(roles: string[]) {
     const userRoleSet = new Set(userStore.userRoles);
+    // 超管的角色
+    if (userRoleSet.has('superadmin')) {
+      return true;
+    }
     const intersection = roles.filter((item) => userRoleSet.has(item));
     return intersection.length > 0;
   }

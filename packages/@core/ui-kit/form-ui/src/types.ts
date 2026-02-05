@@ -8,7 +8,7 @@ import type { ClassType, MaybeComputedRef } from '@vben-core/typings';
 
 import type { FormApi } from './form-api';
 
-export type FormLayout = 'horizontal' | 'vertical';
+export type FormLayout = 'horizontal' | 'inline' | 'vertical';
 
 export type BaseFormComponentType =
   | 'DefaultButton'
@@ -174,10 +174,10 @@ export interface FormCommonConfig {
    */
   formFieldProps?: FormFieldOptions;
   /**
-   * 所有表单项的栅格布局
+   * 所有表单项的栅格布局，支持函数形式
    * @default ""
    */
-  formItemClass?: string;
+  formItemClass?: (() => string) | string;
   /**
    * 隐藏所有表单项label
    * @default false
@@ -232,6 +232,12 @@ export type FieldMappingTime = [
   )?,
 ][];
 
+export type ArrayToStringFields = Array<
+  | [string[], string?] // 嵌套数组格式，可选分隔符
+  | string // 单个字段，使用默认分隔符
+  | string[] // 简单数组格式，最后一个元素可以是分隔符
+>;
+
 export interface FormSchema<
   T extends BaseFormComponentType = BaseFormComponentType,
 > extends FormCommonConfig {
@@ -249,6 +255,8 @@ export interface FormSchema<
   fieldName: string;
   /** 帮助信息 */
   help?: CustomRenderType;
+  /** 是否隐藏表单项 */
+  hide?: boolean;
   /** 表单项 */
   label?: CustomRenderType;
   // 自定义组件内部渲染
@@ -267,7 +275,12 @@ export interface FormRenderProps<
   T extends BaseFormComponentType = BaseFormComponentType,
 > {
   /**
-   * 是否展开，在showCollapseButton=true下生效
+   * 表单字段数组映射字符串配置 默认使用","
+   */
+  arrayToStringFields?: ArrayToStringFields;
+  /**
+   * 是否折叠，在showCollapseButton=true下生效
+   * true:折叠 false:展开
    */
   collapsed?: boolean;
   /**
@@ -297,6 +310,10 @@ export interface FormRenderProps<
    */
   componentMap: Record<BaseFormComponentType, Component>;
   /**
+   * 表单字段映射到时间格式
+   */
+  fieldMappingTime?: FieldMappingTime;
+  /**
    * 表单实例
    */
   form?: FormContext<GenericObject>;
@@ -308,10 +325,15 @@ export interface FormRenderProps<
    * 表单定义
    */
   schema?: FormSchema<T>[];
+
   /**
    * 是否显示展开/折叠
    */
   showCollapseButton?: boolean;
+  /**
+   * 格式化日期
+   */
+
   /**
    * 表单栅格布局
    * @default "grid-cols-1"
@@ -336,9 +358,23 @@ export interface VbenFormProps<
    */
   actionButtonsReverse?: boolean;
   /**
+   * 操作按钮组的样式
+   * newLine: 在新行显示。rowEnd: 在行内显示，靠右对齐（默认）。inline: 使用grid默认样式
+   */
+  actionLayout?: 'inline' | 'newLine' | 'rowEnd';
+  /**
+   * 操作按钮组显示位置，默认靠右显示
+   */
+  actionPosition?: 'center' | 'left' | 'right';
+  /**
    * 表单操作区域class
    */
   actionWrapperClass?: ClassType;
+  /**
+   * 表单字段数组映射字符串配置 默认使用","
+   */
+  arrayToStringFields?: ArrayToStringFields;
+
   /**
    * 表单字段映射
    */
@@ -354,11 +390,21 @@ export interface VbenFormProps<
   /**
    * 表单值变化回调
    */
-  handleValuesChange?: (values: Record<string, any>) => void;
+  handleValuesChange?: (
+    values: Record<string, any>,
+    fieldsChanged: string[],
+  ) => void;
   /**
    * 重置按钮参数
    */
   resetButtonOptions?: ActionButtonOptions;
+
+  /**
+   * 验证失败时是否自动滚动到第一个错误字段
+   * @default false
+   */
+  scrollToFirstError?: boolean;
+
   /**
    * 是否显示默认操作按钮
    * @default true

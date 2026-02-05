@@ -18,6 +18,10 @@
     "refresh": "Refresh",
     "generate": "Generate",
     "downloadLoading": "Downloading... Please wait.",
-    "preview": "Preview"
+    "preview": "Preview",
+    "tip": "Tip",
+    "enable": "On",
+    "disable": "Off",
+    "beforeCloseTip": "You have unsaved changes. Are you sure you want to exit?"
   }
 }

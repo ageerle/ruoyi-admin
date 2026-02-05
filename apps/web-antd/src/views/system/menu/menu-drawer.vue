@@ -10,8 +10,11 @@ import {
   listToTree,
 } from '@vben/utils';
 
+import { Input, Skeleton } from 'ant-design-vue';
+
 import { useVbenForm } from '#/adapter/form';
 import { menuAdd, menuInfo, menuList, menuUpdate } from '#/api/system/menu';
+import { defaultFormValueGetter, useBeforeCloseDiff } from '#/utils/popup';
 
 import { drawerSchema } from './data';
 
@@ -26,6 +29,7 @@ const isUpdate = ref(false);
 const title = computed(() => {
   return isUpdate.value ? $t('pages.common.edit') : $t('pages.common.add');
 });
+const loading = ref(false);
 
 const [BasicForm, formApi] = useVbenForm({
   commonConfig: {
@@ -88,56 +92,88 @@ async function setupMenuSelect() {
   ]);
 }
 
+const { onBeforeClose, markInitialized, resetInitialized } = useBeforeCloseDiff(
+  {
+    initializedGetter: defaultFormValueGetter(formApi),
+    currentGetter: defaultFormValueGetter(formApi),
+  },
+);
+
 const [BasicDrawer, drawerApi] = useVbenDrawer({
-  onCancel: handleCancel,
+  onBeforeClose,
+  onClosed: handleClosed,
   onConfirm: handleConfirm,
   async onOpenChange(isOpen) {
     if (!isOpen) {
       return null;
     }
     drawerApi.drawerLoading(true);
+    loading.value = true;
+
     const { id, update } = drawerApi.getData() as ModalProps;
     isUpdate.value = update;
 
-    // 加载菜单树选择
-    await setupMenuSelect();
     if (id) {
       await formApi.setFieldValue('parentId', id);
-      if (update) {
-        const record = await menuInfo(id);
+      // 创建元组(不是数组 元素位置固定)
+      const promise = [
+        update ? menuInfo(id) : null,
+        setupMenuSelect(),
+      ] as const;
+      // 并行获取菜单树选择和菜单信息
+      const [record] = await Promise.all(promise);
+      if (record) {
         await formApi.setValues(record);
       }
+    } else {
+      // 加载菜单树选择
+      await setupMenuSelect();
     }
+    await markInitialized();
+
     drawerApi.drawerLoading(false);
+    loading.value = false;
   },
 });
 
 async function handleConfirm() {
   try {
-    drawerApi.drawerLoading(true);
+    drawerApi.lock(true);
     const { valid } = await formApi.validate();
     if (!valid) {
       return;
     }
     const data = cloneDeep(await formApi.getValues());
     await (isUpdate.value ? menuUpdate(data) : menuAdd(data));
+    resetInitialized();
     emit('reload');
-    await handleCancel();
+    drawerApi.close();
   } catch (error) {
     console.error(error);
   } finally {
-    drawerApi.drawerLoading(false);
+    drawerApi.lock(false);
   }
 }
 
-async function handleCancel() {
-  drawerApi.close();
+async function handleClosed() {
   await formApi.resetForm();
+  resetInitialized();
 }
 </script>
 
 <template>
-  <BasicDrawer :close-on-click-modal="false" :title="title" class="w-[600px]">
-    <BasicForm />
+  <BasicDrawer :title="title" class="w-[600px]">
+    <Skeleton active v-if="loading" />
+    <BasicForm v-show="!loading">
+      <template #remark="slotProps">
+        <div class="flex flex-col gap-2">
+          <Input v-bind="slotProps" />
+          <span class="text-[14px] leading-[1.5] text-black/45">
+            在ele作为activePath使用 但是非json格式 v5无法使用
+            建议自行在apps/web-antd/src/router/access.ts更改
+          </span>
+        </div>
+      </template>
+    </BasicForm>
   </BasicDrawer>
 </template>

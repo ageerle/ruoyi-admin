@@ -50,6 +50,10 @@
     "uploadError": "Upload failed",
     "uploading": "Uploading",
     "uploadWait": "Please wait for the file upload to finish",
-    "reUploadFailed": "Re-upload failed files"
+    "reUploadFailed": "Re-upload failed files",
+    "uploadHelpMessage": "Please upload a file in {ext} format that does not exceed {size} .",
+    "unknownFileType": "Unknown file type, unable to upload",
+    "confirmDelete": "Confirm file deletion {0}?",
+    "clickOrDrag": "Click or drag file to this area to upload"
   }
 }

@@ -3,11 +3,6 @@
  */
 export const LOGIN_PATH = '/auth/login';
 
-/**
- * @zh_CN 默认首页地址
- */
-export const DEFAULT_HOME_PATH = '/analytics';
-
 export interface LanguageOption {
   label: string;
   value: 'en-US' | 'zh-CN';
@@ -31,3 +26,13 @@ export const SUPPORT_LANGUAGES: LanguageOption[] = [
  * 默认租户ID
  */
 export const DEFAULT_TENANT_ID = '000000';
+
+/**
+ * 业务成功 状态码
+ */
+export const BUSINESS_SUCCESS_CODE = 200;
+
+/**
+ * 未授权 状态码(登录超时)
+ */
+export const UNAUTHORIZED_CODE = 401;

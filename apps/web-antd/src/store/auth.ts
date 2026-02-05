@@ -4,13 +4,18 @@ import type { UserInfo } from '@vben/types';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-import { DEFAULT_HOME_PATH, LOGIN_PATH } from '@vben/constants';
+import { LOGIN_PATH } from '@vben/constants';
+import { preferences } from '@vben/preferences';
 import { resetAllStores, useAccessStore, useUserStore } from '@vben/stores';
 
 import { notification } from 'ant-design-vue';
 import { defineStore } from 'pinia';
 
 import { doLogout, getUserInfoApi, loginApi, seeConnectionClose } from '#/api';
+import {
+  ImpossibleReturn401Exception,
+  UnauthorizedException,
+} from '#/api/helper';
 import { $t } from '#/locales';
 
 import { useDictStore } from './dict';
@@ -55,7 +60,9 @@ export const useAuthStore = defineStore('auth', () => {
       if (accessStore.loginExpired) {
         accessStore.setLoginExpired(false);
       } else {
-        onSuccess ? await onSuccess?.() : await router.push(DEFAULT_HOME_PATH);
+        onSuccess
+          ? await onSuccess?.()
+          : await router.push(preferences.app.defaultHomePath);
       }
 
       if (userInfo?.realName) {
@@ -76,10 +83,18 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout(redirect: boolean = true) {
     try {
-      await seeConnectionClose();
-      await doLogout();
+      // 这两个接口不依赖 不需要await sseClose
+      await Promise.all([seeConnectionClose(), doLogout()]);
     } catch (error) {
       console.error(error);
+      /**
+       * 这两个接口按正常逻辑不可能返回401
+       * 在微服务版本配置错误的情况下 这里会抛出401
+       * 在这里抛出自定义异常供上层处理
+       */
+      if (error instanceof UnauthorizedException) {
+        throw new ImpossibleReturn401Exception(error.message);
+      }
     } finally {
       resetAllStores();
       accessStore.setLoginExpired(false);
@@ -115,6 +130,7 @@ export const useAuthStore = defineStore('auth', () => {
       roles,
       userId: user.userId,
       username: user.userName,
+      email: user.email ?? '',
     };
     userStore.setUserInfo(userInfo);
     /**

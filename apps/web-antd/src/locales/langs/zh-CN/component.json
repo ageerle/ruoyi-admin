@@ -50,6 +50,10 @@
     "uploadError": "上传失败",
     "uploading": "上传中",
     "uploadWait": "请等待文件上传结束后操作",
-    "reUploadFailed": "重新上传失败文件"
+    "reUploadFailed": "重新上传失败文件",
+    "uploadHelpMessage": "请上传不超过{size}的{ext}格式文件",
+    "unknownFileType": "未知的文件类型, 无法上传",
+    "confirmDelete": "确认删除文件 {0}?",
+    "clickOrDrag": "点击或拖动文件到这个区域上传"
   }
 }

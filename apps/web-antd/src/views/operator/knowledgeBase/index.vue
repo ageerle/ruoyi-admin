@@ -392,6 +392,9 @@ const handleSubmit = () => {
         <FormItem label="提问分割符" name="questionSeparator">
           <Input v-model:value="formData.questionSeparator" />
         </FormItem>
+         <FormItem label="系统提示词" name="systemPrompt">
+          <Input v-model:value="formData.systemPrompt" />
+        </FormItem>
         <FormItem
           label="向量模型"
           name="embeddingModelId"

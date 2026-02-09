@@ -25,18 +25,23 @@ export const workflowApi = {
     return adapters.httpPost<T>('/workflow/base-info/update', data)
   },
 
+  //新增节点
+  addNode<T = any>(data: { name: string; title: string }) {
+    return adapters.httpPost<T>('/admin/workflow/component/addOrUpdate', data)
+  },
+
   workflowGet<T = any>(uuid: string) {
     return adapters.httpGet<T>(`/workflow/${uuid}`)
   },
 
-  workflowPage<T = any>(params: { 
-    currentPage: number; 
-    pageSize: number; 
-    wfSearchReq: { 
-      title?: string; 
-      isEnable?: boolean; 
-      isPublic?: boolean; 
-    } 
+  workflowPage<T = any>(params: {
+    currentPage: number;
+    pageSize: number;
+    wfSearchReq: {
+      title?: string;
+      isEnable?: boolean;
+      isPublic?: boolean;
+    }
   }) {
     const { currentPage, pageSize, wfSearchReq } = params
     return adapters.httpPost<T>('/admin/workflow/search', wfSearchReq, {

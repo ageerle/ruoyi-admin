@@ -25,6 +25,11 @@ export const workflowApi = {
     return adapters.httpPost<T>('/workflow/base-info/update', data)
   },
 
+   //新增节点
+  addNode<T = any>(data: { name: string; title: string }) {
+    return adapters.httpPost<T>('/admin/workflow/component/addOrUpdate', data)
+  },
+
   workflowGet<T = any>(uuid: string) {
     return adapters.httpGet<T>(`/workflow/${uuid}`)
   },

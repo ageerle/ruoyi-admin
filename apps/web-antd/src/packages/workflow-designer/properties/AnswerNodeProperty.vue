@@ -53,7 +53,7 @@ watch(() => nodeConfig.model_name, (val) => {
       <Select v-model:value="nodeConfig.model_name" :options="modelOptions" show-search :allow-clear="true" placeholder="请选择模型" class="w-full" />
     </div>
     <div class="mt-4">
-      <div class="text-sm mb-1">提示词</div>
+      <div class="text-sm mb-1">提示词<span class="text-red-500">*</span></div>
       <Input v-model:value="nodeConfig.prompt" type="textarea" :auto-size="{ minRows: 3, maxRows: 8 }" />
     </div>
   </div>

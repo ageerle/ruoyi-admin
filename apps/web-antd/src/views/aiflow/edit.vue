@@ -5,7 +5,10 @@ import { message, Modal, Spin, Empty } from 'ant-design-vue';
 import { Page } from '@vben/common-ui';
 
 import WorkflowDesigner from '#/packages/workflow-designer/StandaloneWorkflowDesigner.vue';
-import type { WorkflowInfo, WorkflowComponent } from '#/packages/workflow-designer/types/index.d';
+import type {
+  WorkflowInfo,
+  WorkflowComponent,
+} from '#/packages/workflow-designer/types/index.d';
 import { workflowApi } from '#/api/aiflow';
 
 const router = useRouter();
@@ -63,7 +66,7 @@ function generateComponentIdMap() {
 
   componentIdMap.value = map;
   nameToIdMap.value = Object.fromEntries(
-    Object.entries(map).map(([id, name]) => [name, Number(id)])
+    Object.entries(map).map(([id, name]) => [name, Number(id)]),
   );
 }
 
@@ -90,14 +93,30 @@ async function loadWorkflow() {
 
 // 保存工作流
 async function handleSave(updated: WorkflowInfo) {
+  console.log('updated', updated.nodes);
   if (saving.value) return;
+
+  if (updated?.nodes.length) {
+    // Step 1: Check if there is a node with title "生成回答"
+    const answerNode = updated.nodes.find((node) => node.title === '生成回答');
+
+    if (answerNode) {
+      // Step 2: Check if nodeConfig exists and prompt is not empty
+      const nodeConfig = answerNode.nodeConfig || {};
+      if (!nodeConfig.prompt || nodeConfig.prompt.trim() === '') {
+        message.error('节点“生成回答”的提示词不能为空');
+        return; // Stop saving if validation fails
+      }
+    }
+  }
 
   saving.value = true;
   try {
     // 设置 workflowComponentId
     updated.nodes.forEach((node) => {
       if (node.wfComponent) {
-        node.workflowComponentId = nameToIdMap.value[node.wfComponent?.name || ''] ?? 0;
+        node.workflowComponentId =
+          nameToIdMap.value[node.wfComponent?.name || ''] ?? 0;
       }
       if (node.nodeConfig === undefined) {
         node.nodeConfig = {};
@@ -173,7 +192,7 @@ onMounted(async () => {
     :show-back="true"
     @back="handleCancel"
   >
-    <div v-if="loading" class="flex items-center justify-center h-full">
+    <div v-if="loading" class="flex h-full items-center justify-center">
       <Spin size="large" tip="加载中..." />
     </div>
     <div v-else-if="workflow.uuid" class="workflow-edit-page">
@@ -186,7 +205,7 @@ onMounted(async () => {
         @run="handleRun"
       />
     </div>
-    <div v-else class="flex items-center justify-center h-full">
+    <div v-else class="flex h-full items-center justify-center">
       <Empty description="工作流加载失败" />
     </div>
   </Page>
@@ -199,4 +218,3 @@ onMounted(async () => {
   overflow: hidden;
 }
 </style>
-

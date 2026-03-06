@@ -189,19 +189,29 @@ async function resume() {
   }
 }
 
-function handleFileListChange(info: any) {
-  fileList.value = info.fileList
-  fileListLength.value = info.fileList.length
-  
-  if (info.file.status === 'done') {
-    const res = info.file.response
-    if (res && res.success) {
-      uploadedFileUuids.value.push(res.data.uuid)
+async function handleFileListChange(info: any) {
+  const ret = await workflowApi.uploadFile(info.file.originFileObj);
+
+  if (ret?.uploadVos && ret.uploadVos.length) {
+    info.file.status = 'done';
+    fileList.value = info.fileList;
+    fileListLength.value = info.fileList.length;
+    uploadedFileUuids.value.push(ret.uploadVos[0].filePath);
       if (uploadedFileUuids.value.length === fileListLength.value) {
-        run()
+        run();
       }
-    }
   }
+  
+  // console.log('info', info, uploadedFileUuids);
+  // if (info.file.status === 'done') {
+  //   const res = info.file.response;
+  //   if (res && res.success) {
+  //     uploadedFileUuids.value.push(res.data.uuid);
+  //     if (uploadedFileUuids.value.length === fileListLength.value) {
+  //       run();
+  //     }
+  //   }
+  // }
 }
 
 function handleStop() {
@@ -333,11 +343,12 @@ onUnmounted(() => { if (wfStore.wfUuidToWfRuntimeLoading.get(currWfUuid)) contro
           <Input.TextArea v-if="userInput.content.type === 1" v-model:value="userInput.content.value" :auto-size="{ minRows: 1, maxRows: 5 }" />
           <InputNumber v-if="userInput.content.type === 2" v-model:value="userInput.content.value" class="w-full" />
           <div v-if="userInput.content.type === 3" />
-          <Upload v-if="userInput.content.type === 4" ref="uploadRef" multiple :action="getUploadAction()" :max-count="startNode?.inputConfig.user_inputs.find((item: any) => item.uuid === userInput.uuid)?.limit || 10" :headers="headers" :file-list="fileList" @change="handleFileListChange">
-            <Upload.Dragger>
+           <Upload v-if="userInput.content.type === 4" ref="uploadRef" multiple :max-count="startNode?.inputConfig.user_inputs.find((item: any) => item.uuid === userInput.uuid)?.limit || 10" :headers="headers" :file-list="fileList" @change="handleFileListChange"> 
+          <!-- <Upload v-if="userInput.content.type === 4" ref="uploadRef" multiple :action="getUploadAction()" :max-count="startNode?.inputConfig.user_inputs.find((item: any) => item.uuid === userInput.uuid)?.limit || 10" :headers="headers" :file-list="fileList" @change="handleFileListChange"> -->
+            <!-- <Upload.Dragger> -->
               <div style="font-size: 16px">点击或者拖动文件到该区域来上传</div>
               <div style="margin: 4px 0 0 0; color: #999">文件格式: TXT、PDF、DOC、DOCX、XLS、XLXS、PPT、PPTX；文件大小：不超过10M</div>
-            </Upload.Dragger>
+            <!-- </Upload.Dragger> -->
           </Upload>
           <Switch v-if="userInput.content.type === 5" v-model:checked="userInput.content.value" />
         </div>

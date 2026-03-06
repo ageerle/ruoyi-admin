@@ -106,6 +106,15 @@ function createRequestClient(baseURL: string) {
       const accessStore = useAccessStore();
       // 添加token
       config.headers.Authorization = formatToken(accessStore.accessToken);
+
+      const isFileUpload =
+        config.data instanceof FormData ||
+        config.data instanceof File ||
+        config.data instanceof Blob;
+
+      if (isFileUpload) {
+        delete config.headers['Content-Type'];
+      }
       /**
        * locale跟后台不一致 需要转换
        */
@@ -138,6 +147,7 @@ function createRequestClient(baseURL: string) {
       const { encrypt } = config;
       // 全局开启请求加密功能 && 该请求开启 && 是post/put请求
       if (
+        !isFileUpload &&
         enableEncrypt &&
         encrypt &&
         ['POST', 'PUT'].includes(config.method?.toUpperCase() || '')

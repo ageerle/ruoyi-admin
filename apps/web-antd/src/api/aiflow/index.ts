@@ -30,6 +30,13 @@ export const workflowApi = {
     return adapters.httpPost<T>('/admin/workflow/component/addOrUpdate', data)
   },
 
+  // 上传文件
+  uploadFile<T = any>(data: File) {
+    const formData = new FormData();
+    formData.append('files', data);
+    return adapters.httpPost<T>('/resource/oss/fileUpload', formData);
+  },
+
   workflowGet<T = any>(uuid: string) {
     return adapters.httpGet<T>(`/workflow/${uuid}`)
   },

@@ -23,9 +23,11 @@ COPY . /app
 # 安装依赖（使用 workspace）
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# 先构建所有 workspace 依赖包，然后再构建 web-antd
+# 先构建所有 workspace 依赖包
 RUN pnpm run build
-# 进入 web-antd 目录并执行构建
+# 构建 web-antd 应用（需要明确指定 build:prod）
+RUN pnpm --filter @vben/web-antd run build:prod
+# 进入 web-antd 目录
 WORKDIR /app/apps/web-antd
 
 # 生产阶段 - 使用 nginx 部署

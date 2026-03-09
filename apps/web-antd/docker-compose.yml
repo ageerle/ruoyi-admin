@@ -5,8 +5,8 @@ services:
       context: ../..
       dockerfile: apps/web-antd/Dockerfile
       args:
-        # 后端 API 地址 - 构建时传入
-        VITE_GLOB_API_URL: ${VITE_GLOB_API_URL:-http://localhost:6039}
+        # 后端 API 地址（前端请求的完整地址）
+        VITE_GLOB_API_URL: http://localhost:6039
     container_name: ruoyi-ai-admin
     restart: always
     ports:

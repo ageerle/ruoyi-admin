@@ -1,15 +1,15 @@
 # 构建阶段
 FROM node:22-alpine AS builder
 
-# 接收后端 API 地址构建参数
+# 接收后端 API 地址（docker-compose 传入）
 ARG VITE_GLOB_API_URL=http://localhost:6039
+ENV VITE_GLOB_API_URL=${VITE_GLOB_API_URL}
 
 # 设置环境变量
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV NODE_OPTIONS=--max-old-space-size=8192
 ENV TZ=Asia/Shanghai
-ENV VITE_GLOB_API_URL=${VITE_GLOB_API_URL}
 
 # 安装 pnpm
 RUN npm i -g corepack && corepack enable

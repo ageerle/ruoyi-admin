@@ -8,17 +8,25 @@ ENV VITE_GLOB_API_URL=${VITE_GLOB_API_URL}
 # 设置环境变量 - 优化资源使用
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-ENV NODE_OPTIONS=--max-old-space-size=4096
-ENV TZ=Asia/Shanghai
+ENV NODE_OPTIONS=--max-old-space-size=8192
 
-# 安装 pnpm
-RUN npm i -g corepack && corepack enable
+# 安装 pnpm 和设置时区
+RUN npm i -g corepack && corepack enable && \
+    apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone
 
 # 设置工作目录
 WORKDIR /app
 
 # 先复制 package 文件（优化 Docker 缓存）
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json .npmrc ./
+
+# 复制 internal 目录（包含 @vben/vite-config, @vben/tsconfig 等）
+COPY internal ./internal
+
+# 复制 scripts 目录（turbo 依赖）
+COPY scripts ./scripts
 
 # 复制 packages 目录（workspace 依赖）
 COPY packages ./packages
@@ -29,11 +37,17 @@ COPY apps/web-antd ./apps/web-antd
 # 安装依赖（使用 workspace）
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# 只构建 web-antd 应用（跳过其他 packages）
-RUN pnpm --filter @vben/web-antd run build:prod
+# 构建 workspace 依赖包和 web-antd（使用 turbo 处理依赖关系）
+# turbo 会自动按依赖顺序构建所有需要的包
+RUN pnpm run build --filter=@vben/web-antd build:prod
 
 # 生产阶段 - 使用 nginx 部署
 FROM nginx:stable-alpine AS production
+
+# 安装 tzdata 并设置时区
+RUN apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone
 
 # 配置 nginx 支持 mjs
 RUN echo "types { application/javascript js mjs; }" > /etc/nginx/conf.d/mjs.conf \

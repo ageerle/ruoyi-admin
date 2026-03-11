@@ -13,6 +13,15 @@ services:
       - "5666:5666"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    # 资源限制 - 防止 CPU 和内存耗尽
+    deploy:
+      resources:
+        limits:
+          cpus: '2'          # 限制最多使用 2 个 CPU 核心
+          memory: 3G         # 限制内存使用为 3GB
+        reservations:
+          cpus: '1'          # 保留 1 个 CPU 核心
+          memory: 1G         # 保留 1GB 内存
     networks:
       - ruoyi-net
 

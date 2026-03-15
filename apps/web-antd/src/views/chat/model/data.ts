@@ -45,29 +45,10 @@ export const columns: VxeGridProps['columns'] = [
     field: 'providerCode',
   },
   {
-    title: '模型价格',
-    field: 'modelPrice',
-  },
-  {
-    title: '优先级',
-    field: 'priority',
-  },
-  {
     title: '模型分类',
     field: 'category',
     formatter: ({ row }) =>
       getDictLabel(row.category, DictEnum.CHAT_MODEL_CATEGORY),
-  },
-  {
-    title: '计费类型',
-    field: 'modelType',
-    formatter: ({ row }) =>
-      getDictLabel(row.modelType, DictEnum.SYS_MODEL_BILLING),
-  },
-  {
-    title: '是否免费',
-    field: 'modelFree',
-    formatter: ({ row }) => getDictLabel(row.modelFree, DictEnum.SYS_YES_NO),
   },
 
   {

@@ -41,10 +41,6 @@ const providersMap = ref<Map<number | string, any>>(new Map());
 const categoryOptions = computed(() =>
   getDictOptions(DictEnum.CHAT_MODEL_CATEGORY),
 );
-const billingTypeOptions = computed(() =>
-  getDictOptions(DictEnum.SYS_MODEL_BILLING),
-);
-const yesNoOptions = computed(() => getDictOptions(DictEnum.SYS_YES_NO));
 const title = computed(() => {
   return isUpdate.value ? $t('pages.common.edit') : $t('pages.common.add');
 });
@@ -79,11 +75,8 @@ const defaultValues: Partial<ModelForm> = {
   modelName: undefined,
   providerCode: undefined,
   modelDescribe: undefined,
-  modelPrice: undefined,
-  modelType: undefined,
   modelShow: undefined,
-  modelFree: undefined,
-  priority: undefined,
+  modelDimension: undefined,
   apiHost: undefined,
   apiKey: undefined,
   remark: undefined,
@@ -299,47 +292,10 @@ function isValidCSSColor(color: string): boolean {
       </Row>
 
       <Row :gutter="16">
-        <Col :span="12">
-          <FormItem label="计费类型" v-bind="validateInfos.modelType">
-            <Select
-              v-model:value="formData.modelType"
-              :placeholder="$t('ui.formRules.required')"
-              :options="billingTypeOptions"
-              show-search
-              option-filter-prop="label"
-            />
-          </FormItem>
-        </Col>
-        <Col :span="12">
-          <FormItem label="是否免费" v-bind="validateInfos.modelFree">
-            <Select
-              v-model:value="formData.modelFree"
-              :placeholder="$t('ui.formRules.required')"
-              :options="yesNoOptions"
-            />
-          </FormItem>
-        </Col>
-      </Row>
-
-      <Row :gutter="16">
-        <Col :span="12">
-          <FormItem
-            label="模型价格 (Token计费是每1wToken的单价)"
-            v-bind="validateInfos.modelPrice"
-          >
+        <Col v-if="formData.category === 'vector'" :span="12">
+          <FormItem label="模型维度" v-bind="validateInfos.modelDimension">
             <Input
-              v-model:value="formData.modelPrice"
-              :placeholder="$t('ui.formRules.required')"
-            />
-          </FormItem>
-        </Col>
-        <Col :span="12">
-          <FormItem
-            label="优先级（值越大优先级越高）"
-            v-bind="validateInfos.priority"
-          >
-            <Input
-              v-model:value="formData.priority"
+              v-model:value="formData.modelDimension"
               :placeholder="$t('ui.formRules.required')"
             />
           </FormItem>

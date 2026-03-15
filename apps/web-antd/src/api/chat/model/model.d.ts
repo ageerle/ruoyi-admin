@@ -27,29 +27,14 @@ export interface ModelVO {
   modelDescribe: string;
 
   /**
-   * 模型价格
-   */
-  modelPrice: number;
-
-  /**
-   * 计费类型
-   */
-  modelType: string;
-
-  /**
    * 是否显示
    */
   modelShow: string;
 
   /**
-   * 是否免费
+   * 模型维度
    */
-  modelFree: string;
-
-  /**
-   * 模型优先级(值越大优先级越高)
-   */
-  priority: number;
+  modelDimension: number;
 
   /**
    * 请求地址
@@ -94,29 +79,14 @@ export interface ModelForm extends BaseEntity {
   modelDescribe?: string;
 
   /**
-   * 模型价格
-   */
-  modelPrice?: number;
-
-  /**
-   * 计费类型
-   */
-  modelType?: string;
-
-  /**
    * 是否显示
    */
   modelShow?: string;
 
   /**
-   * 是否免费
+   * 模型维度
    */
-  modelFree?: string;
-
-  /**
-   * 模型优先级(值越大优先级越高)
-   */
-  priority?: number;
+  modelDimension?: number;
 
   /**
    * 请求地址
@@ -156,29 +126,14 @@ export interface ModelQuery extends PageQuery {
   modelDescribe?: string;
 
   /**
-   * 模型价格
-   */
-  modelPrice?: number;
-
-  /**
-   * 计费类型
-   */
-  modelType?: string;
-
-  /**
    * 是否显示
    */
   modelShow?: string;
 
   /**
-   * 是否免费
+   * 模型维度
    */
-  modelFree?: string;
-
-  /**
-   * 模型优先级(值越大优先级越高)
-   */
-  priority?: number;
+  modelDimension?: number;
 
   /**
    * 请求地址

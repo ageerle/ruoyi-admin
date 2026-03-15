@@ -1,10 +1,6 @@
 import type { FormSchemaGetter } from '#/adapter/form';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 
-import { DictEnum } from '@vben/constants';
-
-import { renderDict } from '#/utils/render';
-
 export const querySchema: FormSchemaGetter = () => [
   {
     component: 'Input',
@@ -34,31 +30,12 @@ export const columns: VxeGridProps['columns'] = [
     field: 'role',
   },
   {
-    title: '扣除金额',
-    field: 'deductCost',
-  },
-  {
     title: '累计 Tokens',
     field: 'totalTokens',
   },
   {
     title: '模型名称',
     field: 'modelName',
-  },
-
-  {
-    title: '计费类型',
-    field: 'billingType',
-    width: 120,
-    slots: {
-      default: ({ row }) => {
-        // 如果值为空或未定义，返回空字符串
-        if (!row.billingType) {
-          return '';
-        }
-        return renderDict(row.billingType, DictEnum.SYS_MODEL_BILLING);
-      },
-    },
   },
   {
     title: '备注',

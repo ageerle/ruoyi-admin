@@ -5,10 +5,10 @@ FROM node:22-alpine AS builder
 ARG VITE_GLOB_API_URL=http://localhost:6039
 ENV VITE_GLOB_API_URL=${VITE_GLOB_API_URL}
 
-# 设置环境变量 - 优化资源使用
+# 设置环境变量 - 优化资源使用，增加内存限制
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-ENV NODE_OPTIONS=--max-old-space-size=8192
+ENV NODE_OPTIONS=--max-old-space-size=16384
 
 # 安装 pnpm 和设置时区
 RUN npm i -g corepack && corepack enable && \
@@ -37,9 +37,13 @@ COPY apps/web-antd ./apps/web-antd
 # 安装依赖（使用 workspace）
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# 构建 workspace 依赖包和 web-antd（使用 turbo 处理依赖关系）
-# turbo 会自动按依赖顺序构建所有需要的包
-RUN pnpm run build --filter=@vben/web-antd build:prod
+# 构建 workspace 依赖包（使用 turbo）
+RUN pnpm run build --filter="./packages/**"
+
+# 构建 web-antd 应用（直接构建，避免 turbo 过滤器问题）
+WORKDIR /app/apps/web-antd
+RUN pnpm run build:prod
+WORKDIR /app
 
 # 生产阶段 - 使用 nginx 部署
 FROM nginx:stable-alpine AS production

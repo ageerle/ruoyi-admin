@@ -56,11 +56,18 @@ RUN echo "types { application/javascript js mjs; }" > /etc/nginx/conf.d/mjs.conf
 # 从构建阶段复制构建产物
 COPY --from=builder /app/apps/web-antd/dist /usr/share/nginx/html
 
-# 复制 nginx 配置文件
-COPY apps/web-antd/nginx.conf /etc/nginx/nginx.conf
+# 复制 nginx 配置文件模板
+COPY apps/web-antd/nginx.conf /etc/nginx/nginx.conf.template
+
+# 复制启动脚本
+COPY apps/web-antd/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 # 暴露端口
 EXPOSE 5666
 
-# 启动 nginx
-CMD ["nginx", "-g", "daemon off;"]
+# 设置默认后端地址（可被 docker-compose environment 覆盖）
+ENV UPSTREAM_HOST=127.0.0.1:6039
+
+# 启动脚本（处理环境变量并启动 nginx）
+CMD ["/docker-entrypoint.sh"]

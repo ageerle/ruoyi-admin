@@ -1,6 +1,7 @@
 services:
   # ==================== RuoYi-AI 前端服务 ====================
   frontend:
+    image: ruoyi-ai-admin
     build:
       context: ../..
       dockerfile: apps/web-antd/Dockerfile

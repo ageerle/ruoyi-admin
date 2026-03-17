@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker inspect:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(UPSTREAM_HOST=\"\" docker-compose down && docker-compose up -d)",
+      "Bash(docker-compose config:*)"
+    ]
+  }
+}

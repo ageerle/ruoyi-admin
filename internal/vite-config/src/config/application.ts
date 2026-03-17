@@ -62,7 +62,7 @@ function defineApplicationConfig(userConfigPromise?: DefineApplicationOptions) {
           output: {
             assetFileNames: '[ext]/[name]-[hash].[ext]',
             chunkFileNames: 'js/[name]-[hash].js',
-            entryFileNames: 'jse/index-[name]-[hash].js',
+            entryFileNames: 'js/index-[name]-[hash].js',
           },
         },
         target: 'es2015',

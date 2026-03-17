@@ -32,6 +32,24 @@ export default defineConfig(async () => {
           }
         })()),
       },
+      // 解决 jiti 构建问题
+      optimizeDeps: {
+        include: ['jiti'],
+      },
+      ssr: {
+        noExternal: ['jiti'],
+      },
+      build: {
+        commonjsOptions: {
+          transformMixedEsModules: true,
+        },
+        rollupOptions: {
+          external: [
+            /node_modules\/jiti\//,
+          ],
+        },
+        target: 'es2022',
+      },
       plugins: [
         // Components({
         //   dirs: [], // 默认会导入src/components目录下所有组件 不需要

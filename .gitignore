@@ -43,7 +43,7 @@ vite.config.ts.*
 
 # Editor directories and files
 .idea
-# .vscode
+.vscode
 *.suo
 *.ntvs*
 *.njsproj
@@ -53,3 +53,4 @@ vite.config.ts.*
 apps/web-antd/types/components.d.ts
 .history
 .cursor
+.claude

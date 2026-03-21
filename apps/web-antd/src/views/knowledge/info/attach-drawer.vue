@@ -126,7 +126,7 @@ async function handleChange(info: any) {
 async function handleDeleteAttachment(record: any) {
   try {
     await attachRemove(record.id);
-    message.success('删除成功');
+    //message.success('删除成功');
     await loadAttachments();
   } catch (error) {
     message.error('删除失败');

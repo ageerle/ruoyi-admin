@@ -30,10 +30,10 @@ async function viteLicensePlugin(
       handler: (_options: NormalizedOutputOptions, bundle: OutputBundle) => {
         const date = dateUtil().format('YYYY-MM-DD ');
         const copyrightText = `/*!
-  * Vben Admin
+  * ruoyi-ai Admin
   * Version: ${version}
-  * Author: vben
-  * Copyright (C) 2024 Vben
+  * Author: ageer
+  * Copyright (C) 2026 ruoyi-ai
   * License: MIT License
   * Description: ${description}
   * Date Created: ${date}

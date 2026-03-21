@@ -14,7 +14,7 @@ defineOptions({
 withDefaults(defineProps<Props>(), {
   companyName: 'Vben Admin',
   companySiteLink: '',
-  date: '2024',
+  date: '2026',
   icp: '',
   icpLink: '',
 });

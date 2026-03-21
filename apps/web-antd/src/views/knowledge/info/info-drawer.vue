@@ -133,7 +133,7 @@ async function handleSubmit() {
     await validate();
     const data = cloneDeep(formData.value);
     await (isUpdate.value ? infoUpdate(data) : infoAdd(data));
-    message.success(isUpdate.value ? '修改成功' : '新增成功');
+    //message.success(isUpdate.value ? '修改成功' : '新增成功');
     emit('reload');
     handleClose();
   } catch (error) {

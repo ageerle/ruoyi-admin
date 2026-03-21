@@ -13,7 +13,8 @@ setupVbenVxeTable({
     vxeUI.setConfig({
       grid: {
         align: 'center',
-        border: false,
+        // https://vxetable.cn/#/component/table/base/border
+        border: 'inner',
         minHeight: 180,
         formConfig: {
           // 全局禁用vxe-table的表单配置，使用formOptions
@@ -50,13 +51,15 @@ setupVbenVxeTable({
         // 右上角工具栏
         toolbarConfig: {
           // 自定义列
-          custom: {
+          custom: true,
+          customOptions: {
             icon: 'vxe-icon-setting',
           },
           // 最大化
           zoom: true,
           // 刷新
-          refresh: {
+          refresh: true,
+          refreshOptions: {
             // 默认为reload 修改为在当前页刷新
             code: 'query',
           },

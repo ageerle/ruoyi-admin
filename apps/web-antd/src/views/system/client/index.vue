@@ -144,10 +144,10 @@ const { hasAccessByCodes } = useAccess();
         <!-- pc不允许禁用 禁用了直接登录不了 应该设置disabled -->
         <!-- 登录提示: 认证权限类型已禁用 -->
         <TableSwitch
-          v-model="row.status"
+          v-model:value="row.status"
           :api="() => clientChangeStatus(row)"
           :disabled="row.id === 1 || !hasAccessByCodes(['system:client:edit'])"
-          :reload="() => tableApi.query()"
+          @reload="tableApi.query()"
         />
       </template>
       <template #action="{ row }">

@@ -1,6 +1,7 @@
 import type { Component as ComponentType } from 'vue';
 
 import type { DictData } from '#/api/system/dict/dict-data-model';
+import type { DictFallback } from '#/components/dict/src/type';
 
 import { h } from 'vue';
 
@@ -116,7 +117,7 @@ export function renderHttpMethodTag(type: string) {
   return <Tag color={color}>{title}</Tag>;
 }
 
-export function renderDictTag(value: string, dicts: DictData[]) {
+export function renderDictTag(value: number | string, dicts: DictData[]) {
   return <DictTag dicts={dicts} value={value}></DictTag>;
 }
 
@@ -149,16 +150,26 @@ export function renderDictTags(
   );
 }
 
+export interface RenderDictOptions {
+  fallback?: DictFallback;
+}
+
 /**
  * 显示字典标签 一般是table使用
  * @param value 值
  * @param dictName dictName
  * @returns tag
  */
-export function renderDict(value: string, dictName: string) {
+export function renderDict(
+  value: number | string,
+  dictName: string,
+  options?: RenderDictOptions,
+) {
+  const { fallback } = options ?? {};
   const dictInfo = getDictOptions(dictName);
-  return renderDictTag(value, dictInfo);
+  return <DictTag dicts={dictInfo} fallback={fallback} value={value}></DictTag>;
 }
+
 export function renderIconSpan(
   icon: ComponentType,
   value: string,

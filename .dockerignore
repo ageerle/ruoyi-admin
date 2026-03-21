@@ -1,7 +1,39 @@
-node_modules
+# Git
 .git
 .gitignore
-*.md
-dist
+
+# IDE
+.idea
+.vscode
+*.iml
+
+# Logs
+*.log
+logs
+
+# Node
+node_modules
+.pnpm-store
 .turbo
-dist.zip
+
+# Build outputs (will be rebuilt in container)
+apps/*/dist
+apps/*/.turbo
+packages/*/dist
+packages/*/.turbo
+
+# Test
+coverage
+*.test.*
+*.spec.*
+
+# Docs
+*.md
+!README.md
+docs
+
+# Misc
+.DS_Store
+.env
+.env.local
+.env.*.local

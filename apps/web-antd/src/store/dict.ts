@@ -59,7 +59,11 @@ export const useDictStore = defineStore('app-dict', () => {
   }
 
   function resetCache() {
+    dictRequestCache.clear();
     dictOptionsMap.clear();
+    /**
+     * 不需要清空dictRequestCache 每次请求成功/失败都清空key
+     */
   }
 
   /**

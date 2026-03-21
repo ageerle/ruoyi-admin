@@ -1,8 +1,8 @@
+import type { ComputedRef } from 'vue';
 import type { RouteLocationNormalized } from 'vue-router';
 
-import { useRoute, useRouter } from 'vue-router';
-
 import { useTabbarStore } from '@vben/stores';
+import { useRoute, useRouter } from 'vue-router';
 
 export function useTabs() {
   const router = useRouter();
@@ -41,8 +41,8 @@ export function useTabs() {
     await tabbarStore.toggleTabPin(tab || route);
   }
 
-  async function refreshTab() {
-    await tabbarStore.refresh(router);
+  async function refreshTab(name?: string) {
+    await tabbarStore.refresh(name || router);
   }
 
   async function openTabInNewWindow(tab?: RouteLocationNormalized) {
@@ -53,7 +53,24 @@ export function useTabs() {
     await tabbarStore.closeTabByKey(key, router);
   }
 
-  async function setTabTitle(title: string) {
+  /**
+   * 设置当前标签页的标题
+   *
+   * @description 支持设置静态标题字符串或动态计算标题
+   * @description 动态标题会在每次渲染时重新计算,适用于多语言或状态相关的标题
+   *
+   * @param title - 标题内容
+   *   - 静态标题: 直接传入字符串
+   *   - 动态标题: 传入 ComputedRef
+   *
+   * @example
+   * // 静态标题
+   * setTabTitle('标签页')
+   *
+   * // 动态标题(多语言)
+   * setTabTitle(computed(() => t('page.title')))
+   */
+  async function setTabTitle(title: ComputedRef<string> | string) {
     tabbarStore.setUpdateTime();
     await tabbarStore.setTabTitle(route, title);
   }

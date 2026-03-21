@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import type { PropType } from 'vue';
-
 import {
   onBeforeUnmount,
   onMounted,
+  type PropType,
   shallowRef,
   useTemplateRef,
   watch,

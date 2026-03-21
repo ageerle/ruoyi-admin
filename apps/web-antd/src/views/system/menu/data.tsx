@@ -62,6 +62,8 @@ export const columns: VxeGridProps['columns'] = [
     field: 'menuName',
     treeNode: true,
     width: 200,
+    // 层级更明显显示
+    align: 'left',
     slots: {
       // 需要i18n支持 否则返回原始值
       default: ({ row }) => $t(row.menuName),
@@ -145,7 +147,8 @@ export const columns: VxeGridProps['columns'] = [
     fixed: 'right',
     slots: { default: 'action' },
     title: '操作',
-    width: 200,
+    resizable: false,
+    width: 'auto',
   },
 ];
 
@@ -218,6 +221,7 @@ export const drawerSchema: FormSchemaGetter = () => [
     fieldName: 'orderNum',
     help: '排序, 数字越小越靠前',
     label: '显示排序',
+    defaultValue: 0,
     rules: 'required',
   },
   {
@@ -236,6 +240,7 @@ export const drawerSchema: FormSchemaGetter = () => [
         if (model.isFrame !== '0') {
           return z
             .string({ message: '请输入路由地址' })
+            .min(1, '请输入路由地址')
             .refine((val) => !val.startsWith('/'), {
               message: '路由地址不需要带/',
             });
@@ -378,5 +383,11 @@ export const drawerSchema: FormSchemaGetter = () => [
     fieldName: 'isCache',
     help: '路由的keepAlive属性',
     label: '是否缓存',
+  },
+  {
+    component: 'Input',
+    fieldName: 'remark',
+    label: '拓展字段',
+    formItemClass: 'items-baseline',
   },
 ];

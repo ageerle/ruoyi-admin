@@ -26,14 +26,16 @@ const props = defineProps({
   src: { required: true, type: String },
 });
 
-const emit = defineEmits(['cropend', 'ready', 'cropendError']);
+const emit = defineEmits(['cropend', 'ready', 'cropendError', 'readyError']);
 
 const defaultOptions: Options = {
   aspectRatio: 1,
   autoCrop: true,
   background: true,
   center: true,
-  checkCrossOrigin: true,
+  // 需要设置为false 否则会自动拼接timestamp 导致私有桶sign错误
+  // 需要配合img crossorigin='anonymous'使用(默认已经做了处理)
+  checkCrossOrigin: false,
   checkOrientation: true,
   cropBoxMovable: true,
   cropBoxResizable: true,
@@ -93,6 +95,15 @@ async function init() {
   const imgEl = unref(imgElRef);
   if (!imgEl) {
     return;
+  }
+  // 判断是否为正常访问的图片
+  try {
+    const resp = await fetch(props.src);
+    if (resp.status !== 200) {
+      emit('readyError');
+    }
+  } catch {
+    emit('readyError');
   }
   cropper.value = new Cropper(imgEl, {
     ...defaultOptions,

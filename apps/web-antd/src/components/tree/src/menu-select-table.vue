@@ -317,7 +317,7 @@ function getKeys(records: MenuPermissionOption[], addCurrent: boolean) {
 function getCheckedKeys() {
   // 节点关联
   if (association.value) {
-    const records = tableApi?.grid?.getCheckboxRecords?.() ?? [];
+    const records = tableApi?.grid?.getCheckboxRecords?.(true) ?? [];
     // 子节点
     const nodeKeys = getKeys(records, true);
     // 所有父节点
@@ -329,7 +329,7 @@ function getCheckedKeys() {
   // 节点独立
 
   // 勾选的行
-  const records = tableApi?.grid?.getCheckboxRecords?.() ?? [];
+  const records = tableApi?.grid?.getCheckboxRecords?.(true) ?? [];
   // 全部数据 用于获取permissions
   const allRecords = tableApi?.grid?.getData?.() ?? [];
   // 表格已经选中的行ids

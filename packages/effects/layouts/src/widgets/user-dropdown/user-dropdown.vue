@@ -9,7 +9,7 @@ import { useHoverToggle } from '@vben/hooks';
 import { LockKeyhole, LogOut } from '@vben/icons';
 import { $t } from '@vben/locales';
 import { preferences, usePreferences } from '@vben/preferences';
-import { useLockStore } from '@vben/stores';
+import { useAccessStore } from '@vben/stores';
 import { isWindowsOs } from '@vben/utils';
 
 import { useVbenModal } from '@vben-core/popup-ui';
@@ -46,7 +46,11 @@ interface Props {
   /**
    * 菜单数组
    */
-  menus?: Array<{ handler: AnyFunction; icon?: Component; text: string }>;
+  menus?: Array<{
+    handler: AnyFunction;
+    icon?: Component | Function | string;
+    text: string;
+  }>;
 
   /**
    * 标签文本
@@ -82,7 +86,7 @@ const emit = defineEmits<{ logout: [] }>();
 
 const { globalLockScreenShortcutKey, globalLogoutShortcutKey } =
   usePreferences();
-const lockStore = useLockStore();
+const accessStore = useAccessStore();
 const [LockModal, lockModalApi] = useVbenModal({
   connectedComponent: LockScreenModal,
 });
@@ -133,7 +137,7 @@ function handleOpenLock() {
 
 function handleSubmitLock(lockScreenPassword: string) {
   lockModalApi.close();
-  lockStore.lockScreen(lockScreenPassword);
+  accessStore.lockScreen(lockScreenPassword);
 }
 
 function handleLogout() {
@@ -207,10 +211,20 @@ if (enableShortcutKey.value) {
               v-if="tagText || text || $slots.tagText"
               class="text-foreground mb-1 flex items-center text-sm font-medium"
             >
-              {{ text }}
+              <div
+                class="max-w-[100px] overflow-hidden text-ellipsis break-keep"
+                :title="text"
+              >
+                {{ text }}
+              </div>
               <slot name="tagText">
                 <Badge v-if="tagText" class="ml-2 text-green-400">
-                  {{ tagText }}
+                  <div
+                    class="max-w-[50px] overflow-hidden text-ellipsis"
+                    :title="tagText"
+                  >
+                    {{ tagText }}
+                  </div>
                 </Badge>
               </slot>
             </div>

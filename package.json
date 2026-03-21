@@ -1,6 +1,6 @@
 {
-  "name": "ruoyi-ai-admin",
-  "version": "2.0.0",
+  "name": "vben-admin-monorepo",
+  "version": "5.5.9",
   "private": true,
   "keywords": [
     "monorepo",
@@ -12,9 +12,7 @@
     "vue admin",
     "vue vben admin",
     "vue vben admin pro",
-    "vue3",
-    "ruoyi ai",
-    "ai"
+    "vue3"
   ],
   "homepage": "https://github.com/vbenjs/vue-vben-admin",
   "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
@@ -29,8 +27,8 @@
   "scripts": {
     "build": "cross-env NODE_OPTIONS=--max-old-space-size=8192 turbo build",
     "build:analyze": "turbo build:analyze",
-    "build:antd": "pnpm run build --filter=@vben/web-antd",
-    "build:antd:test": "pnpm run build --filter=@vben/web-antd -- --mode test",
+    "build:antd": "pnpm run build --filter=@vben/web-antd build:prod",
+    "build:antd:test": "pnpm run build --filter=@vben/web-antd build:test",
     "build:docker": "./scripts/deploy/build-local-docker-image.sh",
     "build:docs": "pnpm run build --filter=@vben/docs",
     "build:play": "pnpm run build --filter=@vben/playground",
@@ -50,7 +48,6 @@
     "lint": "vsh lint",
     "postinstall": "pnpm -r run stub --if-present",
     "preinstall": "npx only-allow pnpm",
-    "prepare": "is-ci || husky",
     "preview": "turbo-run preview",
     "publint": "vsh publint",
     "reinstall": "pnpm clean --del-lock && pnpm install",
@@ -58,7 +55,7 @@
     "test:e2e": "turbo run test:e2e",
     "update:deps": "npx taze -r -w",
     "version": "pnpm exec changeset version && pnpm install --no-frozen-lockfile",
-    "generate": "node ./scripts/generate/main.mjs"
+    "catalog": "pnpx codemod pnpm/catalog"
   },
   "devDependencies": {
     "@changesets/changelog-github": "catalog:",
@@ -81,9 +78,8 @@
     "cross-env": "catalog:",
     "cspell": "catalog:",
     "happy-dom": "catalog:",
-    "husky": "catalog:",
     "is-ci": "catalog:",
-    "lint-staged": "catalog:",
+    "lefthook": "catalog:",
     "playwright": "catalog:",
     "rimraf": "catalog:",
     "tailwindcss": "catalog:",
@@ -99,7 +95,7 @@
     "node": ">=20.10.0",
     "pnpm": ">=9.12.0"
   },
-  "packageManager": "pnpm@9.15.7",
+  "packageManager": "pnpm@10.14.0",
   "pnpm": {
     "peerDependencyRules": {
       "allowedVersions": {
@@ -110,7 +106,7 @@
       "@ast-grep/napi": "catalog:",
       "@ctrl/tinycolor": "catalog:",
       "clsx": "catalog:",
-      "esbuild": "0.24.0",
+      "esbuild": "0.25.3",
       "pinia": "catalog:",
       "vue": "catalog:"
     },
@@ -118,10 +114,5 @@
       "canvas",
       "node-gyp"
     ]
-  },
-  "dependencies": {
-    "art-template": "^4.13.4",
-    "axios": "^1.10.0",
-    "yargs": "^18.0.0"
   }
 }

@@ -18,6 +18,10 @@
     "refresh": "刷新",
     "generate": "生成",
     "downloadLoading": "下载中, 请稍后...",
-    "preview": "预览"
+    "preview": "预览",
+    "tip": "提示",
+    "enable": "启用",
+    "disable": "禁用",
+    "beforeCloseTip": "您有未保存的更改，确认要退出吗？"
   }
 }

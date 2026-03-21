@@ -10,13 +10,14 @@ import { cloneDeep, eachTree } from '@vben/utils';
 import { omit } from 'lodash-es';
 
 import { useVbenForm } from '#/adapter/form';
-import { menuTreeSelect, tenantPackageMenuTreeSelect } from '#/api/system/menu';
+import { tenantPackageMenuTreeSelect } from '#/api/system/menu';
 import {
   packageAdd,
   packageInfo,
   packageUpdate,
 } from '#/api/system/tenant-package';
 import { MenuSelectTable } from '#/components/tree';
+import { defaultFormValueGetter, useBeforeCloseDiff } from '#/utils/popup';
 
 import { drawerSchema } from './data';
 
@@ -39,35 +40,40 @@ const [BasicForm, formApi] = useVbenForm({
 
 const menuTree = ref<MenuOption[]>([]);
 async function setupMenuTree(id?: number | string) {
-  if (id) {
-    const resp = await tenantPackageMenuTreeSelect(id);
-    const menus = resp.menus;
-    // i18n处理
-    eachTree(menus, (node) => {
-      node.label = $t(node.label);
-    });
-    // 设置菜单信息
-    menuTree.value = resp.menus;
-    // keys依赖于menu 需要先加载menu
-    await nextTick();
-    await formApi.setFieldValue('menuIds', resp.checkedKeys);
-  } else {
-    const resp = await menuTreeSelect();
-    // i18n处理
-    eachTree(resp, (node) => {
-      node.label = $t(node.label);
-    });
-    // 设置菜单信息
-    menuTree.value = resp;
-    // keys依赖于menu 需要先加载menu
-    await nextTick();
-    await formApi.setFieldValue('menuIds', []);
-  }
+  // 0为新增使用  获取除了`租户管理`的所有菜单
+  const resp = await tenantPackageMenuTreeSelect(id ?? 0);
+  const menus = resp.menus;
+  // i18n处理
+  eachTree(menus, (node) => {
+    node.label = $t(node.label);
+  });
+  // 设置菜单信息
+  menuTree.value = menus;
+  // keys依赖于menu 需要先加载menu
+  await nextTick();
+  await formApi.setFieldValue('menuIds', resp.checkedKeys);
 }
 
+async function customFormValueGetter() {
+  const v = await defaultFormValueGetter(formApi)();
+  // 获取勾选信息
+  const menuIds = menuSelectRef.value?.getCheckedKeys?.() ?? [];
+  const mixStr = v + menuIds.join(',');
+  return mixStr;
+}
+
+const { onBeforeClose, markInitialized, resetInitialized } = useBeforeCloseDiff(
+  {
+    initializedGetter: customFormValueGetter,
+    currentGetter: customFormValueGetter,
+  },
+);
+
 const [BasicDrawer, drawerApi] = useVbenDrawer({
-  onCancel: handleCancel,
+  onBeforeClose,
+  onClosed: handleClosed,
   onConfirm: handleConfirm,
+  destroyOnClose: true,
   async onOpenChange(isOpen) {
     if (!isOpen) {
       return null;
@@ -84,6 +90,7 @@ const [BasicDrawer, drawerApi] = useVbenDrawer({
     }
     // init菜单 注意顺序要放在赋值record之后 内部watch会依赖record
     await setupMenuTree(id);
+    await markInitialized();
 
     drawerApi.drawerLoading(false);
   },
@@ -103,8 +110,9 @@ async function handleConfirm() {
     const data = cloneDeep(await formApi.getValues());
     data.menuIds = menuIds;
     await (isUpdate.value ? packageUpdate(data) : packageAdd(data));
+    resetInitialized();
     emit('reload');
-    await handleCancel();
+    drawerApi.close();
   } catch (error) {
     console.error(error);
   } finally {
@@ -112,9 +120,9 @@ async function handleConfirm() {
   }
 }
 
-async function handleCancel() {
-  drawerApi.close();
+async function handleClosed() {
   await formApi.resetForm();
+  resetInitialized();
 }
 
 /**
@@ -127,7 +135,7 @@ function handleMenuCheckStrictlyChange(value: boolean) {
 </script>
 
 <template>
-  <BasicDrawer :close-on-click-modal="false" :title="title" class="w-[800px]">
+  <BasicDrawer :title="title" class="w-[800px]">
     <BasicForm>
       <template #menuIds="slotProps">
         <div class="h-[600px] w-full">

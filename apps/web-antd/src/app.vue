@@ -8,6 +8,8 @@ import { App, ConfigProvider, theme } from 'ant-design-vue';
 
 import { antdLocale } from '#/locales';
 
+import { useUploadTip } from './upload-tip';
+
 defineOptions({ name: 'App' });
 
 const { isDark } = usePreferences();
@@ -28,6 +30,8 @@ const tokenTheme = computed(() => {
     token: tokens,
   };
 });
+
+useUploadTip();
 </script>
 
 <template>
@@ -37,3 +41,13 @@ const tokenTheme = computed(() => {
     </App>
   </ConfigProvider>
 </template>
+
+<style lang="scss">
+body {
+  /**
+   * 全局启用 抗锯齿字体
+   * @see https://developer.mozilla.org/zh-CN/docs/Web/CSS/font-smooth
+   */
+  @apply antialiased;
+}
+</style>

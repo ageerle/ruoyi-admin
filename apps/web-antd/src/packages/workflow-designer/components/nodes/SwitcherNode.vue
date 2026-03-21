@@ -1,49 +1,49 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Handle, Position } from '@vue-flow/core'
-import type { NodeProps } from '@vue-flow/core'
-import CommonNodeHeader from '../CommonNodeHeader.vue'
+import { computed } from 'vue';
+import { Handle, Position } from '@vue-flow/core';
+import type { NodeProps } from '@vue-flow/core';
+import CommonNodeHeader from '../CommonNodeHeader.vue';
 
-const props = defineProps<NodeProps>()
+const props = defineProps<NodeProps>();
 
 // 获取分支配置
-const nodeConfig = computed(() => (props.data?.nodeConfig || {}) as any)
+const nodeConfig = computed(() => (props.data?.nodeConfig || {}) as any);
 
 // 获取所有分支（用于生成Handle）
 const cases = computed(() => {
-  return Array.isArray(nodeConfig.value.cases) ? nodeConfig.value.cases : []
-})
+  return Array.isArray(nodeConfig.value.cases) ? nodeConfig.value.cases : [];
+});
 
 // 计算每个Handle的垂直位置
 function getHandlePosition(index: number, total: number) {
-  if (total === 0) return 50
-  if (total === 1) return 50
-  
+  if (total === 0) return 50;
+  if (total === 1) return 50;
+
   // 如果是最后一个（默认分支），固定在50%位置
   if (index === total - 1) {
-    return 50
+    return 50;
   }
-  
+
   // 其他分支均匀分布在15%到85%之间
-  const step = 70 / total
-  return 15 + step * (index + 0.5)
+  const step = 70 / total;
+  return 15 + step * (index + 0.5);
 }
 
 // 截断文本
 function cut(val: string, n = 20) {
-  if (!val) return ''
-  return val.length > n ? `${val.slice(0, n)}...` : val
+  if (!val) return '';
+  return val.length > n ? `${val.slice(0, n)}...` : val;
 }
 
 // 获取条件摘要
 function getConditionSummary(caseItem: any) {
   if (!caseItem.conditions || caseItem.conditions.length === 0) {
-    return '未配置条件'
+    return '未配置条件';
   }
-  const first = caseItem.conditions[0]
-  const count = caseItem.conditions.length
-  const summary = `${first.node_param_name || '参数'} ${first.operator || ''} ${cut(first.value || '', 10)}`
-  return count > 1 ? `${summary} +${count - 1}` : summary
+  const first = caseItem.conditions[0];
+  const count = caseItem.conditions.length;
+  const summary = `${first.node_param_name || '参数'} ${first.operator || ''} ${cut(first.value || '', 10)}`;
+  return count > 1 ? `${summary} +${count - 1}` : summary;
 }
 </script>
 
@@ -51,10 +51,10 @@ function getConditionSummary(caseItem: any) {
   <div class="switcher-node">
     <!-- 输入Handle -->
     <Handle type="target" :position="Position.Left" class="handle-target" />
-    
+
     <!-- 节点头部 -->
     <CommonNodeHeader :wf-node="data" />
-    
+
     <!-- 节点内容 -->
     <div class="node-content">
       <div class="info-line">
@@ -63,7 +63,9 @@ function getConditionSummary(caseItem: any) {
       </div>
       <div class="info-line">
         <span class="label">逻辑:</span>
-        <span class="value">{{ cases[0]?.operator?.toUpperCase() || 'AND' }}</span>
+        <span class="value">{{
+          cases[0]?.operator?.toUpperCase() || 'AND'
+        }}</span>
       </div>
     </div>
 
@@ -77,7 +79,9 @@ function getConditionSummary(caseItem: any) {
       >
         <div class="branch-label">
           <span class="branch-number">{{ index + 1 }}</span>
-          <span class="branch-condition">{{ getConditionSummary(caseItem) }}</span>
+          <span class="branch-condition">{{
+            getConditionSummary(caseItem)
+          }}</span>
         </div>
         <!-- 每个分支的输出Handle -->
         <Handle
@@ -92,7 +96,12 @@ function getConditionSummary(caseItem: any) {
 
     <!-- 默认分支 -->
     <div class="default-branch-wrapper">
-      <div class="default-branch" :style="{ top: `${getHandlePosition(cases.length, cases.length + 1)}%` }">
+      <div
+        class="default-branch"
+        :style="{
+          top: `${getHandlePosition(cases.length, cases.length + 1)}%`,
+        }"
+      >
         <div class="branch-label default">
           <span class="branch-number">默认</span>
           <span class="branch-condition">其他情况</span>
@@ -264,4 +273,3 @@ function getConditionSummary(caseItem: any) {
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3);
 }
 </style>
-

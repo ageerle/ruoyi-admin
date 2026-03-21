@@ -4,18 +4,16 @@ import type {
   ContextMenuRadioItemProps,
 } from 'radix-vue';
 
-import { computed } from 'vue';
-
 import { cn } from '@vben-core/shared/utils';
-
 import { Circle } from 'lucide-vue-next';
 import {
   ContextMenuItemIndicator,
   ContextMenuRadioItem,
   useForwardPropsEmits,
 } from 'radix-vue';
+import { computed } from 'vue';
 
-const props = defineProps<ContextMenuRadioItemProps & { class?: any }>();
+const props = defineProps<{ class?: any } & ContextMenuRadioItemProps>();
 const emits = defineEmits<ContextMenuRadioItemEmits>();
 
 const delegatedProps = computed(() => {

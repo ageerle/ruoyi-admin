@@ -65,7 +65,8 @@ export const columns: VxeGridProps['columns'] = [
     fixed: 'right',
     slots: { default: 'action' },
     title: '操作',
-    width: 180,
+    resizable: false,
+    width: 'auto',
   },
 ];
 
@@ -110,6 +111,7 @@ export const drawerSchema: FormSchemaGetter = () => [
     fieldName: 'postSort',
     label: '岗位排序',
     rules: 'required',
+    defaultValue: 0,
   },
   {
     component: 'RadioGroup',

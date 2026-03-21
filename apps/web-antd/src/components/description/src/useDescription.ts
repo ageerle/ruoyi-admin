@@ -6,6 +6,9 @@ import type {
 
 import { getCurrentInstance, ref, unref } from 'vue';
 
+/**
+ * @deprecated 使用antd原生组件替代 下个版本将会移除
+ */
 export function useDescription(
   props?: Partial<DescriptionProps>,
 ): UseDescReturnType {

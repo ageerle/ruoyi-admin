@@ -80,7 +80,7 @@ const [BasicTable, tableApi] = useVbenVxeGrid({
   gridOptions,
   gridEvents: {
     checkboxChange: (e) => {
-      const records = e.$grid.getCheckboxRecords();
+      const records = e.$grid?.getCheckboxRecords?.() ?? [];
       canUnlock.value = records.length === 1 && records[0]!.status === '1';
     },
   },

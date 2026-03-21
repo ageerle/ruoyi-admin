@@ -5,7 +5,7 @@ import type { VxeGridProps } from '#/adapter/vxe-table';
 import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
 import { columns } from './data';
 import type { NodeInfo } from './index.d';
-import { workflowApi } from '#/api/workflow';
+import { workflowApi } from '#/api/aiflow';
 import { Modal, Popconfirm, Space, Button } from 'ant-design-vue';
 import AddModal from './modal.vue';
 // const formOptions: VbenFormProps = {
@@ -62,7 +62,7 @@ const [BasicTable, tableApi] = useVbenVxeGrid({
 // 新建工作流
 function handleAdd() {
   console.log('modelApi', modalApi);
-  // modalApi.setData({});
+  modalApi.setData({});
   modalApi.open();
 }
 

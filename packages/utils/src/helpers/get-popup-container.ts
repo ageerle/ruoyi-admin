@@ -12,27 +12,55 @@ export function getPopupContainer(node?: HTMLElement): HTMLElement {
 /**
  * VxeTable专用弹窗层
  * 解决问题: https://gitee.com/dapppp/ruoyi-plus-vben5/issues/IB1DM3
- * 单表格用法跟上面getPopupContainer一样
- * 一个页面(body下)有多个表格元素 必须先指定ID & ID参数传入该函数
- * <BasicTable id="xxx" />
- * getVxePopupContainer="(node) => getVxePopupContainer(node, 'xxx')"
- * @param _node 触发的元素
- * @param id 表格唯一id 当页面(该窗口)有>=两个表格 必须提供ID
+ * @param node 触发的元素
+ * @param tableId 表格ID，用于区分不同表格（可选）
  * @returns 挂载节点
  */
 export function getVxePopupContainer(
-  _node?: HTMLElement,
-  id?: string,
+  node?: HTMLElement,
+  tableId?: string,
 ): HTMLElement {
-  let selector = 'div.vxe-table--body-wrapper.body--wrapper';
-  if (id) {
-    selector = `div#${id} ${selector}`;
+  if (!node) return document.body;
+
+  // 检查是否在固定列内
+  const isInFixedColumn =
+    node.closest('.vxe-table--fixed-wrapper') ||
+    node.closest('.vxe-table--fixed-left-wrapper') ||
+    node.closest('.vxe-table--fixed-right-wrapper');
+
+  // 如果在固定列内，则挂载到固定列容器
+  if (isInFixedColumn) {
+    // 优先查找表格容器及父级容器
+    const tableContainer =
+      // 查找通用固定列容器
+      node.closest('.vxe-table--fixed-wrapper') ||
+      // 查找固定列容器（左侧固定列）
+      node.closest('.vxe-table--fixed-left-wrapper') ||
+      // 查找固定列容器（右侧固定列）
+      node.closest('.vxe-table--fixed-right-wrapper');
+
+    // 如果指定了tableId，可以查找特定ID的表格
+    if (tableId && tableContainer) {
+      const specificTable = tableContainer.closest(
+        `[data-table-id="${tableId}"]`,
+      );
+      if (specificTable) {
+        return specificTable as HTMLElement;
+      }
+    }
+
+    return tableContainer as HTMLElement;
   }
-  // 挂载到vxe-table的滚动区域
-  const vxeTableContainerNode = document.querySelector(selector);
-  if (!vxeTableContainerNode) {
-    console.warn('无法找到vxe-table元素, 将会挂载到body.');
-    return document.body;
+
+  /**
+   * 设置行高度需要特殊处理
+   */
+  const fixedHeightElement = node.closest('td.col--cs-height');
+  if (fixedHeightElement) {
+    // 默认为hidden 显示异常
+    (fixedHeightElement as HTMLTableCellElement).style.overflow = 'visible';
   }
-  return vxeTableContainerNode as HTMLElement;
+
+  // 兜底方案：使用元素的父节点或文档体
+  return (node.parentNode as HTMLElement) || document.body;
 }

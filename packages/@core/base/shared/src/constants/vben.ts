@@ -12,7 +12,7 @@ export const VBEN_DOC_URL = 'https://doc.vben.pro';
  * @zh_CN Vben Logo
  */
 export const VBEN_LOGO_URL =
-  'https://unpkg.com/@vbenjs/static-source@0.1.7/source/logo-v1.webp';
+  'https://ruoyiai-1254149996.cos.ap-guangzhou.myqcloud.com/2026/03/15/4b7e93a72bf04805ae59985cc0845ef1.png';
 
 /**
  * @zh_CN Vben Admin 首页地址
@@ -23,4 +23,3 @@ export const VBEN_ELE_PREVIEW_URL = 'https://ele.vben.pro';
 
 export const VBEN_NAIVE_PREVIEW_URL = 'https://naive.vben.pro';
 
-export const VBEN_ANT_PREVIEW_URL = 'https://ant.vben.pro';

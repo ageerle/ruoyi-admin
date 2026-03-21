@@ -34,6 +34,9 @@ const props = {
   useCollapse: { default: true, type: Boolean },
 };
 
+/**
+ * @deprecated 使用antd原生组件替代 下个版本将会移除
+ */
 export default defineComponent({
   emits: ['register'],
   // eslint-disable-next-line vue/order-in-components

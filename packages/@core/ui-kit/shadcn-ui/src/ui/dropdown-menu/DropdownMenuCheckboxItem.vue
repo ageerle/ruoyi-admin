@@ -4,18 +4,16 @@ import type {
   DropdownMenuCheckboxItemProps,
 } from 'radix-vue';
 
-import { computed } from 'vue';
-
 import { cn } from '@vben-core/shared/utils';
-
 import { Check } from 'lucide-vue-next';
 import {
   DropdownMenuCheckboxItem,
   DropdownMenuItemIndicator,
   useForwardPropsEmits,
 } from 'radix-vue';
+import { computed } from 'vue';
 
-const props = defineProps<DropdownMenuCheckboxItemProps & { class?: any }>();
+const props = defineProps<{ class?: any } & DropdownMenuCheckboxItemProps>();
 const emits = defineEmits<DropdownMenuCheckboxItemEmits>();
 
 const delegatedProps = computed(() => {

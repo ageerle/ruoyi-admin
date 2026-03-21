@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import type { AccordionContentProps } from 'radix-vue';
 
+import { cn } from '@vben-core/shared/utils';
+import { AccordionContent } from 'radix-vue';
 import { computed } from 'vue';
 
-import { cn } from '@vben-core/shared/utils';
-
-import { AccordionContent } from 'radix-vue';
-
-const props = defineProps<AccordionContentProps & { class?: any }>();
+const props = defineProps<{ class?: any } & AccordionContentProps>();
 
 const delegatedProps = computed(() => {
   const { class: _, ...delegated } = props;

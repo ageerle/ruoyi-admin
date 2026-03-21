@@ -1,51 +1,28 @@
-import { fileTypeFromBlob } from '@vben/utils';
+import type { UploadFile } from 'ant-design-vue';
 
 /**
- * 不支持txt文件 @see https://github.com/sindresorhus/file-type/issues/55
- * 需要自行修改
- * @param file file对象
- * @param accepts 文件类型数组  包括拓展名(不带点) 文件头(image/png等 不包括泛写法即image/*)
- * @returns 是否通过文件类型校验
+ * 默认支持上传的图片文件类型
  */
-export async function checkFileType(file: File, accepts: string[]) {
-  if (!accepts || accepts?.length === 0) {
-    return true;
-  }
-  console.log(file);
-  const fileType = await fileTypeFromBlob(file);
-  if (!fileType) {
-    console.error('无法获取文件类型');
-    return false;
-  }
-  console.log('文件类型', fileType);
-  // 是否文件拓展名/文件头任意有一个匹配
-  return accepts.includes(fileType.ext) || accepts.includes(fileType.mime);
-}
+export const defaultImageAcceptExts = [
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.gif',
+  '.webp',
+];
 
 /**
- * 默认图片类型
+ * 默认支持上传的文件类型
  */
-export const defaultImageAccept = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+export const defaultFileAcceptExts = ['.xlsx', '.csv', '.docx', '.pdf'];
+
 /**
- * 判断文件类型是否符合要求
- * @param file file对象
- * @param accepts 文件类型数组  包括拓展名(不带点) 文件头(image/png等 不包括泛写法即image/*)
- * @returns 是否通过文件类型校验
+ * 文件(非图片)的默认预览逻辑
+ * 默认: window.open打开 交给浏览器接管
+ * @param file file
  */
-export async function checkImageFileType(file: File, accepts: string[]) {
-  // 空的accepts 使用默认规则
-  if (!accepts || accepts.length === 0) {
-    accepts = defaultImageAccept;
+export function defaultFilePreview(file: UploadFile) {
+  if (file?.url) {
+    window.open(file.url);
   }
-  const fileType = await fileTypeFromBlob(file);
-  if (!fileType) {
-    console.error('无法获取文件类型');
-    return false;
-  }
-  console.log('文件类型', fileType);
-  // 是否文件拓展名/文件头任意有一个匹配
-  if (accepts.includes(fileType.ext) || accepts.includes(fileType.mime)) {
-    return true;
-  }
-  return false;
 }

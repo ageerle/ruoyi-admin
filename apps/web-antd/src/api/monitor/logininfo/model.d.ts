@@ -9,4 +9,5 @@ export interface LoginLog {
   os: string;
   msg: string;
   loginTime: string;
+  clientKey: string;
 }

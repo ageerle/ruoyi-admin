@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import type { SelectItemProps } from 'radix-vue';
 
-import { computed } from 'vue';
-
 import { cn } from '@vben-core/shared/utils';
-
 import { Check } from 'lucide-vue-next';
 import {
   SelectItem,
@@ -12,8 +9,9 @@ import {
   SelectItemText,
   useForwardProps,
 } from 'radix-vue';
+import { computed } from 'vue';
 
-const props = defineProps<SelectItemProps & { class?: any }>();
+const props = defineProps<{ class?: any } & SelectItemProps>();
 
 const delegatedProps = computed(() => {
   const { class: _, ...delegated } = props;

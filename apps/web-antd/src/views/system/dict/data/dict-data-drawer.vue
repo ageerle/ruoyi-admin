@@ -12,6 +12,7 @@ import {
   dictDetailInfo,
 } from '#/api/system/dict/dict-data';
 import { tagTypes } from '#/components/dict';
+import { defaultFormValueGetter, useBeforeCloseDiff } from '#/utils/popup';
 
 import { drawerSchema } from './data';
 import TagStylePicker from './tag-style-picker.vue';
@@ -57,8 +58,16 @@ function setupSelectType(listClass: string) {
   selectType.value = isDefault ? 'default' : 'custom';
 }
 
+const { onBeforeClose, markInitialized, resetInitialized } = useBeforeCloseDiff(
+  {
+    initializedGetter: defaultFormValueGetter(formApi),
+    currentGetter: defaultFormValueGetter(formApi),
+  },
+);
+
 const [BasicDrawer, drawerApi] = useVbenDrawer({
-  onCancel: handleCancel,
+  onBeforeClose,
+  onClosed: handleClosed,
   onConfirm: handleConfirm,
   async onOpenChange(isOpen) {
     if (!isOpen) {
@@ -68,13 +77,14 @@ const [BasicDrawer, drawerApi] = useVbenDrawer({
 
     const { dictCode, dictType } = drawerApi.getData() as DrawerProps;
     isUpdate.value = !!dictCode;
-    formApi.setFieldValue('dictType', dictType);
+    await formApi.setFieldValue('dictType', dictType);
 
     if (dictCode && isUpdate.value) {
       const record = await dictDetailInfo(dictCode);
       setupSelectType(record.listClass);
       await formApi.setValues(record);
     }
+    await markInitialized();
 
     drawerApi.drawerLoading(false);
   },
@@ -82,7 +92,7 @@ const [BasicDrawer, drawerApi] = useVbenDrawer({
 
 async function handleConfirm() {
   try {
-    drawerApi.drawerLoading(true);
+    drawerApi.lock(true);
     const { valid } = await formApi.validate();
     if (!valid) {
       return;
@@ -93,19 +103,20 @@ async function handleConfirm() {
       data.listClass = '';
     }
     await (isUpdate.value ? dictDataUpdate(data) : dictDataAdd(data));
+    resetInitialized();
     emit('reload');
-    await handleCancel();
+    drawerApi.close();
   } catch (error) {
     console.error(error);
   } finally {
-    drawerApi.drawerLoading(false);
+    drawerApi.lock(false);
   }
 }
 
-async function handleCancel() {
-  drawerApi.close();
+async function handleClosed() {
   await formApi.resetForm();
   selectType.value = 'default';
+  resetInitialized();
 }
 
 /**
@@ -117,7 +128,7 @@ async function handleDeSelect() {
 </script>
 
 <template>
-  <BasicDrawer :close-on-click-modal="false" :title="title" class="w-[600px]">
+  <BasicDrawer :title="title" class="w-[600px]">
     <BasicForm>
       <template #listClass="slotProps">
         <TagStylePicker

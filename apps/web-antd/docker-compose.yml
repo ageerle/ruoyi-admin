@@ -1,0 +1,35 @@
+services:
+  # ==================== RuoYi-AI 前端服务 ====================
+  frontend:
+    image: ruoyi-ai-admin:latest
+    build:
+      context: ../..
+      dockerfile: apps/web-antd/Dockerfile
+      tags:
+        - ruoyi-ai-admin:latest
+    container_name: ruoyi-ai-admin
+    restart: always
+    ports:
+      - "5666:5666"
+    environment:
+      # 后端 API 地址 - 运行时动态配置（无需重新构建镜像）
+      # 使用后端容器名和内部端口（容器内端口是 6039）
+      UPSTREAM_HOST: ${UPSTREAM_HOST:-ruoyi-ai-backend:6039}
+    # 资源限制 - 防止 CPU 和内存耗尽
+    deploy:
+      resources:
+        limits:
+          cpus: '2'          # 限制最多使用 2 个 CPU 核心
+          memory: 3G         # 限制内存使用为 3GB
+        reservations:
+          cpus: '1'          # 保留 1 个 CPU 核心
+          memory: 1G         # 保留 1GB 内存
+    networks:
+      - ruoyi-net
+
+# ==================== 网络配置 ====================
+networks:
+  # 使用后端服务的网络，实现容器间通信
+  ruoyi-net:
+    name: ruoyi-ai_ruoyi-net
+    external: true

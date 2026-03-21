@@ -22,6 +22,7 @@ export function useAppConfig(
     VITE_GLOB_RSA_PRIVATE_KEY,
     VITE_GLOB_RSA_PUBLIC_KEY,
     VITE_GLOB_SSE_ENABLE,
+    VITE_GLOB_WEBSOCKET_ENABLE,
   } = config;
 
   return {
@@ -36,5 +37,7 @@ export function useAppConfig(
     rsaPublicKey: VITE_GLOB_RSA_PUBLIC_KEY,
     // 是否开启sse
     sseEnable: VITE_GLOB_SSE_ENABLE === 'true',
+    // 是否开启websocket
+    websocketEnable: VITE_GLOB_WEBSOCKET_ENABLE === 'true',
   };
 }

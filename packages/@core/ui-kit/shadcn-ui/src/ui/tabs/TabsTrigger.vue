@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import type { TabsTriggerProps } from 'radix-vue';
 
+import { cn } from '@vben-core/shared/utils';
+import { TabsTrigger, useForwardProps } from 'radix-vue';
 import { computed } from 'vue';
 
-import { cn } from '@vben-core/shared/utils';
-
-import { TabsTrigger, useForwardProps } from 'radix-vue';
-
-const props = defineProps<TabsTriggerProps & { class?: any }>();
+const props = defineProps<{ class?: any } & TabsTriggerProps>();
 
 const delegatedProps = computed(() => {
   const { class: _, ...delegated } = props;

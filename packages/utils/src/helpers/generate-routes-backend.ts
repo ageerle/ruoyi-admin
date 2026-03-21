@@ -33,7 +33,7 @@ async function generateRoutesByBackend(
     return routes;
   } catch (error) {
     console.error(error);
-    return [];
+    throw error;
   }
 }
 
@@ -56,13 +56,14 @@ function convertRoutes(
       // 页面组件转换
     } else if (component) {
       const normalizePath = normalizeViewPath(component);
-      route.component =
-        pageMap[
-          normalizePath.endsWith('.vue')
-            ? normalizePath
-            : `${normalizePath}.vue`
-        ];
-      if (!route.component) {
+      const pageKey = normalizePath.endsWith('.vue')
+        ? normalizePath
+        : `${normalizePath}.vue`;
+      if (pageMap[pageKey]) {
+        route.component = pageMap[pageKey];
+      } else {
+        // console.error(`route component is invalid: ${pageKey}`, route);
+        // route.component = pageMap['/_core/fallback/not-found.vue'];
         console.error(`未找到对应组件: /views${component}.vue`);
         // 默认为404页面
         route.component = layoutMap.NotFoundComponent;

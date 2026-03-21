@@ -1,8 +1,8 @@
-import type {Menu, MenuQuery, MenuResp} from './model';
+import type { Menu, MenuOption, MenuQuery, MenuResp } from './model';
 
-import type {ID, IDS} from '#/api/common';
+import type { ID, IDS } from '#/api/common';
 
-import {requestClient} from '#/api/request';
+import { requestClient } from '#/api/request';
 
 enum Api {
   menuList = '/system/menu/list',
@@ -18,7 +18,7 @@ enum Api {
  * @returns 列表
  */
 export function menuList(params?: MenuQuery) {
-  return requestClient.get<Menu[]>(Api.menuList, {params});
+  return requestClient.get<Menu[]>(Api.menuList, { params });
 }
 
 /**
@@ -68,7 +68,7 @@ export function roleMenuTreeSelect(roleId: ID) {
  * @returns []
  */
 export function menuTreeSelect() {
-  return requestClient.get<MenuResp>(Api.menuTreeSelect);
+  return requestClient.get<MenuOption[]>(Api.menuTreeSelect);
 }
 
 /**
@@ -80,4 +80,13 @@ export function tenantPackageMenuTreeSelect(packageId: ID) {
   return requestClient.get<MenuResp>(
     `${Api.tenantPackageMenuTreeselect}/${packageId}`,
   );
+}
+
+/**
+ * 批量删除菜单
+ * @param menuIds 菜单ids
+ * @returns void
+ */
+export function menuCascadeRemove(menuIds: IDS) {
+  return requestClient.deleteWithMsg<void>(`${Api.root}/cascade/${menuIds}`);
 }

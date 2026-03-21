@@ -2,8 +2,14 @@ import type { RouteRecordStringComponent } from '@vben/types';
 
 import { $t } from '@vben/locales';
 
+const {
+  version,
+  // vite inject-metadata 插件注入的全局变量
+} = __VBEN_ADMIN_METADATA__ || {};
+
 /**
  * 该文件放非后台返回的路由 比如个人中心 等需要跳转显示的页面
+ * 也可以直接在菜单管理配置
  */
 const localRoutes: RouteRecordStringComponent[] = [
   {
@@ -12,56 +18,11 @@ const localRoutes: RouteRecordStringComponent[] = [
       icon: 'mingcute:profile-line',
       title: $t('ui.widgets.profile'),
       hideInMenu: true,
+      requireHomeRedirect: true,
     },
     name: 'Profile',
     path: '/profile',
   },
-  {
-    component: '/operator/oss-config/index',
-    meta: {
-      activePath: '/operator/oss',
-      icon: 'ant-design:setting-outlined',
-      title: 'oss配置',
-      hideInMenu: true,
-    },
-    name: 'OssConfig',
-    path: '/operator/oss-config',
-  },
-  {
-    component: '/system/role-assign/index',
-    meta: {
-      activePath: '/system/role',
-      icon: 'eos-icons:role-binding-outlined',
-      title: '分配角色',
-      hideInMenu: true,
-    },
-    name: 'RoleAssign',
-    path: '/system/role-assign/:roleId',
-  },
-  {
-    component: '/workflow/edit',
-    meta: {
-      activePath: '/workflow',
-      icon: 'carbon:flow',
-      title: '设计工作流',
-      hideInMenu: true,
-      hideInTab: false,
-    },
-    name: 'WorkflowEdit',
-    path: '/workflow/edit/:uuid',
-  },
-  {
-    component: '/workflow/run',
-    meta: {
-      activePath: '/workflow',
-      icon: 'carbon:play',
-      title: '运行工作流',
-      hideInMenu: true,
-      hideInTab: false,
-    },
-    name: 'WorkflowRun',
-    path: '/workflow/run/:uuid',
-  }
 ];
 
 /**
@@ -85,6 +46,7 @@ export const localMenuList: RouteRecordStringComponent[] = [
         path: '/analytics',
         component: '/dashboard/analytics/index',
         meta: {
+          icon: 'lucide:book-open-text',
           affixTab: true,
           title: 'page.dashboard.analytics',
         },
@@ -94,20 +56,10 @@ export const localMenuList: RouteRecordStringComponent[] = [
         path: '/workspace',
         component: '/dashboard/workspace/index',
         meta: {
+          icon: 'icon-park-outline:workbench',
           title: 'page.dashboard.workspace',
         },
       },
-      // {
-      //   name: 'VbenDocument',
-      //   path: '/vben-admin/document',
-      //   component: 'IFrameView',
-      //   meta: {
-      //     icon: 'lucide:book-open-text',
-      //     iframeSrc: 'https://dapdap.top',
-      //     keepAlive: true,
-      //     title: $t('demos.vben.document'),
-      //   },
-      // },
     ],
   },
   // {

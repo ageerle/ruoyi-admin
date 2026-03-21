@@ -20,6 +20,8 @@ export interface VbenAdminProAppConfigRaw {
   VITE_GLOB_RSA_PUBLIC_KEY: string;
   // 是否开启sse  注意从配置文件获取的类型为string
   VITE_GLOB_SSE_ENABLE: string;
+  // 开启websocket  注意从配置文件获取的类型为string
+  VITE_GLOB_WEBSOCKET_ENABLE: string;
 }
 
 export interface ApplicationConfig {
@@ -35,13 +37,12 @@ export interface ApplicationConfig {
   rsaPublicKey: string;
   // 是否开启sse
   sseEnable: boolean;
+  // 是否开启
+  websocketEnable: boolean;
 }
 
 declare global {
   interface Window {
     _VBEN_ADMIN_PRO_APP_CONF_: VbenAdminProAppConfigRaw;
   }
-  
-  // 项目根路径，由 Vite 构建时注入
-  const __PROJECT_ROOT__: string;
 }

@@ -1,6 +1,7 @@
 import type {
   ComponentRecordType,
   GenerateMenuAndRoutesOptions,
+  RouteMeta,
   RouteRecordStringComponent,
 } from '@vben/types';
 
@@ -20,6 +21,37 @@ import { localMenuList } from './routes/local';
 
 const forbiddenComponent = () => import('#/views/_core/fallback/forbidden.vue');
 const NotFoundComponent = () => import('#/views/_core/fallback/not-found.vue');
+
+/**
+ * 后端返回的meta有时候不包括需要的信息 比如activePath等
+ * 在这里定义映射
+ */
+const routeMetaMapping: Record<string, Omit<RouteMeta, 'title'>> = {
+  '/system/role-auth/user/:roleId': {
+    activePath: '/system/role',
+    requireHomeRedirect: true,
+  },
+
+  '/system/oss-config/index': {
+    activePath: '/system/oss',
+    requireHomeRedirect: true,
+  },
+
+  '/tool/gen-edit/index/:tableId': {
+    activePath: '/tool/gen',
+    requireHomeRedirect: true,
+  },
+
+  '/workflow/design/index': {
+    activePath: '/workflow/processDefinition',
+    requireHomeRedirect: true,
+  },
+
+  '/workflow/leaveEdit/index': {
+    activePath: '/demo/leave',
+    requireHomeRedirect: true,
+  },
+};
 
 /**
  * 后台路由转vben路由
@@ -97,6 +129,17 @@ function backMenuToVbenMenu(
       name: menu.name,
       path: menu.path,
     };
+
+    // 处理meta映射
+    if (Object.keys(routeMetaMapping).includes(vbenRoute.path)) {
+      const routeMeta = routeMetaMapping[vbenRoute.path];
+      if (routeMeta) {
+        vbenRoute.meta = {
+          ...vbenRoute.meta,
+          ...(routeMeta as RouteMeta),
+        };
+      }
+    }
 
     // 添加路由参数信息
     if (menu.query) {

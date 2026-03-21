@@ -1,6 +1,6 @@
 {
   "name": "@vben/web-antd",
-  "version": "1.2.3",
+  "version": "1.5.2",
   "homepage": "https://vben.pro",
   "bugs": "https://github.com/vbenjs/vue-vben-admin/issues",
   "repository": {
@@ -16,7 +16,8 @@
   },
   "type": "module",
   "scripts": {
-    "build": "pnpm vite build",
+    "build:prod": "pnpm vite build",
+    "build:test": "pnpm vite build --mode test",
     "build:analyze": "pnpm vite build --mode analyze",
     "dev": "pnpm vite --mode development",
     "preview": "vite preview",
@@ -27,8 +28,7 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
-    "@antv/g6": "^5.0.49",
-    "@iconify/vue": "^5.0.0",
+    "@antv/g6": "^5.0.51",
     "@tinymce/tinymce-vue": "^6.0.1",
     "@vben/access": "workspace:*",
     "@vben/common-ui": "workspace:*",
@@ -49,22 +49,18 @@
     "@vueuse/core": "catalog:",
     "ant-design-vue": "catalog:",
     "cropperjs": "^1.6.2",
-    "crypto-js": "^4.2.0",
-    "d3": "^7.9.0",
     "dayjs": "catalog:",
     "echarts": "^5.5.1",
-    "echarts-gl": "^2.0.9",
-    "jsencrypt": "^3.3.2",
     "lodash-es": "^4.17.21",
     "pinia": "catalog:",
-    "tinymce": "^7.3.0",
+    "tinymce": "7.9.1",
     "unplugin-vue-components": "^0.27.3",
     "uuid": "^9.0.0",
     "vue": "catalog:",
-    "vue-router": "catalog:"
+    "vue-router": "catalog:",
+    "vue3-colorpicker": "^2.3.0"
   },
   "devDependencies": {
-    "@types/crypto-js": "^4.2.2",
     "@types/lodash-es": "^4.17.12"
   }
 }

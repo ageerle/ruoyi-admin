@@ -46,7 +46,6 @@ const gridOptions: VxeGridProps = {
       // 默认请求接口后展开全部 不需要可以删除这段
       querySuccess: () => {
         // 默认展开 需要加上标记
-
         eachTree(tableApi.grid.getData(), (item) => (item.expand = true));
         nextTick(() => {
           setExpandOrCollapse(true);

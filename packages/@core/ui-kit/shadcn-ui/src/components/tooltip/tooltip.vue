@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import type { TooltipContentProps } from 'radix-vue';
-
-import type { StyleValue } from 'vue';
-
 import type { ClassType } from '@vben-core/typings';
+import type { TooltipContentProps } from 'radix-vue';
+import type { StyleValue } from 'vue';
 
 import {
   Tooltip,

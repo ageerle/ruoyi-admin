@@ -46,7 +46,7 @@ const formOptions: VbenFormProps = {
   ],
 };
 
-const gridOptions: VxeGridProps<OperationLog> = {
+const gridOptions: VxeGridProps = {
   checkboxConfig: {
     // 高亮
     highlight: true,

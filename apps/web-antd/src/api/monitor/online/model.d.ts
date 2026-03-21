@@ -7,4 +7,5 @@ export interface OnlineUser {
   browser: string;
   os: string;
   loginTime: number;
+  deviceType: string;
 }

@@ -1,90 +1,149 @@
-# 若依AI管理系统 (RuoYi AI Admin)
+# RuoYi-AI 管理端
 
-> [English Documentation](./README_EN.md) | 中文文档
+<div align="center">
 
-基于 Vben Admin 框架构建的现代化后台管理系统，集成了完整的权限管理、系统监控等企业级功能模块。
+<img src="https://github.com/ageerle/ruoyi-ai/raw/main/docs/image/logo.png" alt="RuoYi AI Logo" width="120" height="120">
 
-## ✨ 项目特性
+### 企业级AI助手平台 - 管理后台
 
-- 🎯 **现代化架构**：基于 Vue 3 + TypeScript + Vite 构建
-- 🛠️ **丰富组件**：集成 Ant Design Vue 组件库
-- 🔐 **权限管理**：完整的 RBAC 权限控制体系
-- 📊 **系统监控**：实时监控系统运行状态
-- 📱 **响应式设计**：完美适配各种设备屏幕
+*RuoYi-AI 的管理后台，提供系统管理、模型配置、知识库管理、流程编排等功能*
 
-## 🚀 技术栈
+**[在线体验](https://admin.pandarobot.chat)** | **[后端服务](https://github.com/ageerle/ruoyi-ai)** | **[用户端](https://github.com/ageerle/ruoyi-web)**
 
-### 前端技术
-- **Vue 3** - 渐进式 JavaScript 框架
-- **TypeScript** - JavaScript 的超集
-- **Vite** - 下一代前端构建工具
-- **Ant Design Vue** - 企业级 UI 组件库
-- **Pinia** - Vue 状态管理
-- **Vue Router** - 官方路由管理器
+</div>
 
-### 开发工具
-- **pnpm** - 快速、节省磁盘空间的包管理器
-- **Turbo** - 高性能构建系统
-- **ESLint** - 代码质量检查
-- **Prettier** - 代码格式化
-- **Husky** - Git hooks 工具
+## 技术栈
 
-## 📋 环境要求
+- **框架**: Vue 3 + Vben Admin
+- **UI组件**: element-plus-x
+- **构建工具**: Vite
 
-- **Node.js** >= 20.10.0
-- **pnpm** >= 9.12.0
+## Docker 部署
 
-## 🛠️ 快速开始
+本管理端支持两种 Docker 部署方式：
 
-### 1. 克隆项目
+### 方式一：一键启动所有服务（推荐）
+
+使用 `docker-compose-all.yaml` 可以一键启动所有服务（包括后端、管理端、用户端及依赖服务）：
+
 ```bash
-git clone https://gitee.com/ageerle/ruoyi-admin
+# 克隆后端仓库
+git clone https://github.com/ageerle/ruoyi-ai.git
+cd ruoyi-ai
+
+# 启动所有服务（从镜像仓库拉取预构建镜像）
+docker-compose -f docker-compose-all.yaml up -d
+
+# 访问管理端
+# 地址: http://localhost:25666
+# 账号: admin / admin123
+```
+
+### 方式二：分步部署（源码编译）
+
+如果您需要从源码构建，请按照以下步骤操作：
+
+#### 第一步：部署后端服务
+
+```bash
+# 进入后端项目目录
+cd ruoyi-ai
+
+# 启动后端服务（源码编译构建）
+docker-compose up -d --build
+
+# 等待后端服务启动完成
+docker-compose logs -f backend
+```
+
+#### 第二步：部署管理端
+
+```bash
+# 进入管理端项目目录
 cd ruoyi-admin
+
+# 构建并启动管理端
+docker-compose up -d --build
+
+# 访问管理端
+# 地址: http://localhost:5666
 ```
 
-### 2. 安装依赖
+#### 第三步：部署用户端（可选）
+
 ```bash
+# 进入用户端项目目录
+cd ruoyi-web
+
+# 构建并启动用户端
+docker-compose up -d --build
+
+# 访问用户端
+# 地址: http://localhost:5137
+```
+
+### 服务端口说明
+
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| 管理端 | 5666 | 管理后台访问地址 |
+| 用户端 | 5137 | 用户前端访问地址 |
+| 后端服务 | 6039 | 后端 API 服务 |
+| MySQL | 23306 | 数据库服务 |
+| Redis | 6379 | 缓存服务 |
+| Weaviate | 28080 | 向量数据库 |
+| MinIO | 9000/9090 | 对象存储 |
+
+### 镜像仓库
+
+所有镜像托管在阿里云容器镜像服务：
+
+```
+crpi-31mraxd99y2gqdgr.cn-beijing.personal.cr.aliyuncs.com/ruoyi_ai
+```
+
+可用镜像：
+- `mysql:v3` - MySQL 数据库（包含初始化 SQL）
+- `redis:6.2` - Redis 缓存
+- `weaviate:1.30.0` - 向量数据库
+- `minio:latest` - 对象存储
+- `ruoyi-ai-backend:latest` - 后端服务
+- `ruoyi-ai-admin:latest` - 管理端前端
+- `ruoyi-ai-web:latest` - 用户端前端
+
+## 本地开发
+
+```bash
+# 安装依赖
 pnpm install
+
+# 启动开发服务器
+pnpm dev
+
+# 构建生产版本
+pnpm build
 ```
 
-### 3. 启动开发服务器
-```bash
-pnpm run dev:antd
-```
+## 常见问题
 
-### 4. 构建生产版本
-```bash
-pnpm run build:antd
-```
+**Q: 管理端无法连接后端服务？**
 
-## 📝 注意事项
+A: 请确保后端服务已启动，并检查环境变量 `UPSTREAM_HOST` 配置是否正确。
 
-1. **Node.js 版本**：请确保使用 Node.js 20.10.0 或更高版本
-2. **包管理器**：项目使用 pnpm，请勿使用 npm 或 yarn
-3. **开发环境**：推荐使用 VS Code 并安装相关插件
-4. **浏览器支持**：支持现代浏览器，不支持 IE
+**Q: 一键启动和分步部署有什么区别？**
 
-## 📚 项目结构
+A: 一键启动使用预构建的镜像，部署速度快；分步部署从源码编译，适合需要自定义修改的场景。
 
-```
-ruoyi-admin/
-├── apps/                    # 应用目录
-│   ├── web-antd/           # Ant Design Vue 版本
-├── packages/               # 共享包
-│   ├── @core/             # 核心包
-│   ├── constants/         # 常量定义
-│   ├── effects/           # 副作用处理
-│   ├── icons/             # 图标库
-│   ├── locales/           # 国际化
-│   ├── preferences/       # 偏好设置
-│   ├── stores/            # 状态管理
-│   ├── styles/            # 样式文件
-│   ├── types/             # 类型定义
-│   └── utils/             # 工具函数
-├── internal/              # 内部工具
-└── scripts/               # 构建脚本
-```
+## 开源协议
+
+本项目采用 **MIT 开源协议**，详情请查看 [LICENSE](license) 文件。
 
 ---
 
-**若依AI管理系统 - 让企业级后台管理更简单、更高效！**
+<div align="center">
+
+**[⭐ 点个Star支持一下](https://github.com/ageerle/ruoyi-admin)** • **[Fork 开始贡献](https://github.com/ageerle/ruoyi-admin/fork)**
+
+*用 ❤️ 打造，由 RuoYi AI 开源社区维护*
+
+</div>

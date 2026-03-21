@@ -2,7 +2,6 @@ import type { VNode } from 'vue';
 
 import type { FormSchemaGetter } from '#/adapter/form';
 import type { VxeGridProps } from '#/adapter/vxe-table';
-import type { DescItem } from '#/components/description';
 
 import { DictEnum } from '@vben/constants';
 
@@ -105,64 +104,5 @@ export const columns: VxeGridProps['columns'] = [
     slots: { default: 'action' },
     title: '操作',
     width: 150,
-  },
-];
-
-export const modalSchema: () => DescItem[] = () => [
-  {
-    field: 'status',
-    label: '登录状态',
-    labelMinWidth: 80,
-    render(value) {
-      return renderDict(value, DictEnum.SYS_COMMON_STATUS);
-    },
-  },
-  {
-    field: 'clientKey',
-    label: '登录平台',
-    render(value) {
-      if (value) {
-        return value.toUpperCase();
-      }
-      return '';
-    },
-  },
-  {
-    field: 'ipaddr',
-    label: '账号信息',
-    render(_, data) {
-      const { ipaddr, loginLocation, userName } = data;
-      return `账号: ${userName} / ${ipaddr} / ${loginLocation}`;
-    },
-  },
-  {
-    field: 'loginTime',
-    label: '登录时间',
-  },
-  {
-    field: 'msg',
-    label: '登录信息',
-    render(_, data: any) {
-      const { msg, status } = data;
-      return (
-        <span class={['font-bold', status === '0' ? '' : 'text-red-500']}>
-          {msg}
-        </span>
-      );
-    },
-  },
-  {
-    field: 'os',
-    label: '登录设备',
-    render(value) {
-      return renderOsIcon(value);
-    },
-  },
-  {
-    field: 'browser',
-    label: '浏览器',
-    render(value) {
-      return renderBrowserIcon(value);
-    },
   },
 ];

@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import type { TabsContentProps } from 'radix-vue';
 
+import { cn } from '@vben-core/shared/utils';
+import { TabsContent } from 'radix-vue';
 import { computed } from 'vue';
 
-import { cn } from '@vben-core/shared/utils';
-
-import { TabsContent } from 'radix-vue';
-
-const props = defineProps<TabsContentProps & { class?: any }>();
+const props = defineProps<{ class?: any } & TabsContentProps>();
 
 const delegatedProps = computed(() => {
   const { class: _, ...delegated } = props;

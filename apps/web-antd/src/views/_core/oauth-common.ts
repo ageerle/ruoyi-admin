@@ -1,6 +1,6 @@
 import type { Component, CSSProperties } from 'vue';
 
-import { ref } from 'vue';
+import { markRaw, ref } from 'vue';
 
 import { DEFAULT_TENANT_ID } from '@vben/constants';
 import {
@@ -69,32 +69,32 @@ export async function handleAuthBinding(source: string) {
  */
 export const accountBindList: BindItem[] = [
   {
-    avatar: GiteeIcon,
+    avatar: markRaw(GiteeIcon),
     description: '绑定Gitee账号',
     source: 'gitee',
     title: 'Gitee',
     style: { color: '#c71d23' },
   },
   {
-    avatar: GithubOAuthIcon,
+    avatar: markRaw(GithubOAuthIcon),
     description: '绑定Github账号',
     source: 'github',
     title: 'Github',
   },
   {
-    avatar: SvgMaxKeyIcon,
+    avatar: markRaw(SvgMaxKeyIcon),
     description: '绑定MaxKey账号',
     source: 'maxkey',
     title: 'MaxKey',
   },
   {
-    avatar: SvgTopiamIcon,
+    avatar: markRaw(SvgTopiamIcon),
     description: '绑定topiam账号',
     source: 'topiam',
     title: 'Topiam',
   },
   {
-    avatar: SvgWechatIcon,
+    avatar: markRaw(SvgWechatIcon),
     description: '绑定wechat账号',
     source: 'wechat',
     title: 'Wechat',

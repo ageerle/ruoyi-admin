@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import type { RadioGroupItemProps } from 'radix-vue';
 
-import { computed } from 'vue';
-
 import { cn } from '@vben-core/shared/utils';
-
 import { Circle } from 'lucide-vue-next';
 import {
   RadioGroupIndicator,
   RadioGroupItem,
   useForwardProps,
 } from 'radix-vue';
+import { computed } from 'vue';
 
-const props = defineProps<RadioGroupItemProps & { class?: any }>();
+const props = defineProps<{ class?: any } & RadioGroupItemProps>();
 
 const delegatedProps = computed(() => {
   const { class: _, ...delegated } = props;

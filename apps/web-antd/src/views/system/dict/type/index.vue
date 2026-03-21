@@ -61,8 +61,11 @@ const gridOptions: VxeGridProps = {
   },
   rowConfig: {
     keyField: 'dictId',
+    // 高亮当前行
+    isCurrent: true,
   },
   id: 'system-dict-type-index',
+  rowClassName: 'hover:cursor-pointer',
 };
 
 const lastDictType = ref('');
@@ -193,3 +196,14 @@ function handleDownloadExcel() {
     <DictTypeModal @reload="tableApi.query()" />
   </div>
 </template>
+
+<style lang="scss">
+div#dict-type {
+  .vxe-body--row {
+    &.row--current {
+      // 选中行bold
+      @apply font-semibold;
+    }
+  }
+}
+</style>

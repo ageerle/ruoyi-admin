@@ -1,11 +1,17 @@
 <script lang="ts" setup>
-import { computed, onMounted, watch } from 'vue';
+import { computed, h, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { AuthenticationLoginExpiredModal } from '@vben/common-ui';
-import { VBEN_GITHUB_URL } from '@vben/constants';
+import { VBEN_DOC_URL, VBEN_GITHUB_URL } from '@vben/constants';
 import { useWatermark } from '@vben/hooks';
-import { GitHubOutlined, UserOutlined } from '@vben/icons';
+import {
+  BookOpenText,
+  CircleHelp,
+  GiteeIcon,
+  GitHubOutlined,
+  UserOutlined,
+} from '@vben/icons';
 import {
   BasicLayout,
   LockScreen,
@@ -34,15 +40,6 @@ const { destroyWatermark, updateWatermark } = useWatermark();
 const tenantStore = useTenantStore();
 const menus = computed(() => {
   const defaultMenus = [
-    // {
-    //   handler: () => {
-    //     openWindow(VBEN_DOC_URL, {
-    //       target: '_blank',
-    //     });
-    //   },
-    //   icon: BookOpenText,
-    //   text: $t('ui.widgets.document'),
-    // },
     {
       handler: () => {
         router.push('/profile');
@@ -50,33 +47,6 @@ const menus = computed(() => {
       icon: UserOutlined,
       text: $t('ui.widgets.profile'),
     },
-    // {
-    //   handler: () => {
-    //     openWindow('https://gitee.com/dapppp/ruoyi-plus-vben5', {
-    //       target: '_blank',
-    //     });
-    //   },
-    //   icon: () => h(GiteeIcon, { class: 'text-red-800' }),
-    //   text: 'Gitee项目地址',
-    // },
-    {
-      handler: () => {
-        openWindow(VBEN_GITHUB_URL, {
-          target: '_blank',
-        });
-      },
-      icon: GitHubOutlined,
-      text: 'Vben官方地址',
-    },
-    // {
-    //   handler: () => {
-    //     openWindow(`${VBEN_GITHUB_URL}/issues`, {
-    //       target: '_blank',
-    //     });
-    //   },
-    //   icon: CircleHelp,
-    //   text: $t('ui.widgets.qa'),
-    // },
   ];
   /**
    * 租户选中状态 不显示个人中心
@@ -106,11 +76,16 @@ function handleViewAll() {
   message.warning('暂未开放');
 }
 watch(
-  () => preferences.app.watermark,
-  async (enable) => {
+  () => ({
+    enable: preferences.app.watermark,
+    content: preferences.app.watermarkContent,
+  }),
+  async ({ enable, content }) => {
     if (enable) {
       await updateWatermark({
-        content: `${userStore.userInfo?.username}`,
+        content:
+          content ||
+          `${userStore.userInfo?.username} - ${userStore.userInfo?.realName}`,
       });
     } else {
       destroyWatermark();
@@ -132,8 +107,8 @@ watch(
         :avatar
         :menus
         :text="userStore.userInfo?.realName"
-        description="ann.vben@gmail.com"
-        tag-text="Pro"
+        :description="userStore.userInfo?.email || '未设置邮箱'"
+        :tag-text="userStore.userInfo?.username"
         @logout="handleLogout"
       />
     </template>

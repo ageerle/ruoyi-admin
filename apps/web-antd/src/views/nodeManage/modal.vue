@@ -5,7 +5,7 @@ import { computed, ref } from 'vue';
 import { Form, Input, Switch, message } from 'ant-design-vue';
 import { useVbenModal } from '@vben/common-ui';
 
-import { workflowApi } from '#/api/workflow';
+import { workflowApi } from '#/api/aiflow';
 const defaultValues = {
   uuid: '',
   name: '',

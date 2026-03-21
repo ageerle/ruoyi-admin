@@ -4,18 +4,16 @@ import type {
   DropdownMenuRadioItemProps,
 } from 'radix-vue';
 
-import { computed } from 'vue';
-
 import { cn } from '@vben-core/shared/utils';
-
 import { Circle } from 'lucide-vue-next';
 import {
   DropdownMenuItemIndicator,
   DropdownMenuRadioItem,
   useForwardPropsEmits,
 } from 'radix-vue';
+import { computed } from 'vue';
 
-const props = defineProps<DropdownMenuRadioItemProps & { class?: any }>();
+const props = defineProps<{ class?: any } & DropdownMenuRadioItemProps>();
 
 const emits = defineEmits<DropdownMenuRadioItemEmits>();
 

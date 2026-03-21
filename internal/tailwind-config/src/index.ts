@@ -130,6 +130,7 @@ export default {
     enterAnimationPlugin,
   ],
   prefix: '',
+  safelist: ['dark'],
   theme: {
     container: {
       center: true,
@@ -201,7 +202,6 @@ export default {
       },
     },
   },
-  safelist: ['dark'],
 } as Config;
 
 function createColorsPalette(name: string) {

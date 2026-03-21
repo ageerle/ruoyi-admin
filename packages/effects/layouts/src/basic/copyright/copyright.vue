@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 interface Props {
-  companyName: string;
+  companyName?: string;
   companySiteLink?: string;
-  date: string;
+  date?: string;
   icp?: string;
   icpLink?: string;
 }
@@ -14,7 +14,7 @@ defineOptions({
 withDefaults(defineProps<Props>(), {
   companyName: 'Vben Admin',
   companySiteLink: '',
-  date: '2024',
+  date: '2026',
   icp: '',
   icpLink: '',
 });

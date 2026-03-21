@@ -1,24 +1,11 @@
 <script lang="ts" setup>
-import { nextTick, onUnmounted, reactive, ref, watch } from 'vue';
-import {
-  Button,
-  Input,
-  InputNumber,
-  Switch,
-  Tabs,
-  Upload,
-  message,
-} from 'ant-design-vue';
-import type { UploadFile } from 'ant-design-vue';
-import RuntimeNodes from './RuntimeNodes.vue';
-import SvgIcon from './SvgIcon.vue';
-import {
-  workflowRun,
-  workflowRuntimeResume,
-  getUploadAction,
-  workflowApi,
-} from '#/api/workflow';
-import { useWfStore } from '#/packages/workflow-designer/store';
+import { nextTick, onUnmounted, reactive, ref, watch } from 'vue'
+import { Button, Input, InputNumber, Switch, Tabs, Upload, message } from 'ant-design-vue'
+import type { UploadFile } from 'ant-design-vue'
+import RuntimeNodes from './RuntimeNodes.vue'
+import SvgIcon from './SvgIcon.vue'
+import { workflowRun, workflowRuntimeResume, getUploadAction,workflowApi } from '#/api/aiflow'
+import { useWfStore } from '#/packages/workflow-designer/store'
 
 interface Props {
   workflow: any;
@@ -61,7 +48,7 @@ const humanFeedbackTip = ref<string>('');
 const humanFeedbackContent = ref<string>('');
 // 组件ID到组件名称的映射
 const componentIdToNameMap = ref<Record<string, string>>({});
-let controller = new AbortController();
+let controller = new AbortController()
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
@@ -291,20 +278,29 @@ async function resume() {
   }
 }
 
-function handleFileListChange(info: any) {
-  console.log('ffff-ffff');
-  fileList.value = info.fileList;
-  fileListLength.value = info.fileList.length;
+async function handleFileListChange(info: any) {
+  const ret = await workflowApi.uploadFile(info.file.originFileObj);
 
-  if (info.file.status === 'done') {
-    const res = info.file.response;
-    if (res && res.success) {
-      uploadedFileUuids.value.push(res.data.uuid);
+  if (ret?.uploadVos && ret.uploadVos.length) {
+    info.file.status = 'done';
+    fileList.value = info.fileList;
+    fileListLength.value = info.fileList.length;
+    uploadedFileUuids.value.push(ret.uploadVos[0].filePath);
       if (uploadedFileUuids.value.length === fileListLength.value) {
-        // run()
+        run();
       }
-    }
   }
+
+  // console.log('info', info, uploadedFileUuids);
+  // if (info.file.status === 'done') {
+  //   const res = info.file.response;
+  //   if (res && res.success) {
+  //     uploadedFileUuids.value.push(res.data.uuid);
+  //     if (uploadedFileUuids.value.length === fileListLength.value) {
+  //       run();
+  //     }
+  //   }
+  // }
 }
 
 function handleStop() {
@@ -319,6 +315,63 @@ function handleClick() {
     : `${tabObj.value.defaultTab} ↑`;
 }
 
+// function findStartNodeFromWorkflow() {
+//   return Array.isArray(props.workflow?.nodes)
+//     ? props.workflow.nodes.find((n: any) => {
+//         // 优先检查 wfComponent.name（编辑时的数据结构）
+//         if (n?.wfComponent?.name === 'Start') return true;
+//         // 检查 workflowComponentId（后端返回的数据结构）
+//         // 后端返回的是字符串，需要转换为数字比较
+//         if (Number(n?.workflowComponentId) === 1) return true;
+//         return false;
+//       })
+//     : null
+// }
+
+// 根据 workflowComponentId 获取组件名称
+function getComponentNameByWorkflowComponentId(
+  workflowComponentId: number | string,
+): string {
+  const id = String(workflowComponentId);
+  return componentIdToNameMap.value[id] || 'Unknown';
+}
+function findStartNodeFromWorkflow() {
+  return Array.isArray(props.workflow?.nodes)
+    ? props.workflow.nodes.find((n: any) => {
+        // 优先检查 wfComponent.name（编辑时的数据结构）
+        if (n?.wfComponent?.name === 'Start') return true;
+        // 检查 workflowComponentId（后端返回的数据结构）
+        // 使用映射函数判断组件类型
+        if (n?.workflowComponentId !== undefined) {
+          const componentName = getComponentNameByWorkflowComponentId(
+            n.workflowComponentId,
+          );
+          if (componentName === 'Start') return true;
+        }
+        // 备用方案：检查节点标题是否包含"开始"
+        if (n?.title && (n.title === '开始' || n.title.includes('开始'))) {
+          return true;
+        }
+        return false;
+      })
+    : null;
+}
+
+function rebuildUserInputs() {
+  const storeStart = wfStore.getStartNode(props.workflow.uuid)
+  const localStart = findStartNodeFromWorkflow()
+  startNode.value = storeStart || localStart || null
+  if (startNode.value && Array.isArray(startNode.value.inputConfig?.user_inputs)) {
+    userInputs.value = startNode.value.inputConfig.user_inputs.map((input: any) => ({
+      uuid: input.uuid,
+      name: input.name,
+      content: { title: input.title, value: null, type: input.type },
+      required: input.required,
+    }))
+  } else {
+    userInputs.value = [];
+  }
+}
 // 获取组件列表并构建映射
 async function fetchWorkflowComponents() {
   try {
@@ -343,60 +396,6 @@ async function fetchWorkflowComponents() {
     componentIdToNameMap.value = {};
   }
 }
-
-// 根据 workflowComponentId 获取组件名称
-function getComponentNameByWorkflowComponentId(
-  workflowComponentId: number | string,
-): string {
-  const id = String(workflowComponentId);
-  return componentIdToNameMap.value[id] || 'Unknown';
-}
-
-function findStartNodeFromWorkflow() {
-  return Array.isArray(props.workflow?.nodes)
-    ? props.workflow.nodes.find((n: any) => {
-        // 优先检查 wfComponent.name（编辑时的数据结构）
-        if (n?.wfComponent?.name === 'Start') return true;
-        // 检查 workflowComponentId（后端返回的数据结构）
-        // 使用映射函数判断组件类型
-        if (n?.workflowComponentId !== undefined) {
-          const componentName = getComponentNameByWorkflowComponentId(
-            n.workflowComponentId,
-          );
-          if (componentName === 'Start') return true;
-        }
-        // 备用方案：检查节点标题是否包含"开始"
-        if (n?.title && (n.title === '开始' || n.title.includes('开始'))) {
-          return true;
-        }
-        return false;
-      })
-    : null;
-}
-
-function rebuildUserInputs() {
-  const storeStart = wfStore.getStartNode(props.workflow.uuid);
-  console.log('storeStart', storeStart);
-  const localStart = findStartNodeFromWorkflow();
-  console.log('localStart', localStart);
-  startNode.value = storeStart || localStart || null;
-  if (
-    startNode.value &&
-    Array.isArray(startNode.value.inputConfig?.user_inputs)
-  ) {
-    userInputs.value = startNode.value.inputConfig.user_inputs.map(
-      (input: any) => ({
-        uuid: input.uuid,
-        name: input.name,
-        content: { title: input.title, value: null, type: input.type },
-        required: input.required,
-      }),
-    );
-  } else {
-    userInputs.value = [];
-  }
-}
-
 // 初始化：获取组件列表并重建用户输入
 async function init() {
   await fetchWorkflowComponents();
@@ -405,16 +404,7 @@ async function init() {
 
 init();
 
-watch(
-  () => props.workflow,
-  () => rebuildUserInputs(),
-  { deep: true },
-);
-watch(
-  () => componentIdToNameMap.value,
-  () => rebuildUserInputs(),
-  { deep: true },
-);
+watch(() => props.workflow, () => rebuildUserInputs(), { deep: true })
 
 headers.Authorization = token.value;
 onUnmounted(() => {
@@ -468,26 +458,11 @@ onUnmounted(() => {
             class="w-full"
           />
           <div v-if="userInput.content.type === 3" />
-          <Upload
-            v-if="userInput.content.type === 4"
-            ref="uploadRef"
-            multiple
-            :action="getUploadAction()"
-            :max-count="
-              startNode?.inputConfig.user_inputs.find(
-                (item: any) => item.uuid === userInput.uuid,
-              )?.limit || 10
-            "
-            :headers="headers"
-            :file-list="fileList"
-            @change="handleFileListChange"
-          >
-            <!-- <Upload.Dragger > -->
-            <div style="font-size: 16px">点击或者拖动文件到该区域来上传</div>
-            <div style="margin: 4px 0 0 0; color: #999">
-              文件格式:
-              TXT、PDF、DOC、DOCX、XLS、XLXS、PPT、PPTX；文件大小：不超过10M
-            </div>
+<Upload v-if="userInput.content.type === 4" ref="uploadRef" multiple :max-count="startNode?.inputConfig.user_inputs.find((item: any) => item.uuid === userInput.uuid)?.limit || 10" :headers="headers" :file-list="fileList" @change="handleFileListChange">
+          <!-- <Upload v-if="userInput.content.type === 4" ref="uploadRef" multiple :action="getUploadAction()" :max-count="startNode?.inputConfig.user_inputs.find((item: any) => item.uuid === userInput.uuid)?.limit || 10" :headers="headers" :file-list="fileList" @change="handleFileListChange"> -->
+            <!-- <Upload.Dragger> -->
+              <div style="font-size: 16px">点击或者拖动文件到该区域来上传</div>
+              <div style="margin: 4px 0 0 0; color: #999">文件格式: TXT、PDF、DOC、DOCX、XLS、XLXS、PPT、PPTX；文件大小：不超过10M</div>
             <!-- </Upload.Dragger> -->
           </Upload>
           <Switch

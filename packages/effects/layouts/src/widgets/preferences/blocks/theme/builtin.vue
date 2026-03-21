@@ -9,6 +9,8 @@ import { $t } from '@vben/locales';
 import { BUILT_IN_THEME_PRESETS } from '@vben/preferences';
 import { convertToHsl, TinyColor } from '@vben/utils';
 
+import { useThrottleFn } from '@vueuse/core';
+
 defineOptions({
   name: 'PreferenceBuiltinTheme',
 });
@@ -18,6 +20,15 @@ const props = defineProps<{ isDark: boolean }>();
 const colorInput = ref();
 const modelValue = defineModel<BuiltinThemeType>({ default: 'default' });
 const themeColorPrimary = defineModel<string>('themeColorPrimary');
+
+const updateThemeColorPrimary = useThrottleFn(
+  (value: string) => {
+    themeColorPrimary.value = value;
+  },
+  300,
+  true,
+  true,
+);
 
 const inputValue = computed(() => {
   return new TinyColor(themeColorPrimary.value || '').toHexString();
@@ -84,7 +95,7 @@ function handleSelect(theme: BuiltinThemePreset) {
 
 function handleInputChange(e: Event) {
   const target = e.target as HTMLInputElement;
-  themeColorPrimary.value = convertToHsl(target.value);
+  updateThemeColorPrimary(convertToHsl(target.value));
 }
 
 function selectColor() {
@@ -93,7 +104,7 @@ function selectColor() {
 
 watch(
   () => [modelValue.value, props.isDark] as [BuiltinThemeType, boolean],
-  ([themeType, isDark]) => {
+  ([themeType, isDark], [_, isDarkPrev]) => {
     const theme = builtinThemePresets.value.find(
       (item) => item.type === themeType,
     );
@@ -102,7 +113,9 @@ watch(
         ? theme.darkPrimaryColor || theme.primaryColor
         : theme.primaryColor;
 
-      themeColorPrimary.value = primaryColor || theme.color;
+      if (!(theme.type === 'custom' && isDark !== isDarkPrev)) {
+        themeColorPrimary.value = primaryColor || theme.color;
+      }
     }
   },
 );
@@ -121,14 +134,14 @@ watch(
           <template v-if="theme.type !== 'custom'">
             <div
               :style="{ backgroundColor: theme.color }"
-              class="mx-10 my-2 size-5 rounded-md"
+              class="mx-9 my-2 size-5 rounded-md"
             ></div>
           </template>
           <template v-else>
-            <div class="size-full px-10 py-2" @click.stop="selectColor">
+            <div class="size-full px-9 py-2" @click.stop="selectColor">
               <div class="flex-center relative size-5 rounded-sm">
                 <UserRoundPen
-                  class="absolute z-10 size-5 opacity-60 group-hover:opacity-100"
+                  class="z-1 absolute size-5 opacity-60 group-hover:opacity-100"
                 />
                 <input
                   ref="colorInput"

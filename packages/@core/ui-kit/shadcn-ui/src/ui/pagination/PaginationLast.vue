@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import type { PaginationLastProps } from 'radix-vue';
 
-import { computed } from 'vue';
-
 import { cn } from '@vben-core/shared/utils';
-
 import { ChevronsRight } from 'lucide-vue-next';
 import { PaginationLast } from 'radix-vue';
+import { computed } from 'vue';
 
 import { Button } from '../button';
 
 const props = withDefaults(
-  defineProps<PaginationLastProps & { class?: any }>(),
+  defineProps<{ class?: any } & PaginationLastProps>(),
   {
     asChild: true,
   },

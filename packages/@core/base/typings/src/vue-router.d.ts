@@ -44,6 +44,10 @@ interface RouteMeta {
     | 'warning'
     | string;
   /**
+   * 路由的完整路径作为key（默认true）
+   */
+  fullPathKey?: boolean;
+  /**
    * 当前路由的子级在菜单中不展现
    * @default false
    */
@@ -113,6 +117,12 @@ interface RouteMeta {
    * 菜单所携带的参数
    */
   query?: Recordable;
+  /**
+   * 管理员切换租户 该页面是否需要重定向到首页
+   * 用于区分带路由参数的页面 比如/oss/:id 这种路由是需要回到首页的
+   * 默认false
+   */
+  requireHomeRedirect?: boolean;
   /**
    * 标题名称
    */

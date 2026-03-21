@@ -15,7 +15,8 @@ import {
   deptNodeList,
   deptUpdate,
 } from '#/api/system/dept';
-import { listUserByDeptId } from '#/api/operator/user';
+import { listUserByDeptId } from '#/api/system/user';
+import { defaultFormValueGetter, useBeforeCloseDiff } from '#/utils/popup';
 
 import { drawerSchema } from './data';
 
@@ -64,6 +65,8 @@ async function initDeptSelect(deptId?: number | string) {
         treeData,
         treeDefaultExpandAll: true,
         treeLine: { showLeafIcon: false },
+        // 筛选的字段
+        treeNodeFilterProp: 'deptName',
         // 选中后显示在输入框的值
         treeNodeLabelProp: 'fullName',
       },
@@ -107,8 +110,16 @@ async function setLeaderOptions() {
   ]);
 }
 
+const { onBeforeClose, markInitialized, resetInitialized } = useBeforeCloseDiff(
+  {
+    initializedGetter: defaultFormValueGetter(formApi),
+    currentGetter: defaultFormValueGetter(formApi),
+  },
+);
+
 const [BasicDrawer, drawerApi] = useVbenDrawer({
-  onCancel: handleCancel,
+  onBeforeClose,
+  onClosed: handleClosed,
   onConfirm: handleConfirm,
   async onOpenChange(isOpen) {
     if (!isOpen) {
@@ -130,6 +141,7 @@ const [BasicDrawer, drawerApi] = useVbenDrawer({
     await (update && id ? initDeptUsers(id) : setLeaderOptions());
     /** 部门选择 下拉框 */
     await initDeptSelect(id);
+    await markInitialized();
 
     drawerApi.drawerLoading(false);
   },
@@ -137,30 +149,31 @@ const [BasicDrawer, drawerApi] = useVbenDrawer({
 
 async function handleConfirm() {
   try {
-    drawerApi.drawerLoading(true);
+    drawerApi.lock(true);
     const { valid } = await formApi.validate();
     if (!valid) {
       return;
     }
     const data = cloneDeep(await formApi.getValues());
     await (isUpdate.value ? deptUpdate(data) : deptAdd(data));
+    resetInitialized();
     emit('reload');
-    await handleCancel();
+    drawerApi.close();
   } catch (error) {
     console.error(error);
   } finally {
-    drawerApi.drawerLoading(false);
+    drawerApi.lock(false);
   }
 }
 
-async function handleCancel() {
-  drawerApi.close();
+async function handleClosed() {
   await formApi.resetForm();
+  resetInitialized();
 }
 </script>
 
 <template>
-  <BasicDrawer :close-on-click-modal="false" :title="title" class="w-[600px]">
+  <BasicDrawer :title="title" class="w-[600px]">
     <BasicForm />
   </BasicDrawer>
 </template>

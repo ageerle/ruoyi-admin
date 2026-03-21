@@ -1,8 +1,7 @@
 import type { Locale } from './messages';
 
-import { computed, ref } from 'vue';
-
 import { createSharedComposable } from '@vueuse/core';
+import { computed, ref } from 'vue';
 
 import { getMessages } from './messages';
 

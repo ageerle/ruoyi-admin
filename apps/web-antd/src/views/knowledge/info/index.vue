@@ -10,10 +10,12 @@ import { getVxePopupContainer } from '@vben/utils';
 
 import { Modal, Popconfirm, Space } from 'ant-design-vue';
 
+import { useVbenModal } from '@vben/common-ui';
 import { useVbenVxeGrid, vxeCheckboxChecked } from '#/adapter/vxe-table';
 import { infoExport, infoList, infoRemove } from '#/api/knowledge/info';
 import { commonDownloadExcel } from '#/utils/file/download';
 
+import KnowledgeAddModal from './components/KnowledgeAddModal.vue';
 import { columns, querySchema } from './data';
 import { useRouter } from 'vue-router';
 
@@ -78,8 +80,12 @@ const [BasicTable, tableApi] = useVbenVxeGrid({
 
 const router = useRouter();
 
+const [AddModal, modalApi] = useVbenModal({
+  connectedComponent: KnowledgeAddModal,
+});
+
 function handleAdd() {
-  router.push(`/knowledge/info/detail/new`);
+  modalApi.open();
 }
 
 function handleDetail(row: Required<InfoForm>) {
@@ -165,5 +171,6 @@ function handleDownloadExcel() {
         </Space>
       </template>
     </BasicTable>
+    <AddModal @reload="tableApi.query()" />
   </Page>
 </template>

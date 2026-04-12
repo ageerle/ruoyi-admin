@@ -12,6 +12,11 @@ export interface FragmentVO {
   attachId: string | number;
 
   /**
+   * 文档ID
+   */
+  docId: string;
+
+  /**
    * 片段索引下标
    */
   idx: string | number;
@@ -40,6 +45,11 @@ export interface FragmentForm extends BaseEntity {
   attachId?: string | number;
 
   /**
+   * 文档ID
+   */
+  docId?: string;
+
+  /**
    * 片段索引下标
    */
   idx?: string | number;
@@ -61,6 +71,11 @@ export interface FragmentQuery extends PageQuery {
    * 附件ID
    */
   attachId?: string | number;
+
+  /**
+   * 文档ID
+   */
+  docId?: string;
 
   /**
    * 片段索引下标

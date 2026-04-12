@@ -36,6 +36,11 @@ export interface AttachVO {
    */
   remark: string;
 
+  /**
+   * 解析状态
+   */
+  status: number;
+
 }
 
 export interface AttachForm extends BaseEntity {

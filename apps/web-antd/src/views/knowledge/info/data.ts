@@ -29,6 +29,10 @@ export const columns: VxeGridProps['columns'] = [
     field: 'remark',
   },
   {
+    title: '文档数',
+    field: 'documentCount', // Use documentCount or fileCount, depending on backend. We can set it to field 'docCount'
+  },
+  {
     field: 'action',
     fixed: 'right',
     slots: { default: 'action' },

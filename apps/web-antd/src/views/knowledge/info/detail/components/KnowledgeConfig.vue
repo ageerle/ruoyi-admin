@@ -2,12 +2,11 @@
 import type { RuleObject } from 'ant-design-vue/es/form';
 import type { InfoForm } from '#/api/knowledge/info/model';
 
-import { computed, ref } from 'vue';
+import { ref, watch } from 'vue';
 import { $t } from '@vben/locales';
 import { cloneDeep } from '@vben/utils';
 
 import {
-  Drawer,
   Form,
   FormItem,
   Input,
@@ -16,23 +15,24 @@ import {
   Radio,
   RadioGroup,
   Button,
-  Space,
   message,
+  Card,
+  Row,
+  Col
 } from 'ant-design-vue';
 import { pick } from 'lodash-es';
 
 import { infoAdd, infoInfo, infoUpdate } from '#/api/knowledge/info';
 import { modelList } from '#/api/chat/model';
 
-const emit = defineEmits<{ reload: [] }>();
+const props = defineProps<{
+  knowledgeId?: string | number;
+}>();
 
-const visible = ref(false);
+const emit = defineEmits<{ saved: [id: string | number] }>();
+
 const loading = ref(false);
 const isUpdate = ref(false);
-
-const title = computed(() => {
-  return isUpdate.value ? $t('pages.common.edit') : $t('pages.common.add');
-});
 
 const defaultValues: Partial<InfoForm> = {
   id: undefined,
@@ -65,8 +65,8 @@ const formRules = ref<AntdFormRules<InfoForm>>({
 });
 
 const vectorModelOptions = [
-  { label: 'weaviate', value: 'weaviate' },
-  { label: 'milvus', value: 'milvus' },
+  { label: 'Weaviate', value: 'weaviate' },
+  { label: 'Milvus', value: 'milvus' },
 ];
 
 const embeddingModelOptions = ref<Array<{ label: string; value: string }>>([]);
@@ -76,7 +76,7 @@ const shareOptions = [
   { label: '否', value: 0 },
 ];
 
-const { validate, validateInfos, resetFields } = Form.useForm(
+const { validate, validateInfos } = Form.useForm(
   formData,
   formRules,
 );
@@ -86,7 +86,7 @@ async function fetchEmbeddingModels() {
     const response = await modelList({ category: 'vector', pageSize: 1000 });
     const models = Array.isArray(response) ? response : (response.rows || response.records || []);
     embeddingModelOptions.value = models.map((model: any) => ({
-      label: model.modelDescribe,
+      label: model.modelDescribe || model.modelName,
       value: model.modelName,
     }));
   } catch (error) {
@@ -94,15 +94,15 @@ async function fetchEmbeddingModels() {
   }
 }
 
-async function handleOpen(id?: string | number) {
+async function loadData() {
   loading.value = true;
   try {
     await fetchEmbeddingModels();
 
-    isUpdate.value = !!id;
+    isUpdate.value = !!props.knowledgeId;
 
-    if (isUpdate.value && id) {
-      const record = await infoInfo(id);
+    if (isUpdate.value && props.knowledgeId) {
+      const record = await infoInfo(props.knowledgeId);
       const filterRecord = pick(record, Object.keys(defaultValues));
       formData.value = filterRecord;
     } else {
@@ -120,55 +120,46 @@ async function handleOpen(id?: string | number) {
         overlapChar: 30,
       };
     }
-
-    visible.value = true;
   } finally {
     loading.value = false;
   }
 }
+
+watch(() => props.knowledgeId, () => {
+  loadData();
+}, { immediate: true });
 
 async function handleSubmit() {
   try {
     loading.value = true;
     await validate();
     const data = cloneDeep(formData.value);
-    await (isUpdate.value ? infoUpdate(data) : infoAdd(data));
-    //message.success(isUpdate.value ? '修改成功' : '新增成功');
-    emit('reload');
-    handleClose();
+    
+    if (isUpdate.value) {
+      await infoUpdate(data);
+      message.success('更新成功');
+      emit('saved', data.id!);
+    } else {
+      const res = await infoAdd(data);
+      message.success('新增成功');
+      const newId = (res as any)?.id || (res as any)?.data?.id || new Date().getTime();
+      emit('saved', newId);
+    }
   } catch (error) {
     console.error(error);
   } finally {
     loading.value = false;
   }
 }
-
-function handleClose() {
-  visible.value = false;
-  formData.value = cloneDeep(defaultValues);
-  resetFields();
-}
-
-defineExpose({
-  open: handleOpen,
-});
 </script>
 
 <template>
-  <Drawer
-    :title="title"
-    :open="visible"
-    @close="handleClose"
-    :width="600"
-    :body-style="{ paddingBottom: '80px' }"
-  >
-    <Form :model="formData" :label-col="{ span: 6 }">
+  <div class="px-4 py-8 max-w-4xl">
+    <Form :model="formData" :label-col="{ span: 4 }" :wrapper-col="{ span: 18 }">
       <FormItem label="知识名称" v-bind="validateInfos.name">
-        <Input
-          v-model:value="formData.name"
-          :placeholder="$t('ui.formRules.required')"
-        />
+        <Input v-model:value="formData.name" placeholder="请输入知识库名称" />
       </FormItem>
+
       <FormItem label="是否公开" v-bind="validateInfos.share">
         <RadioGroup v-model:value="formData.share">
           <Radio v-for="option in shareOptions" :key="option.value" :value="option.value">
@@ -176,74 +167,60 @@ defineExpose({
           </Radio>
         </RadioGroup>
       </FormItem>
+
       <FormItem label="知识库描述" v-bind="validateInfos.description">
         <Input.TextArea
           v-model:value="formData.description"
-          :placeholder="$t('ui.formRules.required')"
           :rows="3"
+          placeholder="请输入知识库描述"
         />
       </FormItem>
+
       <FormItem label="知识分隔符" v-bind="validateInfos.separator">
-        <Input
-          v-model:value="formData.separator"
-          :placeholder="$t('ui.formRules.required')"
-        />
+        <Input v-model:value="formData.separator" placeholder="知识分隔符" />
       </FormItem>
-      <FormItem label="重叠字符" v-bind="validateInfos.overlapChar">
-        <InputNumber
-          v-model:value="formData.overlapChar"
-          style="width: 100%"
-          :placeholder="$t('ui.formRules.required')"
-          :min="0"
-        />
-      </FormItem>
-      <FormItem label="检索条数" v-bind="validateInfos.retrieveLimit">
-        <InputNumber
-          v-model:value="formData.retrieveLimit"
-          style="width: 100%"
-          :placeholder="$t('ui.formRules.required')"
-          :min="1"
-        />
-      </FormItem>
+
       <FormItem label="文本块大小" v-bind="validateInfos.textBlockSize">
-        <InputNumber
-          v-model:value="formData.textBlockSize"
-          style="width: 100%"
-          :placeholder="$t('ui.formRules.required')"
-          :min="1"
-        />
+        <InputNumber v-model:value="formData.textBlockSize" :min="1" class="w-full" />
       </FormItem>
+
+      <FormItem label="重叠字符数" v-bind="validateInfos.overlapChar">
+        <InputNumber v-model:value="formData.overlapChar" :min="0" class="w-full" />
+      </FormItem>
+
       <FormItem label="向量库" v-bind="validateInfos.vectorModel">
         <Select
           v-model:value="formData.vectorModel"
           :options="vectorModelOptions"
-          :placeholder="$t('ui.formRules.required')"
         />
       </FormItem>
+
       <FormItem label="向量模型" v-bind="validateInfos.embeddingModel">
         <Select
           :key="`embedding-${embeddingModelOptions.length}`"
           v-model:value="formData.embeddingModel"
           :options="embeddingModelOptions"
-          :placeholder="$t('ui.formRules.required')"
+          placeholder="请选择向量模型"
         />
       </FormItem>
+
+      <FormItem label="检索条数" v-bind="validateInfos.retrieveLimit">
+        <InputNumber v-model:value="formData.retrieveLimit" :min="1" class="w-full" />
+      </FormItem>
+
       <FormItem label="备注" v-bind="validateInfos.remark">
         <Input.TextArea
           v-model:value="formData.remark"
-          :placeholder="$t('ui.formRules.required')"
-          :rows="3"
+          :rows="2"
+          placeholder="备注"
         />
       </FormItem>
-    </Form>
 
-    <template #footer>
-      <Space style="float: right">
-        <Button @click="handleClose">取消</Button>
+      <FormItem :wrapper-col="{ offset: 4, span: 18 }">
         <Button type="primary" :loading="loading" @click="handleSubmit">
-          {{ isUpdate ? '更新' : '新增' }}
+          {{ isUpdate ? '保存更新' : '确认新增' }}
         </Button>
-      </Space>
-    </template>
-  </Drawer>
+      </FormItem>
+    </Form>
+  </div>
 </template>

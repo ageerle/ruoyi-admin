@@ -15,8 +15,7 @@ import { infoExport, infoList, infoRemove } from '#/api/knowledge/info';
 import { commonDownloadExcel } from '#/utils/file/download';
 
 import { columns, querySchema } from './data';
-import infoDrawer from './info-drawer.vue';
-import attachDrawer from './attach-drawer.vue';
+import { useRouter } from 'vue-router';
 
 const formOptions: VbenFormProps = {
   commonConfig: {
@@ -77,19 +76,14 @@ const [BasicTable, tableApi] = useVbenVxeGrid({
   gridOptions,
 });
 
-const infoDrawerRef = ref();
-const attachDrawerRef = ref();
+const router = useRouter();
 
 function handleAdd() {
-  infoDrawerRef.value?.open();
+  router.push(`/knowledge/info/detail/new`);
 }
 
-function handleAttachment(row: Required<InfoForm>) {
-  attachDrawerRef.value?.open(row.id);
-}
-
-async function handleEdit(row: Required<InfoForm>) {
-  infoDrawerRef.value?.open(row.id);
+function handleDetail(row: Required<InfoForm>) {
+  router.push(`/knowledge/info/detail/${row.id}`);
 }
 
 async function handleDelete(row: Required<InfoForm>) {
@@ -150,15 +144,9 @@ function handleDownloadExcel() {
       <template #action="{ row }">
         <Space>
           <ghost-button
-            v-access:code="['system:info:edit']"
-            @click.stop="handleEdit(row)"
+            @click.stop="handleDetail(row)"
           >
-            {{ $t('pages.common.edit') }}
-          </ghost-button>
-          <ghost-button
-            @click.stop="handleAttachment(row)"
-          >
-            附件
+            详情
           </ghost-button>
           <Popconfirm
             :get-popup-container="getVxePopupContainer"
@@ -177,7 +165,5 @@ function handleDownloadExcel() {
         </Space>
       </template>
     </BasicTable>
-    <infoDrawer ref="infoDrawerRef" @reload="tableApi.query()" />
-    <attachDrawer ref="attachDrawerRef" />
   </Page>
 </template>

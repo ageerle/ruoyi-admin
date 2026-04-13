@@ -59,3 +59,12 @@ export function infoUpdate(data: InfoForm) {
 export function infoRemove(id: ID | IDS) {
   return requestClient.deleteWithMsg<void>(`/system/info/${id}`);
 }
+
+/**
+ * 检索测试
+ * @param data
+ * @returns 检索结果
+ */
+export function knowledgeRetrieval(data: any) {
+  return requestClient.post<any[]>('/system/fragment/retrieval', data);
+}

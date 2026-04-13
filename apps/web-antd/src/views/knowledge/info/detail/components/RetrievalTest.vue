@@ -15,9 +15,16 @@ import {
   FormItem,
   Tag,
   Alert,
-  Slider
+  Slider,
+  Typography,
+  TypographyParagraph,
+  Drawer,
+  Descriptions,
+  DescriptionsItem,
 } from 'ant-design-vue';
-import { SearchOutlined } from '@ant-design/icons-vue';
+import { SearchOutlined, CopyOutlined } from '@ant-design/icons-vue';
+import { knowledgeRetrieval } from '#/api/knowledge/info';
+import { message } from 'ant-design-vue';
 
 const props = defineProps<{
   knowledgeId?: string | number;
@@ -43,39 +50,48 @@ const config = ref({
 
 const results = ref<any[]>([]);
 
-const mockFragments = [
-  {
-    id: 1,
-    content: '进入设置页面，点击账户安全，选择修改密码。需要输入原密码验证。',
-    score: 0.94,
-    rawRank: 2,
-    rerankedRank: 1,
-    sourceDoc: '用户手册v2.docx',
-  },
-  {
-    id: 2,
-    content: '如果忘记密码，请点击登录页面的“忘记密码”链接，通过绑定的邮箱重置。',
-    score: 0.88,
-    rawRank: 1,
-    rerankedRank: 2,
-    sourceDoc: '常见问题解答.pdf',
-  },
-  {
-    id: 3,
-    content: '管理员可以在用户管理中，强制重置某些用户的密码，新密码将随机生成并发送邮件。',
-    score: 0.60,
-    rawRank: 4,
-    rerankedRank: 3,
-    sourceDoc: '高级管理指南.txt',
-  },
-];
+const resultDetailVisible = ref(false);
+const currentResult = ref<any>(null);
+
+function handleViewResultDetail(record: any) {
+  currentResult.value = record;
+  resultDetailVisible.value = true;
+}
+
+async function handleCopy(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    message.success('已复制到剪贴板');
+  } catch (err) {
+    message.error('复制失败');
+  }
+}
 
 async function handleTest() {
+  if (!query.value.trim()) {
+    message.warning('请输入检索词');
+    return;
+  }
+  if (!props.knowledgeId) {
+    message.error('知识库ID缺失');
+    return;
+  }
+
   loading.value = true;
-  setTimeout(() => {
-    results.value = mockFragments;
+  try {
+    const res = await knowledgeRetrieval({
+      knowledgeId: props.knowledgeId,
+      query: query.value,
+      topK: config.value.topK,
+      threshold: config.value.similarityThreshold,
+    });
+    // 初始化展开状态
+    results.value = (res || []).map((item: any) => ({ ...item, _expanded: false }));
+  } catch (error) {
+    console.error('检索测试失败:', error);
+  } finally {
     loading.value = false;
-  }, 800);
+  }
 }
 
 function getRankDelta(raw: number | null, reranked: number | null) {
@@ -84,11 +100,9 @@ function getRankDelta(raw: number | null, reranked: number | null) {
 }
 
 const tableColumns = [
-  { title: '片段内容', dataIndex: 'content', key: 'content', width: '45%' },
-  { title: '来源', dataIndex: 'sourceDoc', key: 'sourceDoc' },
-  { title: '最终得分', dataIndex: 'score', key: 'score', align: 'center', width: 100 },
-  { title: '初始位次', dataIndex: 'rawRank', key: 'rawRank', align: 'center', width: 100 },
-  { title: '重排位次', dataIndex: 'rerankedRank', key: 'rerankedRank', align: 'center', width: 100 },
+  { title: '片段内容', dataIndex: 'content', key: 'content', width: '60%' },
+  { title: '来源文档', dataIndex: 'sourceName', key: 'sourceName' },
+  { title: '相关性得分', dataIndex: 'score', key: 'score', align: 'center', width: 120 },
 ];
 </script>
 
@@ -139,17 +153,23 @@ const tableColumns = [
             </Row>
 
             <FormItem>
-              <div class="flex items-center justify-between mb-2">
-                <span>混合检索</span>
-                <Switch v-model:checked="config.enableHybridSearch" />
+              <div class="flex items-center justify-between mb-2 opacity-50 cursor-not-allowed">
+                <Tooltip title="暂未开启，请先配置重写模型">
+                  <span>混合检索</span>
+                </Tooltip>
+                <Switch :checked="false" disabled />
               </div>
-              <div class="flex items-center justify-between mb-2">
-                <span>查询改写</span>
-                <Switch v-model:checked="config.enableQueryRewrite" />
+              <div class="flex items-center justify-between mb-2 opacity-50 cursor-not-allowed">
+                <Tooltip title="暂未开启，请先配置重写模型">
+                  <span>查询改写</span>
+                </Tooltip>
+                <Switch :checked="false" disabled />
               </div>
-              <div class="flex items-center justify-between">
-                <span>启用重排</span>
-                <Switch v-model:checked="config.enableRerank" />
+              <div class="flex items-center justify-between opacity-50 cursor-not-allowed">
+                <Tooltip title="暂未开启，请先配置重排模型">
+                  <span>启用重排</span>
+                </Tooltip>
+                <Switch :checked="false" disabled />
               </div>
             </FormItem>
 
@@ -200,43 +220,77 @@ const tableColumns = [
           >
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'content'">
-                <Tooltip :title="record.content">
-                  <div class="truncate-2-lines text-sm">
+                <div 
+                  class="cursor-pointer hover:text-blue-600 transition-colors"
+                  @click="handleViewResultDetail(record)"
+                >
+                  <div class="line-clamp-3" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">
                     {{ record.content }}
                   </div>
-                </Tooltip>
+                </div>
               </template>
               
-              <template v-else-if="column.key === 'sourceDoc'">
-                <Tag>{{ record.sourceDoc }}</Tag>
+              <template v-else-if="column.key === 'sourceName'">
+                <Tag color="cyan">{{ record.sourceName }}</Tag>
               </template>
 
-              <template v-else-if="column.key === 'rerankedRank'">
-                <div class="flex items-center justify-center gap-1">
-                  <span>{{ record.rerankedRank }}</span>
-                  <span v-if="getRankDelta(record.rawRank, record.rerankedRank) > 0" class="text-xs text-green-600">
-                    (↑{{ getRankDelta(record.rawRank, record.rerankedRank) }})
-                  </span>
-                  <span v-else-if="getRankDelta(record.rawRank, record.rerankedRank) < 0" class="text-xs text-red-500">
-                    (↓{{ Math.abs(getRankDelta(record.rawRank, record.rerankedRank)) }})
-                  </span>
-                  <span v-else class="text-xs text-gray-400">(-)</span>
-                </div>
+              <template v-else-if="column.key === 'score'">
+                <Tag :color="record.score > 0.7 ? 'green' : (record.score > 0.4 ? 'orange' : 'red')">
+                  {{ (record.score * 100).toFixed(1) }}%
+                </Tag>
               </template>
             </template>
           </Table>
         </Card>
       </Col>
     </Row>
+
+    <!-- 侧边详情抽屉 -->
+    <Drawer
+      v-model:open="resultDetailVisible"
+      title="检索结果详情"
+      placement="right"
+      :width="600"
+    >
+      <div v-if="currentResult" class="flex flex-col h-full">
+        <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100 relative group">
+          <div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+             <Button type="link" size="small" @click="handleCopy(currentResult.content)">
+               <template #icon><CopyOutlined /></template>
+               复制
+             </Button>
+          </div>
+          <div style="white-space: pre-wrap; font-size: 15px; line-height: 1.8; color: #333;">
+            {{ currentResult.content }}
+          </div>
+        </div>
+
+        <Descriptions title="匹配信息" :column="1" size="small" bordered>
+          <DescriptionsItem label="相关性得分">
+            <Tag :color="currentResult.score > 0.7 ? 'green' : (currentResult.score > 0.4 ? 'orange' : 'red')">
+               {{ (currentResult.score * 100).toFixed(2) }}%
+            </Tag>
+          </DescriptionsItem>
+          <DescriptionsItem label="来源文档">{{ currentResult.sourceName }}</DescriptionsItem>
+          <DescriptionsItem label="字符数量">{{ currentResult.content?.length || 0 }} 字</DescriptionsItem>
+        </Descriptions>
+        
+        <div class="mt-auto pt-6 flex justify-end">
+          <Button @click="resultDetailVisible = false">关闭</Button>
+        </div>
+      </div>
+    </Drawer>
   </div>
 </template>
 
 <style scoped>
-.truncate-2-lines {
+.test-container {
+  height: 100%;
+}
+.line-clamp-3 {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  line-height: 1.5;
 }
 </style>

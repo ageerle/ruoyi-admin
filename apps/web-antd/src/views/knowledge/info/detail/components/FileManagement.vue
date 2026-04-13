@@ -15,8 +15,11 @@ import {
   Spin,
   Badge,
   Switch,
+  Typography,
+  TypographyParagraph,
+  Drawer,
 } from 'ant-design-vue';
-import { InboxOutlined } from '@ant-design/icons-vue';
+import { InboxOutlined, CopyOutlined } from '@ant-design/icons-vue';
 import { useAppConfig } from '@vben/hooks';
 import { useAccessStore } from '@vben/stores';
 import { attachList, attachRemove, attachParse } from '#/api/knowledge/attach';
@@ -82,6 +85,25 @@ const fileDetailData = ref<any>(null);
 
 const uploadModalVisible = ref(false);
 const fileList = ref<any[]>([]);
+
+const fragmentDetailVisible = ref(false);
+const currentFragment = ref<any>(null);
+const currentSourceName = ref('');
+
+function handleViewFragmentDetail(record: any, sourceName?: string) {
+  currentFragment.value = record;
+  currentSourceName.value = sourceName || '';
+  fragmentDetailVisible.value = true;
+}
+
+async function handleCopy(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    message.success('已复制到剪贴板');
+  } catch (err) {
+    message.error('复制失败');
+  }
+}
 
 function handleOpenUpload() {
   fileList.value = [];
@@ -178,7 +200,8 @@ async function handleFragment(record: any) {
   fragmentVisible.value = true;
   try {
     const res = await fragmentList({ docId: record.docId, pageSize: 100 });
-    fragmentData.value = res.rows || [];
+    // 初始化展开状态
+    fragmentData.value = (res.rows || []).map((item: any) => ({ ...item, _expanded: false }));
   } catch (error) {
     message.error('加载片段失败');
   } finally {
@@ -332,20 +355,25 @@ function isImageFile(fileSuffix: string) {
       </div>
     </Modal>
 
-    <Modal v-model:open="fragmentVisible" title="知识分片列表" :width="800" :footer="null" :destroyOnClose="true">
-      <Table :columns="fragmentColumns" :data-source="fragmentData" :loading="fragmentLoading" :pagination="false" size="middle" bordered row-key="id">
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'idx'">
-            {{ Number(record.idx) + 1 }}
-          </template>
-          <template v-else-if="column.key === 'content'">
-            <Tooltip :title="record.content">
-              <span>{{ record.content && record.content.length > 50 ? record.content.slice(0, 50) + '...' : record.content }}</span>
-            </Tooltip>
-          </template>
+  <Modal v-model:open="fragmentVisible" title="知识分片列表" :width="1000" :footer="null" :destroyOnClose="true">
+    <Table :columns="fragmentColumns" :data-source="fragmentData" :loading="fragmentLoading" :pagination="{ pageSize: 10 }" size="middle" bordered row-key="id">
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'idx'">
+          {{ Number(record.idx) + 1 }}
         </template>
-      </Table>
-    </Modal>
+        <template v-else-if="column.key === 'content'">
+          <div 
+            class="cursor-pointer hover:text-blue-600 transition-colors"
+            @click="handleViewFragmentDetail(record)"
+          >
+            <div class="line-clamp-3" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">
+              {{ record.content }}
+            </div>
+          </div>
+        </template>
+      </template>
+    </Table>
+  </Modal>
 
     <Modal v-model:open="fileDetailVisible" title="文件详情" :width="600" :footer="null">
       <div v-if="fileDetailLoading" class="flex justify-center p-4"><Spin /></div>
@@ -371,5 +399,47 @@ function isImageFile(fileSuffix: string) {
         </div>
       </div>
     </Modal>
+    
+    <!-- 详情抽屉 -->
+    <Drawer
+      v-model:open="fragmentDetailVisible"
+      title="知识片段详情"
+      placement="right"
+      :width="600"
+    >
+      <div v-if="currentFragment" class="flex flex-col h-full">
+        <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100 relative group">
+          <div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+             <Button type="link" size="small" @click="handleCopy(currentFragment.content)">
+               <template #icon><CopyOutlined /></template>
+               复制
+             </Button>
+          </div>
+          <div style="white-space: pre-wrap; font-size: 15px; line-height: 1.8; color: #333;">
+            {{ currentFragment.content }}
+          </div>
+        </div>
+
+        <Descriptions title="元数据信息" :column="1" size="small" bordered>
+          <DescriptionsItem label="片段 ID">{{ currentFragment.id }}</DescriptionsItem>
+          <DescriptionsItem label="所属文档 ID">{{ currentFragment.docId }}</DescriptionsItem>
+          <DescriptionsItem label="字符数量">{{ currentFragment.content?.length || 0 }} 字</DescriptionsItem>
+          <DescriptionsItem v-if="currentSourceName" label="来源文件">{{ currentSourceName }}</DescriptionsItem>
+        </Descriptions>
+        
+        <div class="mt-auto pt-6 flex justify-end">
+          <Button @click="fragmentDetailVisible = false">关闭</Button>
+        </div>
+      </div>
+    </Drawer>
   </div>
 </template>
+
+<style scoped>
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>

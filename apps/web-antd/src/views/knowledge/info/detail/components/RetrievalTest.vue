@@ -22,30 +22,58 @@ import {
   Descriptions,
   DescriptionsItem,
 } from 'ant-design-vue';
-import { SearchOutlined, CopyOutlined } from '@ant-design/icons-vue';
+import { 
+  SearchOutlined, 
+  CopyOutlined,
+  CaretUpOutlined,
+  CaretDownOutlined,
+  LineOutlined,
+  ThunderboltFilled
+} from '@ant-design/icons-vue';
 import { knowledgeRetrieval } from '#/api/knowledge/info';
+import { modelList } from '#/api/chat/model';
 import { message } from 'ant-design-vue';
+import { onMounted } from 'vue';
 
 const props = defineProps<{
   knowledgeId?: string | number;
 }>();
 
-const query = ref('如何重置密码');
+const query = ref('');
 const loading = ref(false);
 
-const rerankOptions = [
-  { label: 'jina-reranker-v2', value: 'jina-reranker-v2' },
-  { label: 'cohere-rerank-3', value: 'cohere-rerank-3' },
-  { label: 'bge-reranker-large', value: 'bge-reranker-large' },
-];
+const rerankOptions = ref<any[]>([]);
 
 const config = ref({
-  similarityThreshold: 0.6,
-  enableHybridSearch: true,
-  enableRerank: true,
-  rerankModelName: 'jina-reranker-v2',
-  enableQueryRewrite: true,
+  similarityThreshold: 0.5,
+  enableHybridSearch: false,
+  enableRerank: false,
+  rerankModelName: undefined as string | undefined,
+  enableQueryRewrite: false,
   topK: 10,
+});
+
+async function loadRerankModels() {
+  try {
+    const res = await modelList({ category: 'rerank' });
+    // 过滤：仅显示后端已实现 ScoringModel 的供应商
+    const supportedProviders = ['alibailian', 'siliconflow'];
+    rerankOptions.value = (res.rows || [])
+      .filter(m => supportedProviders.includes(m.providerCode?.toLowerCase()))
+      .map(m => ({
+        label: m.modelName,
+        value: m.modelName
+      }));
+    if (rerankOptions.value.length > 0) {
+      config.value.rerankModelName = rerankOptions.value[0].value;
+    }
+  } catch (err) {
+    console.error('加载重排模型失败:', err);
+  }
+}
+
+onMounted(() => {
+  loadRerankModels();
 });
 
 const results = ref<any[]>([]);
@@ -84,11 +112,18 @@ async function handleTest() {
       query: query.value,
       topK: config.value.topK,
       threshold: config.value.similarityThreshold,
+      enableRerank: config.value.enableRerank,
+      rerankModel: config.value.rerankModelName,
     });
-    // 初始化展开状态
-    results.value = (res || []).map((item: any) => ({ ...item, _expanded: false }));
+    // 初始化结果并记录当前排名（用于对比 originalIndex）
+    results.value = (res || []).map((item: any, index: number) => ({ 
+      ...item, 
+      _currentIndex: index,
+      _expanded: false 
+    }));
   } catch (error) {
     console.error('检索测试失败:', error);
+    message.error('检索测试请求失败');
   } finally {
     loading.value = false;
   }
@@ -100,9 +135,10 @@ function getRankDelta(raw: number | null, reranked: number | null) {
 }
 
 const tableColumns = [
-  { title: '片段内容', dataIndex: 'content', key: 'content', width: '60%' },
-  { title: '来源文档', dataIndex: 'sourceName', key: 'sourceName' },
-  { title: '相关性得分', dataIndex: 'score', key: 'score', align: 'center', width: 120 },
+  { title: '位次/变动', key: 'rank', width: 100, align: 'center' },
+  { title: '片段内容', dataIndex: 'content', key: 'content', width: '50%' },
+  { title: '得分对比', dataIndex: 'score', key: 'score', align: 'center', width: 140 },
+  { title: '来源文档', dataIndex: 'sourceName', key: 'sourceName', width: '20%' },
 ];
 </script>
 
@@ -165,11 +201,9 @@ const tableColumns = [
                 </Tooltip>
                 <Switch :checked="false" disabled />
               </div>
-              <div class="flex items-center justify-between opacity-50 cursor-not-allowed">
-                <Tooltip title="暂未开启，请先配置重排模型">
-                  <span>启用重排</span>
-                </Tooltip>
-                <Switch :checked="false" disabled />
+              <div class="flex items-center justify-between">
+                <span>启用重排</span>
+                <Switch v-model:checked="config.enableRerank" />
               </div>
             </FormItem>
 
@@ -219,12 +253,37 @@ const tableColumns = [
             bordered
           >
             <template #bodyCell="{ column, record }">
-              <template v-if="column.key === 'content'">
+              <template v-if="column.key === 'rank'">
+                <div class="flex flex-col items-center justify-center">
+                  <span class="text-base font-mono font-bold">{{ record._currentIndex + 1 }}</span>
+                  <!-- 排名变动显示 -->
+                  <div v-if="record.originalIndex !== undefined && record.originalIndex !== null" class="text-xs mt-0.5">
+                    <template v-if="record.originalIndex > record._currentIndex">
+                      <span class="text-green-500 flex items-center">
+                        <CaretUpOutlined /> {{ record.originalIndex - record._currentIndex }}
+                      </span>
+                    </template>
+                    <template v-else-if="record.originalIndex < record._currentIndex">
+                      <span class="text-orange-500 flex items-center">
+                        <CaretDownOutlined /> {{ record._currentIndex - record.originalIndex }}
+                      </span>
+                    </template>
+                    <template v-else>
+                      <span class="text-gray-300"><LineOutlined /></span>
+                    </template>
+                  </div>
+                </div>
+              </template>
+
+              <template v-else-if="column.key === 'content'">
                 <div 
                   class="cursor-pointer hover:text-blue-600 transition-colors"
                   @click="handleViewResultDetail(record)"
                 >
                   <div class="line-clamp-3" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">
+                    <Tag v-if="record.originalIndex > 5 && record._currentIndex < 5" color="purple" size="small" class="mr-1">
+                      <ThunderboltFilled /> 捞起
+                    </Tag>
                     {{ record.content }}
                   </div>
                 </div>
@@ -235,9 +294,32 @@ const tableColumns = [
               </template>
 
               <template v-else-if="column.key === 'score'">
-                <Tag :color="record.score > 0.7 ? 'green' : (record.score > 0.4 ? 'orange' : 'red')">
-                  {{ (record.score * 100).toFixed(1) }}%
-                </Tag>
+                <div class="flex flex-col items-center">
+                  <!-- 主得分 -->
+                  <div class="flex items-center gap-1">
+                    <span class="text-sm font-bold" :class="record.score > 0.7 ? 'text-green-600' : (record.score > 0.4 ? 'text-orange-500' : 'text-red-500')">
+                      {{ (record.score * 100).toFixed(1) }}%
+                    </span>
+                  </div>
+
+                  <!-- 原始得分对比 -->
+                  <Tooltip v-if="record.rawScore !== undefined && record.rawScore !== null" placement="bottom">
+                    <template #title>
+                      原始向量分: {{ (record.rawScore * 100).toFixed(2) }}%
+                    </template>
+                    <div class="flex items-center gap-1 mt-0.5">
+                      <span class="text-[10px] text-gray-400 opacity-80">原: {{ (record.rawScore * 100).toFixed(1) }}%</span>
+                      <!-- 分数增减百分比 -->
+                      <span 
+                        v-if="record.score !== record.rawScore"
+                        :class="record.score > record.rawScore ? 'text-green-500' : 'text-red-400'"
+                        class="text-[10px] font-bold"
+                      >
+                        {{ record.score > record.rawScore ? '+' : '' }}{{ ((record.score - record.rawScore) * 100).toFixed(1) }}%
+                      </span>
+                    </div>
+                  </Tooltip>
+                </div>
               </template>
             </template>
           </Table>

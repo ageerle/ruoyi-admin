@@ -57,6 +57,16 @@ export interface InfoVO {
   embeddingModel: string;
 
   /**
+   * 重排模型
+   */
+  rerankModel: string;
+
+  /**
+   * 是否启用重排（0 否 1 是）
+   */
+  enableRerank: number;
+
+  /**
    * 备注
    */
   remark: string;
@@ -118,6 +128,16 @@ export interface InfoForm extends BaseEntity {
    * 向量模型
    */
   embeddingModel?: string;
+
+  /**
+   * 重排模型
+   */
+  rerankModel?: string;
+
+  /**
+   * 是否启用重排（0 否 1 是）
+   */
+  enableRerank?: number;
 
   /**
    * 备注

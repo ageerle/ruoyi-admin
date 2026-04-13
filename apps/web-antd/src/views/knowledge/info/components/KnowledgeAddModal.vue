@@ -14,6 +14,7 @@ import {
   Select,
   Radio,
   RadioGroup,
+  Switch,
   message,
 } from 'ant-design-vue';
 
@@ -36,6 +37,8 @@ const defaultValues: Partial<InfoForm> = {
   textBlockSize: 1000,
   vectorModel: 'weaviate',
   embeddingModel: undefined,
+  enableRerank: 0,
+  rerankModel: undefined,
 };
 
 const formData = ref<Partial<InfoForm>>({ ...defaultValues });
@@ -51,6 +54,7 @@ const formRules = ref<AntdFormRules<InfoForm>>({
 });
 
 const embeddingModelOptions = ref<Array<{ label: string; value: string }>>([]);
+const rerankModelOptions = ref<Array<{ label: string; value: string }>>([]);
 
 const shareOptions = [
   { label: '是', value: 1 },
@@ -70,12 +74,28 @@ async function fetchEmbeddingModels() {
       label: model.modelDescribe || model.modelName,
       value: model.modelName,
     }));
-    // 默认选择第一个
     if (embeddingModelOptions.value.length > 0 && !formData.value.embeddingModel) {
       formData.value.embeddingModel = embeddingModelOptions.value[0]?.value;
     }
   } catch (error) {
     console.error('Failed to fetch embedding models:', error);
+  }
+}
+
+async function fetchRerankModels() {
+  try {
+    const response = await modelList({ category: 'rerank', pageSize: 1000 });
+    const models = Array.isArray(response) ? response : (response.rows || response.records || []);
+    // 过滤：仅显示后端已实现的供应商
+    const supportedProviders = ['alibailian', 'siliconflow'];
+    rerankModelOptions.value = models
+      .filter((model: any) => supportedProviders.includes(model.providerCode?.toLowerCase()))
+      .map((model: any) => ({
+        label: model.modelDescribe || model.modelName,
+        value: model.modelName,
+      }));
+  } catch (error) {
+    console.error('Failed to fetch rerank models:', error);
   }
 }
 
@@ -86,7 +106,7 @@ const [BasicModal, modalApi] = useVbenModal({
   onOpenChange: async (isOpen) => {
     if (!isOpen) return;
     modalApi.modalLoading(true);
-    await fetchEmbeddingModels();
+    await Promise.all([fetchEmbeddingModels(), fetchRerankModels()]);
     modalApi.modalLoading(false);
   },
 });
@@ -129,6 +149,24 @@ function handleClosed() {
           v-model:value="formData.embeddingModel"
           :options="embeddingModelOptions"
           placeholder="请选择向量模型"
+          show-search
+        />
+      </FormItem>
+
+      <FormItem label="启用重排">
+        <Switch 
+          v-model:checked="formData.enableRerank" 
+          :un-checked-value="0" 
+          :checked-value="1" 
+        />
+        <span class="ml-2 text-gray-400 text-xs">开启后将对检索结果进行精排，提升准确率</span>
+      </FormItem>
+
+      <FormItem v-if="formData.enableRerank" label="重排模型">
+        <Select
+          v-model:value="formData.rerankModel"
+          :options="rerankModelOptions"
+          placeholder="请选择重排模型"
           show-search
         />
       </FormItem>

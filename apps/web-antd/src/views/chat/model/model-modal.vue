@@ -38,9 +38,23 @@ const providerOptions = ref<Array<{ label: string; value: number | string }>>(
   [],
 );
 const providersMap = ref<Map<number | string, any>>(new Map());
-const categoryOptions = computed(() =>
-  getDictOptions(DictEnum.CHAT_MODEL_CATEGORY),
-);
+const categoryOptions = computed(() => {
+  const options = getDictOptions(DictEnum.CHAT_MODEL_CATEGORY);
+  // 注入 rerank（如果字典没有）
+  if (!options.some((opt) => opt.value === 'rerank')) {
+    options.push({ label: '重排模型', value: 'rerank', cssClass: 'magenta' });
+  }
+
+  // 联动逻辑：仅支持重排的厂商显示重排选项
+  const supportedRerankProviders = ['alibailian', 'siliconflow'];
+  const currentProvider = formData.value.providerCode?.toLowerCase();
+  if (currentProvider && !supportedRerankProviders.includes(currentProvider)) {
+    return options.filter((opt) => opt.value !== 'rerank');
+  }
+
+  return options;
+});
+
 const title = computed(() => {
   return isUpdate.value ? $t('pages.common.edit') : $t('pages.common.add');
 });
@@ -88,7 +102,7 @@ const defaultValues: Partial<ModelForm> = {
 const formData = ref(defaultValues);
 
 /**
- * 监听供应商变化，自动填充apiHost
+ * 监听供应商变化
  */
 watch(
   () => formData.value.providerCode,
@@ -96,6 +110,12 @@ watch(
     if (newProviderCode && providersMap.value.has(newProviderCode)) {
       const provider = providersMap.value.get(newProviderCode);
       formData.value.apiHost = provider.apiHost;
+
+      // 自动校验重排分类：如果切换到的厂商不支持重排，且当前选中了重排，则强行清空分类
+      const supportedRerankProviders = ['alibailian', 'siliconflow'];
+      if (!supportedRerankProviders.includes(newProviderCode.toLowerCase()) && formData.value.category === 'rerank') {
+        formData.value.category = undefined;
+      }
     }
   },
 );

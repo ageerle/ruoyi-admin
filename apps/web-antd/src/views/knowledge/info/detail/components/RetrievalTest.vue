@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, h, onMounted } from 'vue';
 import {
   Button,
   Input,
@@ -21,6 +21,7 @@ import {
   Drawer,
   Descriptions,
   DescriptionsItem,
+  Modal,
 } from 'ant-design-vue';
 import { 
   SearchOutlined, 
@@ -28,12 +29,12 @@ import {
   CaretUpOutlined,
   CaretDownOutlined,
   LineOutlined,
-  ThunderboltFilled
+  ThunderboltFilled,
+  QuestionCircleOutlined,
 } from '@ant-design/icons-vue';
 import { knowledgeRetrieval } from '#/api/knowledge/info';
 import { modelList } from '#/api/chat/model';
 import { message } from 'ant-design-vue';
-import { onMounted } from 'vue';
 
 const props = defineProps<{
   knowledgeId?: string | number;
@@ -47,6 +48,7 @@ const rerankOptions = ref<any[]>([]);
 const config = ref({
   similarityThreshold: 0.5,
   enableHybridSearch: false,
+  hybridAlpha: 0.5,
   enableRerank: false,
   rerankModelName: undefined as string | undefined,
   enableQueryRewrite: false,
@@ -56,7 +58,6 @@ const config = ref({
 async function loadRerankModels() {
   try {
     const res = await modelList({ category: 'rerank' });
-    // 过滤：仅显示后端已实现 ScoringModel 的供应商
     const supportedProviders = ['alibailian', 'siliconflow'];
     rerankOptions.value = (res.rows || [])
       .filter(m => supportedProviders.includes(m.providerCode?.toLowerCase()))
@@ -75,6 +76,27 @@ async function loadRerankModels() {
 onMounted(() => {
   loadRerankModels();
 });
+
+const renderMark = (label: string) => h('span', { style: { fontSize: '10px', opacity: 0.7 } }, label);
+
+const thresholdMarks = {
+  0.2: renderMark('宽松'),
+  0.5: renderMark('标准'),
+  0.8: renderMark('严谨')
+};
+
+const limitMarks = {
+  3: renderMark('精简'),
+  5: renderMark('默认'),
+  10: renderMark('丰富'),
+  20: renderMark('20')
+};
+
+const alphaMarks = {
+  0.3: renderMark('偏向量'),
+  0.5: renderMark('平衡'),
+  0.7: renderMark('偏全文')
+};
 
 const results = ref<any[]>([]);
 
@@ -114,8 +136,9 @@ async function handleTest() {
       threshold: config.value.similarityThreshold,
       enableRerank: config.value.enableRerank,
       rerankModel: config.value.rerankModelName,
+      enableHybrid: config.value.enableHybridSearch,
+      hybridAlpha: config.value.hybridAlpha,
     });
-    // 初始化结果并记录当前排名（用于对比 originalIndex）
     results.value = (res || []).map((item: any, index: number) => ({ 
       ...item, 
       _currentIndex: index,
@@ -129,11 +152,6 @@ async function handleTest() {
   }
 }
 
-function getRankDelta(raw: number | null, reranked: number | null) {
-  if (raw === null || reranked === null) return 0;
-  return raw - reranked;
-}
-
 const tableColumns = [
   { title: '位次/变动', key: 'rank', width: 100, align: 'center' },
   { title: '片段内容', dataIndex: 'content', key: 'content', width: '50%' },
@@ -145,7 +163,6 @@ const tableColumns = [
 <template>
   <div class="test-container pt-2">
     <Row :gutter="16">
-      <!-- 左侧：参数配置 -->
       <Col :span="8">
         <Card title="检索参数配置" size="small" :bordered="true" class="mb-4">
           <Form layout="vertical">
@@ -163,10 +180,25 @@ const tableColumns = [
 
             <Row :gutter="16">
               <Col :span="24">
-                <FormItem label="相似度阈值">
+                <FormItem>
+                  <template #label>
+                    <div class="flex items-center gap-1">
+                      <span>相似度阈值</span>
+                      <Tooltip placement="top">
+                        <template #title>
+                          设置召回结果的最低相似度过滤分值。只有得分超过该阈值的文本块才会被返回。阈值越高，结果越精准但召回数量可能减少。
+                        </template>
+                        <QuestionCircleOutlined class="text-gray-400 text-xs cursor-help" />
+                      </Tooltip>
+                    </div>
+                  </template>
                   <Row>
-                    <Col :span="16">
-                      <Slider v-model:value="config.similarityThreshold" :min="0" :max="1" :step="0.01" />
+                    <Col :span="16" class="pb-6">
+                      <Slider 
+                        v-model:value="config.similarityThreshold" 
+                        :min="0" :max="1" :step="0.01" 
+                        :marks="thresholdMarks"
+                      />
                     </Col>
                     <Col :span="7" :offset="1">
                       <InputNumber v-model:value="config.similarityThreshold" :min="0" :max="1" :step="0.01" class="w-full" />
@@ -175,13 +207,28 @@ const tableColumns = [
                 </FormItem>
               </Col>
               <Col :span="24">
-                <FormItem label="返回数量 (Top K)">
+                <FormItem>
+                  <template #label>
+                    <div class="flex items-center gap-1">
+                      <span>返回数量 (Top K)</span>
+                      <Tooltip placement="top">
+                        <template #title>
+                          指定从知识库中检索并提供给大模型的最大文本块数量。较多的数量能提供更丰富的内容，但也会增加上下文长度。
+                        </template>
+                        <QuestionCircleOutlined class="text-gray-400 text-xs cursor-help" />
+                      </Tooltip>
+                    </div>
+                  </template>
                   <Row>
-                    <Col :span="16">
-                      <Slider v-model:value="config.topK" :min="1" :max="50" />
+                    <Col :span="16" class="pb-6">
+                      <Slider 
+                        v-model:value="config.topK" 
+                        :min="1" :max="20" 
+                        :marks="limitMarks"
+                      />
                     </Col>
                     <Col :span="7" :offset="1">
-                      <InputNumber v-model:value="config.topK" :min="1" class="w-full" />
+                      <InputNumber v-model:value="config.topK" :min="1" :max="20" size="small" class="w-full text-xs" />
                     </Col>
                   </Row>
                 </FormItem>
@@ -189,20 +236,66 @@ const tableColumns = [
             </Row>
 
             <FormItem>
-              <div class="flex items-center justify-between mb-2 opacity-50 cursor-not-allowed">
-                <Tooltip title="暂未开启，请先配置重写模型">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-1">
                   <span>混合检索</span>
-                </Tooltip>
-                <Switch :checked="false" disabled />
+                  <Tooltip placement="top">
+                    <template #title>
+                      结合向量检索与全文检索，通过 RRF 算法融合结果。Alpha 值决定了全文检索的权重，值越大全文检索影响越大。
+                    </template>
+                    <QuestionCircleOutlined class="text-gray-400 text-xs cursor-help" />
+                  </Tooltip>
+                </div>
+                <Switch v-model:checked="config.enableHybridSearch" />
               </div>
+
+              <div v-if="config.enableHybridSearch" class="mb-4 pl-4 border-l-2 border-primary/20">
+                <div class="flex justify-between items-center mb-1">
+                  <div class="flex items-center gap-2">
+                    <span class="italic text-gray-500 text-xs">vector</span>
+                    <span class="bg-gray-100 dark:bg-zinc-800 text-primary px-1.5 py-0.5 rounded text-[10px] font-mono border border-gray-200 dark:border-gray-700 leading-none">
+                      {{ (1 - config.hybridAlpha).toFixed(2) }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="italic text-gray-500 text-xs">full-text</span>
+                    <span class="bg-gray-100 dark:bg-zinc-800 text-primary px-1.5 py-0.5 rounded text-[10px] font-mono border border-gray-200 dark:border-gray-700 leading-none">
+                      {{ config.hybridAlpha.toFixed(2) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 pb-6">
+                  <Slider 
+                    v-model:value="config.hybridAlpha" 
+                    :min="0" :max="1" :step="0.01"
+                    :marks="alphaMarks"
+                    class="flex-1"
+                  />
+                </div>
+              </div>
+
               <div class="flex items-center justify-between mb-2 opacity-50 cursor-not-allowed">
-                <Tooltip title="暂未开启，请先配置重写模型">
+                <div class="flex items-center gap-1">
                   <span>查询改写</span>
-                </Tooltip>
+                  <Tooltip placement="top">
+                    <template #title>
+                      利用大模型对用户原始问题进行扩充或归一化，解决描述不清晰或语义偏移的问题，提升检索匹配率。
+                    </template>
+                    <QuestionCircleOutlined class="text-gray-400 text-xs cursor-help" />
+                  </Tooltip>
+                </div>
                 <Switch :checked="false" disabled />
               </div>
               <div class="flex items-center justify-between">
-                <span>启用重排</span>
+                <div class="flex items-center gap-1">
+                  <span>启用重排</span>
+                  <Tooltip placement="top">
+                    <template #title>
+                      在检索召回后的结果中，使用重排模型对待选文本块与原始问题进行二次相关性精打分。这能有效提升排序质量。
+                    </template>
+                    <QuestionCircleOutlined class="text-gray-400 text-xs cursor-help" />
+                  </Tooltip>
+                </div>
                 <Switch v-model:checked="config.enableRerank" />
               </div>
             </FormItem>

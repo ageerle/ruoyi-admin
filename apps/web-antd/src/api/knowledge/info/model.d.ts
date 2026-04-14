@@ -71,6 +71,15 @@ export interface InfoVO {
    */
   remark: string;
 
+  /**
+   * 是否启用混合检索（0 否 1 是）
+   */
+  enableHybrid: number;
+
+  /**
+   * 混合检索权重比例 (0.0-1.0)
+   */
+  hybridAlpha: number;
 }
 
 export interface InfoForm extends BaseEntity {
@@ -144,6 +153,15 @@ export interface InfoForm extends BaseEntity {
    */
   remark?: string;
 
+  /**
+   * 是否启用混合检索（0 否 1 是）
+   */
+  enableHybrid?: number;
+
+  /**
+   * 混合检索权重比例 (0.0-1.0)
+   */
+  hybridAlpha?: number;
 }
 
 export interface InfoQuery extends PageQuery {

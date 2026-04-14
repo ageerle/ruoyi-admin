@@ -2,7 +2,7 @@
 import type { RuleObject } from 'ant-design-vue/es/form';
 import type { InfoForm } from '#/api/knowledge/info/model';
 
-import { ref, watch } from 'vue';
+import { ref, watch, h } from 'vue';
 import { $t } from '@vben/locales';
 import { cloneDeep } from '@vben/utils';
 
@@ -19,8 +19,11 @@ import {
   message,
   Card,
   Row,
-  Col
+  Col,
+  Tooltip,
+  Tag
 } from 'ant-design-vue';
+import { QuestionCircleOutlined } from '@ant-design/icons-vue';
 import { pick } from 'lodash-es';
 
 import { infoAdd, infoInfo, infoUpdate } from '#/api/knowledge/info';
@@ -48,6 +51,8 @@ const defaultValues: Partial<InfoForm> = {
   embeddingModel: undefined,
   enableRerank: 0,
   rerankModel: undefined,
+  enableHybrid: 0,
+  hybridAlpha: 0.5,
   remark: undefined,
 };
 
@@ -172,6 +177,22 @@ async function handleSubmit() {
     loading.value = false;
   }
 }
+
+// 预设刻度样式
+const renderMark = (label: string) => h('span', { style: { fontSize: '10px', opacity: 0.7 } }, label);
+
+const alphaMarks = {
+  0.3: renderMark('偏向量'),
+  0.5: renderMark('平衡'),
+  0.7: renderMark('偏全文')
+};
+
+const limitMarks = {
+  3: renderMark('精简'),
+  5: renderMark('默认'),
+  10: renderMark('丰富'),
+  20: renderMark('20')
+};
 </script>
 
 <template>
@@ -225,7 +246,18 @@ async function handleSubmit() {
         />
       </FormItem>
 
-      <FormItem label="启用重排">
+      <FormItem>
+        <template #label>
+          <div class="flex items-center gap-1">
+            <span>启用重排</span>
+            <Tooltip placement="top">
+              <template #title>
+                在初步检索后的结果中，使用重排模型对待选文本块与原始问题进行二次相关性精打分。这能有效提升回答的准确度。
+              </template>
+              <QuestionCircleOutlined class="text-gray-400 text-xs cursor-help" />
+            </Tooltip>
+          </div>
+        </template>
         <Switch 
           v-model:checked="formData.enableRerank" 
           :un-checked-value="0" 
@@ -243,8 +275,75 @@ async function handleSubmit() {
         />
       </FormItem>
 
-      <FormItem label="检索条数" v-bind="validateInfos.retrieveLimit">
-        <InputNumber v-model:value="formData.retrieveLimit" :min="1" class="w-full" />
+      <FormItem>
+        <template #label>
+          <div class="flex items-center gap-1">
+            <span>混合检索</span>
+            <Tooltip placement="top">
+              <template #title>
+                系统采用 RRF (Reciprocal Rank Fusion) 算法合并检索结果。该算法通过综合文本块在向量搜索和全文搜索中的“排名顺序”计算融合得分，能够给予两路同时命中的内容更高权重，显著提升搜索精准度。
+              </template>
+              <QuestionCircleOutlined class="text-gray-400 text-xs cursor-help" />
+            </Tooltip>
+          </div>
+        </template>
+        <Switch 
+          v-model:checked="formData.enableHybrid" 
+          :un-checked-value="0" 
+          :checked-value="1" 
+        />
+        <span class="ml-2 text-gray-400 text-xs">融合向量搜素与关键词搜索，提升非语义匹配场景的精度</span>
+      </FormItem>
+ 
+      <FormItem v-if="formData.enableHybrid" label="检索权重 (α)">
+        <div class="flex flex-col w-full pr-4">
+          <div class="flex justify-between items-center mb-1">
+            <div class="flex items-center gap-2">
+              <span class="italic text-gray-500 text-xs text-opacity-70">vector</span>
+              <span class="bg-gray-100 dark:bg-zinc-800 text-primary px-1.5 py-0.5 rounded text-[10px] font-mono border border-gray-200 dark:border-gray-700 leading-none">
+                {{ (1 - (formData.hybridAlpha || 0.5)).toFixed(2) }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="italic text-gray-500 text-xs text-opacity-70">full-text</span>
+              <span class="bg-gray-100 dark:bg-zinc-800 text-primary px-1.5 py-0.5 rounded text-[10px] font-mono border border-gray-200 dark:border-gray-700 leading-none">
+                {{ (formData.hybridAlpha || 0.5).toFixed(2) }}
+              </span>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 pb-6">
+            <Slider 
+              v-model:value="formData.hybridAlpha" 
+              :min="0" :max="1" :step="0.01" 
+              :marks="alphaMarks"
+              class="flex-1"
+            />
+            <InputNumber v-model:value="formData.hybridAlpha" :min="0" :max="1" :step="0.01" size="small" class="text-xs w-16" />
+          </div>
+        </div>
+      </FormItem>
+
+      <FormItem v-bind="validateInfos.retrieveLimit">
+        <template #label>
+          <div class="flex items-center gap-1">
+            <span>检索条数</span>
+            <Tooltip placement="top">
+              <template #title>
+                指定从知识库中检索并提供给大模型的最大文本块数量。建议配置在 3-10 条之间。
+              </template>
+              <QuestionCircleOutlined class="text-gray-400 text-xs cursor-help" />
+            </Tooltip>
+          </div>
+        </template>
+        <div class="flex items-center gap-4 pb-6">
+          <Slider 
+            v-model:value="formData.retrieveLimit" 
+            :min="1" :max="20" 
+            :marks="limitMarks"
+            class="flex-1"
+          />
+          <InputNumber v-model:value="formData.retrieveLimit" :min="1" :max="20" size="small" class="text-xs w-16" />
+        </div>
       </FormItem>
 
       <FormItem label="备注" v-bind="validateInfos.remark">

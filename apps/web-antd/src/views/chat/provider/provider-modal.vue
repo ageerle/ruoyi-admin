@@ -7,21 +7,19 @@
 import type { RuleObject } from 'ant-design-vue/es/form';
 import { computed, ref } from 'vue';
 
-import { Input, Textarea, Select, RadioGroup, CheckboxGroup, DatePicker, Form, FormItem, Space } from 'ant-design-vue';
-import { ImageUpload, FileUpload } from '#/components/upload';
-import { Tinymce } from '#/components/tinymce';
-import { getPopupContainer } from '@vben/utils';
+import { Input, Textarea, Select, Form, FormItem } from 'ant-design-vue';
+import { ImageUpload } from '#/components/upload';
 import { pick } from 'lodash-es';
-
 
 import { useVbenModal } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { cloneDeep } from '@vben/utils';
 
-import { useVbenForm } from '#/adapter/form';
 import { providerAdd, providerInfo, providerUpdate } from '#/api/chat/provider';
 import { ossInfo } from '#/api/system/oss';
 import type { ProviderForm } from '#/api/chat/provider/model';
+
+import { providerOptions } from './options';
 
 const emit = defineEmits<{ reload: [] }>();
 
@@ -44,7 +42,7 @@ const defaultValues: Partial<ProviderForm> = {
   sortOrder: undefined,
   remark: undefined,
   updateIp: undefined,
-}
+};
 
 /**
  * 表单数据ref
@@ -58,12 +56,8 @@ type AntdFormRules<T> = Partial<Record<keyof T, RuleObject[]>> & {
  * 表单校验规则
  */
 const formRules = ref<AntdFormRules<ProviderForm>>({
-    providerName: [
-      { required: true, message: "厂商名称不能为空" }
-    ],
-    providerCode: [
-      { required: true, message: "厂商编码不能为空" }
-    ],
+  providerName: [{ required: true, message: '厂商名称不能为空' }],
+  providerCode: [{ required: true, message: '厂商编码不能为空' }],
 });
 
 /**
@@ -94,15 +88,13 @@ const [BasicModal, modalApi] = useVbenModal({
       // 只赋值存在的字段
       const filterRecord = pick(record, Object.keys(defaultValues));
 
-      // 如果providerIcon是URL格式，尝试查询对应的ossId
-      if (filterRecord.providerIcon && typeof filterRecord.providerIcon === 'string' && filterRecord.providerIcon.startsWith('http')) {
-        try {
-          // 通过URL查询对应的ossId（遍历查询可能会很慢，这里采用直接保持URL的方案）
-          // ImageUpload组件配置了keep-missing-id，会直接显示URL
-          filterRecord.providerIcon = filterRecord.providerIcon;
-        } catch (error) {
-          console.error('处理providerIcon失败:', error);
-        }
+      // 如果providerIcon是URL格式，直接保留
+      if (
+        filterRecord.providerIcon
+        && typeof filterRecord.providerIcon === 'string'
+        && filterRecord.providerIcon.startsWith('http')
+      ) {
+        filterRecord.providerIcon = filterRecord.providerIcon;
       }
 
       formData.value = filterRecord;
@@ -128,8 +120,7 @@ async function handleConfirm() {
           if (ossFileList && ossFileList.length > 0) {
             data.providerIcon = ossFileList[0].url;
           }
-        } catch (error) {
-          console.error('获取图片URL失败:', error);
+        } catch {
           // 失败时保持原值
         }
       }
@@ -159,7 +150,13 @@ async function handleCancel() {
         <Input v-model:value="formData.providerName" :placeholder="$t('ui.formRules.required')" />
       </FormItem>
       <FormItem label="厂商编码" v-bind="validateInfos.providerCode">
-        <Input v-model:value="formData.providerCode" :placeholder="$t('ui.formRules.required')" />
+        <Select
+          v-model:value="formData.providerCode"
+          :options="providerOptions"
+          :placeholder="$t('ui.formRules.required')"
+          allow-clear
+          show-search
+        />
       </FormItem>
       <FormItem label="厂商图标" v-bind="validateInfos.providerIcon">
         <ImageUpload

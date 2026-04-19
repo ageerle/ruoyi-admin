@@ -4,6 +4,7 @@ import type { Recordable } from '@vben/types';
 import { ref } from 'vue';
 
 import { Page, useVbenModal, type VbenFormProps } from '@vben/common-ui';
+import { DictEnum } from '@vben/constants';
 import { getVxePopupContainer } from '@vben/utils';
 
 import { Modal, Popconfirm, Space } from 'ant-design-vue';
@@ -21,6 +22,7 @@ import {
 } from '#/api/chat/model';
 import type { ModelForm } from '#/api/chat/model/model';
 import { commonDownloadExcel } from '#/utils/file/download';
+import { getDictOptions } from '#/utils/dict';
 
 import modelModal from './model-modal.vue';
 import { columns, querySchema } from './data';
@@ -151,6 +153,13 @@ function handleDownloadExcel() {
             {{ $t('pages.common.add') }}
           </a-button>
         </Space>
+      </template>
+      <template #category="{ row }">
+        {{
+          getDictOptions(DictEnum.CHAT_MODEL_CATEGORY).find(
+            (item) => item.value === row.category,
+          )?.label || row.category
+        }}
       </template>
       <template #action="{ row }">
         <Space>

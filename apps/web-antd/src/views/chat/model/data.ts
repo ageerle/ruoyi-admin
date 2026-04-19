@@ -1,22 +1,6 @@
 import type { FormSchemaGetter } from '#/adapter/form';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 
-import { DictEnum } from '@vben/constants';
-
-import { getDictOptions } from '#/utils/dict';
-
-/**
- * 获取字典标签的映射函数
- */
-function getDictLabel(value: number | string, dictName: string): string {
-  if (!value) return '';
-  const options = getDictOptions(dictName);
-  const option = options.find(
-    (item) => item.value === value || item.value === String(value),
-  );
-  return option?.label || String(value);
-}
-
 export const querySchema: FormSchemaGetter = () => [
   {
     component: 'Input',
@@ -47,8 +31,7 @@ export const columns: VxeGridProps['columns'] = [
   {
     title: '模型分类',
     field: 'category',
-    formatter: ({ row }) =>
-      getDictLabel(row.category, DictEnum.CHAT_MODEL_CATEGORY),
+    slots: { default: 'category' },
   },
 
   {

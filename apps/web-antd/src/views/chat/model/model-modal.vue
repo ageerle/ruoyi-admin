@@ -93,9 +93,17 @@ const formData = ref(defaultValues);
 watch(
   () => formData.value.providerCode,
   (newProviderCode) => {
-    if (newProviderCode && providersMap.value.has(newProviderCode)) {
-      const provider = providersMap.value.get(newProviderCode);
-      formData.value.apiHost = provider.apiHost;
+    if (newProviderCode === 'custom_api') {
+      formData.value.apiHost = undefined;
+      formRules.value.apiHost = [
+        { required: true, message: $t('ui.formRules.required') },
+      ];
+    } else {
+      delete formRules.value.apiHost;
+      if (newProviderCode && providersMap.value.has(newProviderCode)) {
+        const provider = providersMap.value.get(newProviderCode);
+        formData.value.apiHost = provider.apiHost;
+      }
     }
   },
 );
@@ -296,6 +304,17 @@ function isValidCSSColor(color: string): boolean {
           <FormItem label="模型维度" v-bind="validateInfos.modelDimension">
             <Input
               v-model:value="formData.modelDimension"
+              :placeholder="$t('ui.formRules.required')"
+            />
+          </FormItem>
+        </Col>
+      </Row>
+
+      <Row :gutter="16">
+        <Col v-if="formData.providerCode === 'custom_api'" :span="24">
+          <FormItem label="请求地址" v-bind="validateInfos.apiHost">
+            <Input
+              v-model:value="formData.apiHost"
               :placeholder="$t('ui.formRules.required')"
             />
           </FormItem>

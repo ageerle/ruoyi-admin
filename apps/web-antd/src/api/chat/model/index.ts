@@ -17,6 +17,22 @@ export function modelList(params?: ModelQuery) {
 }
 
 /**
+ * 查询向量模型列表
+ * @returns 向量模型列表
+ */
+export function embeddingModelList() {
+  return modelList({ category: 'vector', pageSize: 1000 });
+}
+
+/**
+ * 查询重排序模型列表
+ * @returns 重排序模型列表
+ */
+export function rerankModelList() {
+  return modelList({ category: 'rerank', pageSize: 1000 });
+}
+
+/**
  * 导出模型管理列表
  * @param params
  * @returns 模型管理列表

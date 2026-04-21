@@ -58,10 +58,16 @@ const formRules = ref<AntdFormRules<InfoForm>>({
   name: [{ required: true, message: '知识库名称不能为空' }],
   share: [{ required: true, message: '请选择是否公开' }],
   embeddingModel: [{ required: true, message: '请选择向量模型' }],
+  vectorModel: [{ required: true, message: '请选择向量库' }],
 });
 
 const embeddingModelOptions = ref<Array<{ label: string; value: string }>>([]);
 const rerankModelOptions = ref<Array<{ label: string; value: string }>>([]);
+const vectorModelOptions = [
+  { label: 'Weaviate', value: 'weaviate' },
+  { label: 'Milvus', value: 'milvus' },
+  { label: 'Qdrant', value: 'qdrant' },
+];
 
 const shareOptions = [
   { label: '是', value: 1 },
@@ -93,14 +99,10 @@ async function fetchRerankModels() {
   try {
     const response = await modelList({ category: 'rerank', pageSize: 1000 });
     const models = Array.isArray(response) ? response : (response.rows || response.records || []);
-    // 过滤：仅显示后端已实现的供应商
-    const supportedProviders = ['alibailian', 'siliconflow'];
-    rerankModelOptions.value = models
-      .filter((model: any) => supportedProviders.includes(model.providerCode?.toLowerCase()))
-      .map((model: any) => ({
-        label: model.modelDescribe || model.modelName,
-        value: model.modelName,
-      }));
+    rerankModelOptions.value = models.map((model: any) => ({
+      label: model.modelDescribe || model.modelName,
+      value: model.modelName,
+    }));
   } catch (error) {
     console.error('Failed to fetch rerank models:', error);
   }
@@ -164,6 +166,14 @@ const limitMarks = {
       
       <FormItem label="是否公开" v-bind="validateInfos.share">
         <RadioGroup v-model:value="formData.share" :options="shareOptions" option-type="button" button-style="solid" />
+      </FormItem>
+
+      <FormItem label="向量库" v-bind="validateInfos.vectorModel">
+        <Select
+          v-model:value="formData.vectorModel"
+          :options="vectorModelOptions"
+          placeholder="请选择向量库"
+        />
       </FormItem>
 
       <FormItem label="向量模型" v-bind="validateInfos.embeddingModel">

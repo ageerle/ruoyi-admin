@@ -21,7 +21,8 @@ import {
   Row,
   Col,
   Tooltip,
-  Tag
+  Tag,
+  Slider
 } from 'ant-design-vue';
 import { QuestionCircleOutlined } from '@ant-design/icons-vue';
 import { pick } from 'lodash-es';
@@ -75,6 +76,7 @@ const formRules = ref<AntdFormRules<InfoForm>>({
 const vectorModelOptions = [
   { label: 'Weaviate', value: 'weaviate' },
   { label: 'Milvus', value: 'milvus' },
+  { label: 'Qdrant', value: 'qdrant' },
 ];
 
 const embeddingModelOptions = ref<Array<{ label: string; value: string }>>([]);
@@ -107,14 +109,10 @@ async function fetchRerankModels() {
   try {
     const response = await modelList({ category: 'rerank', pageSize: 1000 });
     const models = Array.isArray(response) ? response : (response.rows || response.records || []);
-    // 过滤：仅显示后端已实现的供应商
-    const supportedProviders = ['alibailian', 'siliconflow'];
-    rerankModelOptions.value = models
-      .filter((model: any) => supportedProviders.includes(model.providerCode?.toLowerCase()))
-      .map((model: any) => ({
-        label: model.modelDescribe || model.modelName,
-        value: model.modelName,
-      }));
+    rerankModelOptions.value = models.map((model: any) => ({
+      label: model.modelDescribe || model.modelName,
+      value: model.modelName,
+    }));
   } catch (error) {
     console.error('Failed to fetch rerank models:', error);
   }

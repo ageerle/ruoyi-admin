@@ -58,13 +58,10 @@ const config = ref({
 async function loadRerankModels() {
   try {
     const res = await modelList({ category: 'rerank' });
-    const supportedProviders = ['alibailian', 'siliconflow'];
-    rerankOptions.value = (res.rows || [])
-      .filter(m => supportedProviders.includes(m.providerCode?.toLowerCase()))
-      .map(m => ({
-        label: m.modelName,
-        value: m.modelName
-      }));
+    rerankOptions.value = (res.rows || []).map((m: any) => ({
+      label: m.modelDescribe || m.modelName,
+      value: m.modelName
+    }));
     if (rerankOptions.value.length > 0) {
       config.value.rerankModelName = rerankOptions.value[0].value;
     }

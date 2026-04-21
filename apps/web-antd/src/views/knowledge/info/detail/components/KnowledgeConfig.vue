@@ -32,6 +32,7 @@ import { modelList } from '#/api/chat/model';
 
 const props = defineProps<{
   knowledgeId?: string | number;
+  refreshTrigger?: number;
 }>();
 
 const emit = defineEmits<{ saved: [id: string | number] }>();
@@ -54,6 +55,7 @@ const defaultValues: Partial<InfoForm> = {
   rerankModel: undefined,
   enableHybrid: 0,
   hybridAlpha: 0.5,
+  similarityThreshold: 0.5,
   remark: undefined,
 };
 
@@ -140,6 +142,7 @@ async function loadData() {
         vectorModel: 'weaviate',
         embeddingModel: defaultEmbeddingModel,
         retrieveLimit: 5,
+        similarityThreshold: 0.5,
         textBlockSize: 300,
         overlapChar: 30,
       };
@@ -152,6 +155,10 @@ async function loadData() {
 watch(() => props.knowledgeId, () => {
   loadData();
 }, { immediate: true });
+
+watch(() => props.refreshTrigger, () => {
+  loadData();
+});
 
 async function handleSubmit() {
   try {
@@ -190,6 +197,12 @@ const limitMarks = {
   5: renderMark('默认'),
   10: renderMark('丰富'),
   20: renderMark('20')
+};
+
+const thresholdMarks = {
+  0.2: renderMark('宽松'),
+  0.5: renderMark('标准'),
+  0.8: renderMark('严谨')
 };
 </script>
 
@@ -341,6 +354,29 @@ const limitMarks = {
             class="flex-1"
           />
           <InputNumber v-model:value="formData.retrieveLimit" :min="1" :max="20" size="small" class="text-xs w-16" />
+        </div>
+      </FormItem>
+
+      <FormItem v-bind="validateInfos.similarityThreshold">
+        <template #label>
+          <div class="flex items-center gap-1">
+            <span>相似度阈值</span>
+            <Tooltip placement="top">
+              <template #title>
+                设置检索结果的最低相似度过滤分值。只有得分超过该阈值的文本块才会被返回。阈值越高，结果越精准但召回数量可能减少。推荐设置在 0.4-0.6 之间。
+              </template>
+              <QuestionCircleOutlined class="text-gray-400 text-xs cursor-help" />
+            </Tooltip>
+          </div>
+        </template>
+        <div class="flex items-center gap-4 pb-6">
+          <Slider 
+            v-model:value="formData.similarityThreshold" 
+            :min="0" :max="1" :step="0.01" 
+            :marks="thresholdMarks"
+            class="flex-1"
+          />
+          <InputNumber v-model:value="formData.similarityThreshold" :min="0" :max="1" :step="0.01" size="small" class="text-xs w-16" />
         </div>
       </FormItem>
 

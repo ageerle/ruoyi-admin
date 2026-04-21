@@ -31,13 +31,18 @@ import {
   LineOutlined,
   ThunderboltFilled,
   QuestionCircleOutlined,
+  CheckCircleOutlined
 } from '@ant-design/icons-vue';
-import { knowledgeRetrieval } from '#/api/knowledge/info';
+import { knowledgeRetrieval, infoInfo, infoUpdate } from '#/api/knowledge/info';
 import { modelList } from '#/api/chat/model';
 import { message } from 'ant-design-vue';
 
 const props = defineProps<{
   knowledgeId?: string | number;
+}>();
+
+const emit = defineEmits<{
+  (e: 'configUpdated'): void;
 }>();
 
 const query = ref('');
@@ -147,6 +152,48 @@ async function handleTest() {
   } finally {
     loading.value = false;
   }
+}
+
+async function handleApplyConfig() {
+  if (!props.knowledgeId) {
+    message.error('知识库ID缺失');
+    return;
+  }
+
+  Modal.confirm({
+    title: '确认应用配置？',
+    content: '此操作将当前的检索测试参数（TopK、相似度阈值、混合检索、重排配置等）永久保存至该知识库的全局配置中。',
+    okText: '确定应用',
+    cancelText: '取消',
+    onOk: async () => {
+      try {
+        loading.value = true;
+        // 1. 获取最新详情以便完整更新
+        const record = await infoInfo(props.knowledgeId as string | number);
+        
+        // 2. 合并当前配置
+        const updatedData = {
+          ...record,
+          retrieveLimit: config.value.topK,
+          similarityThreshold: config.value.similarityThreshold,
+          enableHybrid: config.value.enableHybridSearch ? 1 : 0,
+          hybridAlpha: config.value.hybridAlpha,
+          enableRerank: config.value.enableRerank ? 1 : 0,
+          rerankModel: config.value.rerankModelName,
+        };
+
+        // 3. 提交更新
+        await infoUpdate(updatedData);
+        message.success('配置已成功应用至知识库');
+        emit('configUpdated');
+      } catch (error) {
+        console.error('应用配置失败:', error);
+        message.error('应用配置失败，请检查网络或后端服务');
+      } finally {
+        loading.value = false;
+      }
+    }
+  });
 }
 
 const tableColumns = [
@@ -311,7 +358,17 @@ const tableColumns = [
               :loading="loading" 
               @click="handleTest"
             >
+              <template #icon><SearchOutlined /></template>
               开始检索测试
+            </Button>
+
+            <Button 
+              class="w-full mt-2 border-primary text-primary hover:bg-primary/5"
+              :loading="loading" 
+              @click="handleApplyConfig"
+            >
+              <template #icon><CheckCircleOutlined /></template>
+              应用至知识库配置
             </Button>
           </Form>
         </Card>

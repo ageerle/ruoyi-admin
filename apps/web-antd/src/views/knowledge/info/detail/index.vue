@@ -10,10 +10,14 @@
           <FileManagement :knowledge-id="knowledgeId" />
         </TabPane>
         <TabPane key="test" tab="检索测试" v-if="!isNew">
-          <RetrievalTest :knowledge-id="knowledgeId" />
+          <RetrievalTest :knowledge-id="knowledgeId" @config-updated="handleConfigUpdated" />
         </TabPane>
         <TabPane key="config" tab="知识库配置">
-          <KnowledgeConfig :knowledge-id="isNew ? undefined : knowledgeId" @saved="handleConfigSaved" />
+          <KnowledgeConfig 
+            :knowledge-id="isNew ? undefined : knowledgeId" 
+            :refresh-trigger="refreshTrigger"
+            @saved="handleConfigSaved" 
+          />
         </TabPane>
       </Tabs>
     </div>
@@ -38,6 +42,11 @@ const isNew = knowledgeIdStr === 'new';
 const knowledgeId = isNew ? undefined : knowledgeIdStr;
 
 const activeKey = ref(isNew ? 'config' : 'file');
+const refreshTrigger = ref(0);
+
+function handleConfigUpdated() {
+  refreshTrigger.value += 1;
+}
 
 function handleBack() {
   router.back();

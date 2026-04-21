@@ -42,6 +42,11 @@ export interface InfoVO {
   retrieveLimit: number;
 
   /**
+   * 相似度阈值
+   */
+  similarityThreshold: number;
+
+  /**
    * 文本块大小
    */
   textBlockSize: number;
@@ -122,6 +127,11 @@ export interface InfoForm extends BaseEntity {
    * 知识库中检索的条数
    */
   retrieveLimit?: number;
+
+  /**
+   * 相似度阈值
+   */
+  similarityThreshold?: number;
 
   /**
    * 文本块大小

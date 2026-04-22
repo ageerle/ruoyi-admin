@@ -42,11 +42,6 @@ export interface InfoVO {
   retrieveLimit: number;
 
   /**
-   * 相似度阈值
-   */
-  similarityThreshold: number;
-
-  /**
    * 文本块大小
    */
   textBlockSize: number;
@@ -62,19 +57,24 @@ export interface InfoVO {
   embeddingModel: string;
 
   /**
-   * 重排模型
-   */
-  rerankModel: string;
-
-  /**
-   * 是否启用重排（0 否 1 是）
+   * 是否启用重排序（0 否 1是）
    */
   enableRerank: number;
 
   /**
-   * 备注
+   * 重排序模型名称
    */
-  remark: string;
+  rerankModel: string;
+
+  /**
+   * 重排序后返回数量
+   */
+  rerankTopN: number;
+
+  /**
+   * 重排序分数阈值（0-1）
+   */
+  rerankScoreThreshold: number;
 
   /**
    * 是否启用混合检索（0 否 1 是）
@@ -85,6 +85,11 @@ export interface InfoVO {
    * 混合检索权重比例 (0.0-1.0)
    */
   hybridAlpha: number;
+
+  /**
+   * 备注
+   */
+  remark: string;
 }
 
 export interface InfoForm extends BaseEntity {
@@ -129,11 +134,6 @@ export interface InfoForm extends BaseEntity {
   retrieveLimit?: number;
 
   /**
-   * 相似度阈值
-   */
-  similarityThreshold?: number;
-
-  /**
    * 文本块大小
    */
   textBlockSize?: number;
@@ -149,19 +149,24 @@ export interface InfoForm extends BaseEntity {
   embeddingModel?: string;
 
   /**
-   * 重排模型
-   */
-  rerankModel?: string;
-
-  /**
-   * 是否启用重排（0 否 1 是）
+   * 是否启用重排序（0 否 1是）
    */
   enableRerank?: number;
 
   /**
-   * 备注
+   * 重排序模型名称
    */
-  remark?: string;
+  rerankModel?: string;
+
+  /**
+   * 重排序后返回数量
+   */
+  rerankTopN?: number;
+
+  /**
+   * 重排序分数阈值（0-1）
+   */
+  rerankScoreThreshold?: number;
 
   /**
    * 是否启用混合检索（0 否 1 是）
@@ -172,6 +177,11 @@ export interface InfoForm extends BaseEntity {
    * 混合检索权重比例 (0.0-1.0)
    */
   hybridAlpha?: number;
+
+  /**
+   * 备注
+   */
+  remark?: string;
 }
 
 export interface InfoQuery extends PageQuery {

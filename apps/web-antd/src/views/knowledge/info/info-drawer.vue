@@ -1,29 +1,23 @@
-<!--
-使用 Ant Design Vue 原生 Form 组件生成表单
-详细用法参考: https://antdv.com/components/form-cn
-注意: 如果 VSCode 配置了自动移除未使用的导入，可能会误删某些组件导入
--->
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form';
-
-import type { InfoForm } from '#/api/system/info/model';
+import type { InfoForm } from '#/api/knowledge/info/model';
 
 import { computed, ref, watch } from 'vue';
-
-import { useVbenModal } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { cloneDeep } from '@vben/utils';
-import { useAccessStore } from '@vben/stores';
 
 import {
+  Drawer,
   Form,
   FormItem,
   Input,
-  Textarea,
   InputNumber,
   Select,
   Radio,
   RadioGroup,
+  Button,
+  Space,
+  message,
   Switch,
   Slider,
 } from 'ant-design-vue';
@@ -32,18 +26,16 @@ import { pick } from 'lodash-es';
 import { infoAdd, infoInfo, infoUpdate } from '#/api/knowledge/info';
 import { embeddingModelList, rerankModelList } from '#/api/chat/model';
 
-const accessStore = useAccessStore();
-
 const emit = defineEmits<{ reload: [] }>();
 
+const visible = ref(false);
+const loading = ref(false);
 const isUpdate = ref(false);
+
 const title = computed(() => {
   return isUpdate.value ? $t('pages.common.edit') : $t('pages.common.add');
 });
 
-/**
- * 定义默认值 用于reset
- */
 const defaultValues: Partial<InfoForm> = {
   id: undefined,
   name: undefined,
@@ -62,17 +54,12 @@ const defaultValues: Partial<InfoForm> = {
   remark: undefined,
 };
 
-/**
- * 表单数据ref
- */
 const formData = ref<Partial<InfoForm>>({ ...defaultValues });
 
 type AntdFormRules<T> = Partial<Record<keyof T, RuleObject[]>> & {
   [key: string]: RuleObject[];
 };
-/**
- * 表单校验规则
- */
+
 const formRules = ref<AntdFormRules<InfoForm>>({
   name: [{ required: true, message: '知识库名称不能为空' }],
   share: [{ required: true, message: '请选择是否公开' }],
@@ -100,9 +87,6 @@ const shareOptions = [
   { label: '否', value: 0 },
 ];
 
-/**
- * useForm解构出表单方法
- */
 const { validate, validateInfos, resetFields } = Form.useForm(
   formData,
   formRules,
@@ -157,30 +141,18 @@ watch(() => formData.value.enableRerank, (newVal) => {
   }
 });
 
-const [BasicModal, modalApi] = useVbenModal({
-  class: 'w-[550px]',
-  fullscreenButton: false,
-  closeOnClickModal: false,
-  onClosed: handleCancel,
-  onConfirm: handleConfirm,
-  onOpenChange: async (isOpen) => {
-    if (!isOpen) {
-      return null;
-    }
-    modalApi.modalLoading(true);
-
+async function handleOpen(id?: string | number) {
+  loading.value = true;
+  try {
     await Promise.all([fetchEmbeddingModels(), fetchRerankModels()]);
 
-    const { id } = modalApi.getData() as { id?: number | string };
     isUpdate.value = !!id;
 
     if (isUpdate.value && id) {
       const record = await infoInfo(id);
-      // 只赋值存在的字段
       const filterRecord = pick(record, Object.keys(defaultValues));
       formData.value = filterRecord;
     } else {
-      // 设置默认值，embeddingModel 使用第一个可用的模型
       const defaultEmbeddingModel = embeddingModelOptions.value.length > 0
         ? embeddingModelOptions.value[0].value
         : undefined;
@@ -203,36 +175,48 @@ const [BasicModal, modalApi] = useVbenModal({
       };
     }
 
-    modalApi.modalLoading(false);
-  },
-});
-
-async function handleConfirm() {
-  try {
-    modalApi.modalLoading(true);
-    await validate();
-    // 可能会做数据处理 使用cloneDeep深拷贝
-    const data = cloneDeep(formData.value);
-    await (isUpdate.value ? infoUpdate(data) : infoAdd(data));
-    emit('reload');
-    await handleCancel();
-  } catch (error) {
-    console.error(error);
+    visible.value = true;
   } finally {
-    modalApi.modalLoading(false);
+    loading.value = false;
   }
 }
 
-async function handleCancel() {
-  modalApi.close();
+async function handleSubmit() {
+  try {
+    loading.value = true;
+    await validate();
+    const data = cloneDeep(formData.value);
+    await (isUpdate.value ? infoUpdate(data) : infoAdd(data));
+    //message.success(isUpdate.value ? '修改成功' : '新增成功');
+    emit('reload');
+    handleClose();
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loading.value = false;
+  }
+}
+
+function handleClose() {
+  visible.value = false;
   formData.value = cloneDeep(defaultValues);
   resetFields();
 }
+
+defineExpose({
+  open: handleOpen,
+});
 </script>
 
 <template>
-  <BasicModal :title="title">
-    <Form :model="formData" :label-col="{ span: 4 }">
+  <Drawer
+    :title="title"
+    :open="visible"
+    @close="handleClose"
+    :width="600"
+    :body-style="{ paddingBottom: '80px' }"
+  >
+    <Form :model="formData" :label-col="{ span: 6 }">
       <FormItem label="知识名称" v-bind="validateInfos.name">
         <Input
           v-model:value="formData.name"
@@ -247,10 +231,10 @@ async function handleCancel() {
         </RadioGroup>
       </FormItem>
       <FormItem label="知识库描述" v-bind="validateInfos.description">
-        <Textarea
+        <Input.TextArea
           v-model:value="formData.description"
           :placeholder="$t('ui.formRules.required')"
-          :rows="4"
+          :rows="3"
         />
       </FormItem>
       <FormItem label="知识分隔符" v-bind="validateInfos.separator">
@@ -340,12 +324,21 @@ async function handleCancel() {
         </FormItem>
       </template>
       <FormItem label="备注" v-bind="validateInfos.remark">
-        <Textarea
+        <Input.TextArea
           v-model:value="formData.remark"
           :placeholder="$t('ui.formRules.required')"
-          :rows="4"
+          :rows="3"
         />
       </FormItem>
     </Form>
-  </BasicModal>
+
+    <template #footer>
+      <Space style="float: right">
+        <Button @click="handleClose">取消</Button>
+        <Button type="primary" :loading="loading" @click="handleSubmit">
+          {{ isUpdate ? '更新' : '新增' }}
+        </Button>
+      </Space>
+    </template>
+  </Drawer>
 </template>

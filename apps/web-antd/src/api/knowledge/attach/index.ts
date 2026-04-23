@@ -59,3 +59,11 @@ export function attachUpdate(data: AttachForm) {
 export function attachRemove(id: ID | IDS) {
   return requestClient.deleteWithMsg<void>(`/system/attach/${id}`);
 }
+
+/**
+ * 手动解析附件内容
+ * @param id id
+ */
+export function attachParse(id: ID) {
+  return requestClient.postWithMsg<void>(`/system/attach/parse/${id}`);
+}

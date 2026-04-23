@@ -51,6 +51,8 @@ const defaultValues: Partial<InfoForm> = {
   rerankModel: undefined,
   rerankTopN: undefined,
   rerankScoreThreshold: undefined,
+  enableHybrid: undefined,
+  hybridAlpha: undefined,
   remark: undefined,
 };
 
@@ -281,6 +283,27 @@ defineExpose({
           :options="embeddingModelOptions"
           :placeholder="$t('ui.formRules.required')"
         />
+      </FormItem>
+      <FormItem label="启用混合检索">
+        <Switch
+          v-model:checked="formData.enableHybrid"
+          :checked-value="1"
+          :un-checked-value="0"
+        />
+      </FormItem>
+      <FormItem v-if="formData.enableHybrid === 1" label="混合检索权重">
+        <div class="flex items-center gap-3">
+          <Slider
+            v-model:value="formData.hybridAlpha"
+            :min="0"
+            :max="1"
+            :step="0.05"
+            style="flex: 1"
+          />
+          <span class="w-12 text-right">{{
+            (formData.hybridAlpha || 0.5).toFixed(2)
+          }}</span>
+        </div>
       </FormItem>
       <FormItem label="启用重排序">
         <Switch

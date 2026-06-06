@@ -23,6 +23,7 @@ import {
   AesEncryption,
   decodeBase64,
   encodeBase64,
+  formatDateTime,
   randomStr,
   RsaEncryption,
 } from '@vben/utils';
@@ -37,12 +38,16 @@ import { handleUnauthorizedLogout } from './helper';
 const { apiURL, clientId, enableEncrypt, rsaPublicKey, rsaPrivateKey } =
   useAppConfig(import.meta.env, import.meta.env.PROD);
 
+const DATE_TIME_FIELD_PATTERN = /(?:Time|Date|At|_time|_date|_at)$/;
+const NON_DATE_TIME_FIELDS = new Set(['costTime']);
+const TIMESTAMP_PATTERN = /^\d{10}(\d{3})?$/;
+
 /**
  * 使用非对称加密的实现 前端已经实现RSA/SM2
  *
  * 你可以使用Sm2Encryption来替换 后端也需要同步替换公私钥对
  *
- * 后端文件位置: ruoyi-common/ruoyi-common-encrypt/src/main/java/org/dromara/common/encrypt/filter/DecryptRequestBodyWrapper.java
+ * 后端文件位置: meet-common/meet-common-encrypt/src/main/java/org/dromara/common/encrypt/filter/DecryptRequestBodyWrapper.java
  *
  * 注意前端sm-crypto库只能支持04开头的公钥! 否则加密会有问题 你可以使用前端的import { logSm2KeyPair } from '@vben/utils';方法来生成
  * 如果你生成的公钥开头不是04 那么不能正常加密
@@ -124,7 +129,7 @@ function createRequestClient(baseURL: string) {
       /**
        * 添加全局clientId
        * 关于header的clientId被错误绑定到实体类
-       * https://gitee.com/dapppp/ruoyi-plus-vben5/issues/IC0BDS
+       * https://gitee.com/dapppp/meet-plus-vben5/issues/IC0BDS
        */
       config.headers.ClientID = clientId;
       /**
@@ -235,6 +240,7 @@ function createRequestClient(baseURL: string) {
             // 然后按正常逻辑执行下面的代码(判断业务状态码)
           } else {
             // 其他类型数据 直接返回
+            normalizeResponseDateTimes(response.data);
             return response.data;
           }
         } else {
@@ -244,6 +250,7 @@ function createRequestClient(baseURL: string) {
       }
 
       const axiosResponseData = response.data;
+      normalizeResponseDateTimes(axiosResponseData);
       if (!axiosResponseData) {
         throw new Error($t('http.apiRequestFailed'));
       }
@@ -322,6 +329,48 @@ function createRequestClient(baseURL: string) {
   );
 
   return client;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return Object.prototype.toString.call(value) === '[object Object]';
+}
+
+function normalizeResponseDateTimes(value: unknown) {
+  if (Array.isArray(value)) {
+    value.forEach(normalizeResponseDateTimes);
+    return;
+  }
+
+  if (!isPlainObject(value)) {
+    return;
+  }
+
+  Object.entries(value).forEach(([key, item]) => {
+    if (Array.isArray(item) || isPlainObject(item)) {
+      normalizeResponseDateTimes(item);
+      return;
+    }
+
+    if (shouldNormalizeDateTimeValue(key, item)) {
+      value[key] = formatDateTime(item as number | string);
+    }
+  });
+}
+
+function shouldNormalizeDateTimeValue(key: string, value: unknown) {
+  if (!DATE_TIME_FIELD_PATTERN.test(key) || NON_DATE_TIME_FIELDS.has(key)) {
+    return false;
+  }
+
+  if (typeof value === 'number') {
+    return value > 0 && value >= 1_000_000_000 && value < 10_000_000_000_000;
+  }
+
+  if (typeof value === 'string') {
+    return TIMESTAMP_PATTERN.test(value.trim());
+  }
+
+  return false;
 }
 
 export const requestClient = createRequestClient(apiURL);

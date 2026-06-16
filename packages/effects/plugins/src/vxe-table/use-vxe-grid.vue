@@ -32,6 +32,7 @@ import { usePreferences } from '@vben/preferences';
 import {
   cloneDeep,
   cn,
+  formatDateTime,
   isBoolean,
   isEqual,
   mergeWithArrayOverride,
@@ -60,6 +61,9 @@ const FORM_SLOT_PREFIX = 'form-';
 const TOOLBAR_ACTIONS = 'toolbar-actions';
 const TOOLBAR_TOOLS = 'toolbar-tools';
 const TABLE_TITLE = 'table-title';
+
+const DATE_TIME_FIELD_PATTERN = /(?:Time|Date|At|_time|_date|_at)$/;
+const DURATION_FIELD_NAMES = new Set(['costTime']);
 
 const gridRef = useTemplateRef<VxeGridInstance>('gridRef');
 
@@ -93,8 +97,8 @@ const isSeparator = computed(() => {
 });
 const separatorBg = computed(() => {
   return !separator.value ||
-    isBoolean(separator.value) ||
-    !separator.value.backgroundColor
+  isBoolean(separator.value) ||
+  !separator.value.backgroundColor
     ? undefined
     : separator.value.backgroundColor;
 });
@@ -193,6 +197,8 @@ const options = computed(() => {
     ),
   );
 
+  applyDefaultDateTimeFormatters(mergedOptions.columns);
+
   if (mergedOptions.proxyConfig) {
     const { ajax } = mergedOptions.proxyConfig;
     mergedOptions.proxyConfig.enabled = !!ajax;
@@ -233,6 +239,38 @@ const options = computed(() => {
   }
   return mergedOptions;
 });
+
+function applyDefaultDateTimeFormatters(columns: VxeTableGridProps['columns']) {
+  columns?.forEach((column) => {
+    if (column.children) {
+      applyDefaultDateTimeFormatters(column.children);
+    }
+
+    if (!shouldUseDefaultDateTimeFormatter(column)) {
+      return;
+    }
+
+    column.formatter = ({ cellValue }) => formatDateTime(cellValue);
+  });
+}
+
+function shouldUseDefaultDateTimeFormatter(
+  column: NonNullable<VxeTableGridProps['columns']>[number],
+) {
+  const field = column.field;
+  if (
+    !field ||
+    DURATION_FIELD_NAMES.has(field) ||
+    column.cellRender ||
+    column.editRender ||
+    column.formatter ||
+    column.slots?.default
+  ) {
+    return false;
+  }
+
+  return DATE_TIME_FIELD_PATTERN.test(field);
+}
 
 function onToolbarToolClick(event: VxeGridDefines.ToolbarToolClickEventParams) {
   if (event.code === 'search') {

@@ -8,7 +8,7 @@ import type { RuleObject } from 'ant-design-vue/es/form';
 
 import type { ModelForm } from '#/api/chat/model/model';
 
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 import { DictEnum } from '@vben/constants';
@@ -34,6 +34,8 @@ import { getDictOptions } from '#/utils/dict';
 const emit = defineEmits<{ reload: [] }>();
 
 const isUpdate = ref(false);
+// 编辑加载数据时的标志，用于跳过watch避免apiHost被误清空
+const isLoading = ref(false);
 const providerOptions = ref<Array<{ label: string; value: number | string }>>(
   [],
 );
@@ -107,6 +109,9 @@ const formData = ref(defaultValues);
 watch(
   () => formData.value.providerCode,
   (newProviderCode) => {
+    // 编辑加载数据时跳过，避免apiHost被误清空
+    if (isLoading.value) return;
+
     if (newProviderCode === 'custom_api') {
       formData.value.apiHost = undefined;
       formRules.value.apiHost = [
@@ -165,10 +170,13 @@ const [BasicModal, modalApi] = useVbenModal({
     isUpdate.value = !!id;
 
     if (isUpdate.value && id) {
+      isLoading.value = true;
       const record = await modelInfo(id);
       // 只赋值存在的字段
       const filterRecord = pick(record, Object.keys(defaultValues));
       formData.value = filterRecord;
+      await nextTick();
+      isLoading.value = false;
     }
 
     modalApi.modalLoading(false);

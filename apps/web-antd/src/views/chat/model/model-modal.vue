@@ -24,6 +24,7 @@ import {
   Select,
   Tag,
   Textarea,
+  Switch as ASwitch,
 } from 'ant-design-vue';
 import { pick } from 'lodash-es';
 
@@ -169,6 +170,8 @@ const [BasicModal, modalApi] = useVbenModal({
       // 只赋值存在的字段
       const filterRecord = pick(record, Object.keys(defaultValues));
       formData.value = filterRecord;
+    } else {
+      formData.value = { ...defaultValues, modelShow: 'Y' };
     }
 
     modalApi.modalLoading(false);
@@ -359,6 +362,13 @@ function isValidCSSColor(color: string): boolean {
           v-model:value="formData.remark"
           :placeholder="$t('ui.formRules.required')"
           :rows="4"
+        />
+      </FormItem>
+
+      <FormItem label="启用状态" name="modelShow">
+        <a-switch
+          :checked="formData.modelShow === 'Y'"
+          @change="(val) => (formData.modelShow = val ? 'Y' : 'N')"
         />
       </FormItem>
     </Form>

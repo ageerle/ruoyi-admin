@@ -33,7 +33,13 @@ export const columns: VxeGridProps['columns'] = [
     field: 'category',
     slots: { default: 'category' },
   },
-
+  {
+    field: 'modelShow',
+    title: '启用',
+    width: 80,
+    align: 'center',
+    slots: { default: 'enabled' }, // 使用插槽自定义渲染
+  },
   {
     field: 'action',
     fixed: 'right',

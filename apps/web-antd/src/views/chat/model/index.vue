@@ -7,7 +7,7 @@ import { Page, useVbenModal, type VbenFormProps } from '@vben/common-ui';
 import { DictEnum } from '@vben/constants';
 import { getVxePopupContainer } from '@vben/utils';
 
-import { Modal, Popconfirm, Space } from 'ant-design-vue';
+import { Modal, Popconfirm, Space,Switch as ASwitch } from 'ant-design-vue';
 
 import {
   useVbenVxeGrid,
@@ -19,6 +19,7 @@ import {
   modelExport,
   modelList,
   modelRemove,
+  modelUpdate,
 } from '#/api/chat/model';
 import type { ModelForm } from '#/api/chat/model/model';
 import { commonDownloadExcel } from '#/utils/file/download';
@@ -124,6 +125,20 @@ function handleDownloadExcel() {
     fieldMappingTime: formOptions.fieldMappingTime,
   });
 }
+
+async function handleToggleShow(row: Required<ModelForm>, checked: boolean) {
+  if (row._switchLoading) return;
+  row._switchLoading = true;
+  try {
+    const newShow = checked ? 'Y' : 'N';
+    await modelUpdate({ id: row.id, modelShow: newShow });
+    row.modelShow = newShow;
+  } catch (error) {
+    console.error('切换状态失败', error);
+  } finally {
+    row._switchLoading = false;
+  }
+}
 </script>
 
 <template>
@@ -160,6 +175,14 @@ function handleDownloadExcel() {
             (item) => item.value === row.category,
           )?.label || row.category
         }}
+      </template>
+      <template #enabled="{ row }">
+        <a-switch
+          :checked="row.modelShow === 'Y'"
+          :loading="row._switchLoading"
+          @change="(checked) => handleToggleShow(row, checked)"
+          v-access:code="['system:model:edit']"
+        />
       </template>
       <template #action="{ row }">
         <Space>

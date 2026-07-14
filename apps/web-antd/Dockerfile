@@ -5,10 +5,14 @@ FROM node:22-alpine AS builder
 ARG VITE_GLOB_API_URL=http://localhost:6039
 ENV VITE_GLOB_API_URL=${VITE_GLOB_API_URL}
 
+# Node 构建堆内存上限，默认 4G 足够 vben 打包；机器内存小可下调，OOM 再加到 6144/8192
+# 通过 --build-arg NODE_MAX_OLD_SPACE=4096 覆盖
+ARG NODE_MAX_OLD_SPACE=4096
+
 # 设置环境变量 - 优化资源使用，增加内存限制
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-ENV NODE_OPTIONS=--max-old-space-size=16384
+ENV NODE_OPTIONS=--max-old-space-size=${NODE_MAX_OLD_SPACE}
 
 # 安装 pnpm 和设置时区
 RUN npm i -g corepack && corepack enable && \

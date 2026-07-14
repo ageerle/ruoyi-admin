@@ -39,7 +39,11 @@ const providerOptions = ref<Array<{ label: string; value: number | string }>>(
 );
 const providersMap = ref<Map<number | string, any>>(new Map());
 const categoryOptions = computed(() => {
-  const options = getDictOptions(DictEnum.CHAT_MODEL_CATEGORY);
+  const options = [...getDictOptions(DictEnum.CHAT_MODEL_CATEGORY)] as any[];
+  ensureCategoryOption(options, 'image', '图片', 'orange');
+  ensureCategoryOption(options, 'audio', '语音', 'purple');
+  ensureCategoryOption(options, 'video', '视频', 'red');
+  ensureCategoryOption(options, 'rerank', '重排序', 'magenta');
   // 注入 rerank（如果字典没有）
   if (!options.some((opt) => opt.value === 'rerank')) {
     options.push({ label: '重排模型', value: 'rerank', cssClass: 'magenta' });
@@ -47,13 +51,24 @@ const categoryOptions = computed(() => {
 
   // 联动逻辑：仅支持重排的厂商显示重排选项
   const supportedRerankProviders = ['alibailian', 'qianwen', 'siliconflow'];
-  const currentProvider = formData.value.providerCode?.toLowerCase();
+  const currentProvider = String(formData.value.providerCode || '').toLowerCase();
   if (currentProvider && !supportedRerankProviders.includes(currentProvider)) {
     return options.filter((opt) => opt.value !== 'rerank');
   }
 
   return options;
 });
+
+function ensureCategoryOption(
+  options: any[],
+  value: string,
+  label: string,
+  cssClass: string,
+) {
+  if (!options.some((opt) => opt.value === value)) {
+    options.push({ label, value, cssClass });
+  }
+}
 
 const title = computed(() => {
   return isUpdate.value ? $t('pages.common.edit') : $t('pages.common.add');
@@ -67,7 +82,7 @@ async function loadProviders() {
   try {
     const res = await providerList({ pageNum: 1, pageSize: 999 });
     providerOptions.value = res.rows.map((item) => ({
-      label: item.providerName,
+      label: String(item.providerName),
       value: item.providerCode,
     }));
     // 存储供应商完整信息，以便后续查询apiHost
@@ -101,6 +116,16 @@ const defaultValues: Partial<ModelForm> = {
  */
 const formData = ref(defaultValues);
 
+const showApiHost = computed(() => {
+  const category = formData.value.category;
+  return (
+    formData.value.providerCode === 'custom_api' ||
+    category === 'audio' ||
+    category === 'image' ||
+    category === 'video'
+  );
+});
+
 /**
  * 监听供应商变化
  */
@@ -124,7 +149,7 @@ watch(
     if (newProviderCode) {
       const supportedRerankProviders = ['alibailian', 'qianwen', 'siliconflow'];
       if (
-        !supportedRerankProviders.includes(newProviderCode.toLowerCase()) &&
+        !supportedRerankProviders.includes(String(newProviderCode).toLowerCase()) &&
         formData.value.category === 'rerank'
       ) {
         formData.value.category = undefined;
@@ -333,7 +358,7 @@ function isValidCSSColor(color: string): boolean {
             />
           </FormItem>
         </Col>
-        <Col v-if="formData.providerCode === 'custom_api'" :span="12">
+        <Col v-if="showApiHost" :span="12">
           <FormItem label="请求地址" v-bind="validateInfos.apiHost">
             <Input
               v-model:value="formData.apiHost"

@@ -60,6 +60,11 @@ const defaultValues: Partial<InfoForm> = {
 };
 
 const formData = ref<Partial<InfoForm>>({ ...defaultValues });
+const loadedSplitConfig = ref('');
+
+function splitConfigKey(value: Partial<InfoForm>) {
+  return JSON.stringify([value.separator ?? '', value.textBlockSize, value.overlapChar]);
+}
 
 type AntdFormRules<T> = Partial<Record<keyof T, RuleObject[]>> & {
   [key: string]: RuleObject[];
@@ -131,6 +136,7 @@ async function loadData() {
       const record = await infoInfo(props.knowledgeId);
       const filterRecord = pick(record, Object.keys(defaultValues));
       formData.value = filterRecord;
+      loadedSplitConfig.value = splitConfigKey(filterRecord);
     } else {
       const defaultEmbeddingModel = embeddingModelOptions.value.length > 0
         ? embeddingModelOptions.value[0].value
@@ -167,8 +173,13 @@ async function handleSubmit() {
     const data = cloneDeep(formData.value);
     
     if (isUpdate.value) {
+      const splitChanged = loadedSplitConfig.value !== splitConfigKey(data);
       await infoUpdate(data);
       message.success('更新成功');
+      loadedSplitConfig.value = splitConfigKey(data);
+      if (splitChanged) {
+        message.warning('分片配置已变更，现有文档不会自动重建，请在文档管理中点击“全部重新解析”。', 8);
+      }
       emit('saved', data.id!);
     } else {
       const res = await infoAdd(data);
@@ -230,7 +241,11 @@ const thresholdMarks = {
       </FormItem>
 
       <FormItem label="知识分隔符" v-bind="validateInfos.separator">
-        <Input v-model:value="formData.separator" placeholder="知识分隔符" />
+        <Input.TextArea
+          v-model:value="formData.separator"
+          :rows="2"
+          placeholder="可输入换行或多字符；对 Markdown、代码等所有格式生效"
+        />
       </FormItem>
 
       <FormItem label="文本块大小" v-bind="validateInfos.textBlockSize">
@@ -238,7 +253,12 @@ const thresholdMarks = {
       </FormItem>
 
       <FormItem label="重叠字符数" v-bind="validateInfos.overlapChar">
-        <InputNumber v-model:value="formData.overlapChar" :min="0" class="w-full" />
+        <InputNumber
+          v-model:value="formData.overlapChar"
+          :min="0"
+          :max="Math.max(0, Number(formData.textBlockSize || 1) - 1)"
+          class="w-full"
+        />
       </FormItem>
 
       <FormItem label="向量库" v-bind="validateInfos.vectorModel">

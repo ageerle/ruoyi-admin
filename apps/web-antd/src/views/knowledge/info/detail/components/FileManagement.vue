@@ -22,7 +22,7 @@ import {
 import { InboxOutlined, CopyOutlined } from '@ant-design/icons-vue';
 import { useAppConfig } from '@vben/hooks';
 import { useAccessStore } from '@vben/stores';
-import { attachList, attachRemove, attachParse } from '#/api/knowledge/attach';
+import { attachList, attachRemove, attachParse, attachReparseKnowledge } from '#/api/knowledge/attach';
 import { fragmentList } from '#/api/knowledge/fragment';
 import { ossInfo, checkLoginBeforeDownload } from '#/api/system/oss';
 import { downloadByUrl } from '#/utils/file/download';
@@ -195,6 +195,20 @@ async function handleParse(record: any) {
   }
 }
 
+async function handleReparseAll() {
+  if (!props.knowledgeId) return;
+  loading.value = true;
+  try {
+    const result = await attachReparseKnowledge(props.knowledgeId);
+    message.success(`已提交 ${result.submitted} 个文档，跳过 ${result.skipped} 个解析中文档`);
+    await loadAttachments();
+  } catch (error: any) {
+    message.error(error?.message || '批量重新解析失败');
+  } finally {
+    loading.value = false;
+  }
+}
+
 async function handleFragment(record: any) {
   fragmentLoading.value = true;
   fragmentVisible.value = true;
@@ -251,6 +265,12 @@ function isImageFile(fileSuffix: string) {
           <template #icon><InboxOutlined /></template>
           上传文档
         </Button>
+        <Popconfirm
+          title="将按当前分片配置重新解析所有文档，是否继续？"
+          @confirm="handleReparseAll"
+        >
+          <Button>全部重新解析</Button>
+        </Popconfirm>
       </div>
       <div class="flex items-center gap-2">
         <Tooltip title="刷新列表以获取最新解析状态">
@@ -289,12 +309,12 @@ function isImageFile(fileSuffix: string) {
           <template v-else-if="column.key === 'action'">
             <Space>
               <Button 
-                v-if="record.status === 0 || record.status === 3"
+                v-if="record.status !== 1"
                 type="link" 
                 size="small" 
                 @click="handleParse(record)"
               >
-                解析
+                {{ record.status === 2 ? '重新解析' : '解析' }}
               </Button>
               <Button 
                 v-if="record.status === 2"
@@ -332,7 +352,7 @@ function isImageFile(fileSuffix: string) {
         :before-upload="handleBeforeUpload"
         @remove="handleRemove"
         :show-upload-list="true"
-        accept=".txt,.pdf,.docx,.pptx,.xlsx,.xls,.csv,.json"
+        accept=".txt,.md,.pdf,.doc,.docx,.xlsx,.xls,.csv,.json,.java,.html,.htm,.css,.js,.ts,.py,.cpp,.c,.h,.hpp,.sql,.php,.ruby,.swift,.rs,.perl,.shell,.bat,.cmd,.xml,.yaml,.yml,.properties,.ini,.log"
         multiple
         name="file"
       >

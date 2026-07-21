@@ -67,3 +67,15 @@ export function attachRemove(id: ID | IDS) {
 export function attachParse(id: ID) {
   return requestClient.postWithMsg<void>(`/system/attach/parse/${id}`);
 }
+
+export interface KnowledgeReparseResult {
+  submitted: number;
+  skipped: number;
+  total: number;
+}
+
+export function attachReparseKnowledge(knowledgeId: ID) {
+  return requestClient.post<KnowledgeReparseResult>(
+    `/system/attach/reparse/knowledge/${knowledgeId}`,
+  );
+}

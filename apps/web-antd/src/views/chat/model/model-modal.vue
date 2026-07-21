@@ -169,7 +169,17 @@ type AntdFormRules<T> = Partial<Record<keyof T, RuleObject[]>> & {
 /**
  * 表单校验规则
  */
-const formRules = ref<AntdFormRules<ModelForm>>({});
+const formRules = ref<AntdFormRules<ModelForm>>({
+  providerCode: [
+    { required: true, message: $t('ui.formRules.required'), trigger: 'change' },
+  ],
+  category: [
+    { required: true, message: $t('ui.formRules.required'), trigger: 'change' },
+  ],
+  modelName: [
+    { required: true, message: $t('ui.formRules.required'), trigger: 'blur' },
+  ],
+});
 
 /**
  * useForm解构出表单方法

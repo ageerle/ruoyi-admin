@@ -54,9 +54,26 @@ watch(() => nodeConfig.model_name, (val) => {
     </div>
     <div class="mt-4">
       <div class="text-sm mb-1">提示词<span class="text-red-500">*</span></div>
-      <Input v-model:value="nodeConfig.prompt" type="textarea" :auto-size="{ minRows: 3, maxRows: 8 }" />
+      <textarea v-model="nodeConfig.prompt" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500" style="min-height: 300px; resize: vertical;"></textarea>
     </div>
   </div>
 </template>
+
+<style scoped>
+:deep(.ant-input-textarea) {
+  min-height: 200px !important;
+  display: block !important;
+}
+
+:deep(.ant-input-textarea .ant-input) {
+  min-height: 200px !important;
+  vertical-align: top !important;
+  text-align: left !important;
+  line-height: 1.5 !important;
+  padding-top: 4px !important;
+  display: block !important;
+  height: auto !important;
+}
+</style>
 
 

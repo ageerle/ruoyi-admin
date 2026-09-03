@@ -21,6 +21,7 @@ export const propertyDefaultGetters: Record<string, DefaultGetter> = {
     top_n: 3,
     is_strict: true,
     default_response: '',
+    retrieval_mode: 'vector',
   }),
   dalle3: () => ({ prompt: '', size: '1024x1024', quality: 'standard' }),
   tongyiwanx: () => ({

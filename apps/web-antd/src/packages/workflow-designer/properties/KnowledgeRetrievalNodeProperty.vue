@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { Input, InputNumber, Select, Slider, Switch } from 'ant-design-vue'
 import type { WorkflowInfo, WorkflowNode } from '../types/index.d'
 import { requestClient } from '#/api/request'
@@ -10,16 +10,24 @@ interface Props {
   wfNode: WorkflowNode
 }
 const props = defineProps<Props>()
-const nodeConfig = props.wfNode.nodeConfig as any
+
+// 使用 computed 保持响应式：切换同类节点时自动跟随 wfNode 变化
+const nodeConfig = computed(() => props.wfNode.nodeConfig as any)
 
 // 确保默认值
-if (nodeConfig.knowledge_base_uuid === undefined) nodeConfig.knowledge_base_uuid = ''
-if (nodeConfig.knowledge_base_name === undefined) nodeConfig.knowledge_base_name = ''
-if (nodeConfig.score === undefined) nodeConfig.score = 0.6
-if (nodeConfig.top_n === undefined) nodeConfig.top_n = 3
-if (nodeConfig.is_strict === undefined) nodeConfig.is_strict = true
-if (nodeConfig.default_response === undefined) nodeConfig.default_response = ''
-if (nodeConfig.retrieval_mode === undefined) nodeConfig.retrieval_mode = 'vector'
+function ensureDefaults() {
+  const cfg = nodeConfig.value
+  if (cfg.knowledge_base_uuid === undefined) cfg.knowledge_base_uuid = ''
+  if (cfg.knowledge_base_name === undefined) cfg.knowledge_base_name = ''
+  if (cfg.score === undefined) cfg.score = 0.6
+  if (cfg.top_n === undefined) cfg.top_n = 3
+  if (cfg.is_strict === undefined) cfg.is_strict = true
+  if (cfg.default_response === undefined) cfg.default_response = ''
+  if (cfg.retrieval_mode === undefined) cfg.retrieval_mode = 'vector'
+}
+
+// 当 wfNode 切换时重新初始化默认值
+watch(() => props.wfNode, () => ensureDefaults(), { immediate: true })
 
 // 知识库下拉选项
 const kbOptions = ref<Array<{ label: string; value: string; description?: string }>>([])
@@ -48,16 +56,16 @@ onMounted(() => {
 })
 
 // 监听知识库选择变化，同步更新名称
-watch(() => nodeConfig.knowledge_base_uuid, (val) => {
+watch(() => nodeConfig.value.knowledge_base_uuid, (val) => {
   if (!val) {
-    nodeConfig.knowledge_base_name = ''
+    nodeConfig.value.knowledge_base_name = ''
     return
   }
   const hit = kbOptions.value.find(opt => opt.value === String(val))
-  nodeConfig.knowledge_base_name = hit ? hit.label : ''
+  nodeConfig.value.knowledge_base_name = hit ? hit.label : ''
 })
 
-// 检索模式选项
+// 检索模式选项（含继承选项）
 const retrievalModeOptions = [
   { label: '向量检索', value: 'vector' },
   { label: '混合检索', value: 'hybrid' },
@@ -101,6 +109,9 @@ const retrievalModeOptions = [
         :options="retrievalModeOptions"
         class="w-full"
       />
+      <div class="text-xs text-gray-400 mt-1">
+        节点选择的模式将覆盖知识库自身的混合检索配置
+      </div>
     </div>
 
     <!-- 相似度阈值 -->

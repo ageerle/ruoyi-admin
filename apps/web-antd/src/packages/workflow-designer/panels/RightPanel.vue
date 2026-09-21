@@ -58,7 +58,7 @@ const resolvedPropertyComponent = computed(() => {
         <div class="text-sm text-gray-500">组件功能：{{ wfNode?.wfComponent?.remark || '' }}</div>
       </div>
       <div class="overflow-y-auto" :style="`height:${innerHeight - 250}px`">
-        <component :is="resolvedPropertyComponent" :workflow="workflow" :ui-workflow="uiWorkflow" :wf-node="wfNode" />
+        <component :is="resolvedPropertyComponent" :key="wfNode.uuid" :workflow="workflow" :ui-workflow="uiWorkflow" :wf-node="wfNode" />
       </div>
     </div>
   </div>

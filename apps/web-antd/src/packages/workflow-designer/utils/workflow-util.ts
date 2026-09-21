@@ -229,7 +229,7 @@ export function getIconByComponentName(name: string) {
       return 'carbon:http';
     }
     case 'knowledgeretrieval': {
-      return 'carbon:connect-target';
+      return 'carbon:book';
     }
     case 'mailsend': {
       return 'carbon:mail-all';

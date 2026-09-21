@@ -21,6 +21,7 @@ import {
   Form,
   FormItem,
   Input,
+  InputPassword,
   Row,
   Select,
   Tag,
@@ -237,7 +238,7 @@ async function handleConfirm() {
     await validate();
     // 可能会做数据处理 使用cloneDeep深拷贝
     const data = cloneDeep(formData.value);
-    if (isUpdate.value && customProviderConfig.value && !data.apiKey?.trim()) {
+    if (isUpdate.value && data.apiKey === '') {
       data.apiKey = undefined;
     }
     await (isUpdate.value ? modelUpdate(data) : modelAdd(data));
@@ -400,7 +401,7 @@ function isValidCSSColor(color: string): boolean {
           <FormItem
             label="请求地址"
             v-bind="validateInfos.apiHost"
-            :extra="customProviderConfig ? '填写服务商提供的 HTTPS API Base URL，例如 https://服务商地址/v1。' : undefined"
+            :extra="customProviderConfig ? '填写服务商提供的 HTTP 或 HTTPS API Base URL，例如 https://服务商地址/v1。' : undefined"
           >
             <Input
               v-model:value="formData.apiHost"
@@ -415,11 +416,12 @@ function isValidCSSColor(color: string): boolean {
           <FormItem
             label="密钥"
             v-bind="validateInfos.apiKey"
-            :extra="customProviderConfig ? `填写环境变量引用，如 ${customProviderConfig.apiKeyReference}；后端同时配置对应的 ${customProviderConfig.baseUrlVariable}。编辑时留空可保留原密钥。` : undefined"
+            :extra="isUpdate ? '填写新 API Key 可更新密钥，留空保留原密钥。' : '直接填写服务商提供的 API Key。无需鉴权的本地模型可留空。'"
           >
-            <Input
+            <InputPassword
               v-model:value="formData.apiKey"
-              :placeholder="customProviderConfig?.apiKeyReference ?? $t('ui.formRules.required')"
+              :placeholder="isUpdate ? '留空保留原密钥' : '请输入 API Key'"
+              autocomplete="new-password"
             />
           </FormItem>
         </Col>

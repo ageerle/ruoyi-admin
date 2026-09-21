@@ -5,7 +5,10 @@ export const providerOptions = [
   { label: '小米MiMo', value: 'xiaomi' },
   { label: '阿里云百炼', value: 'qianwen' },
   { label: 'PPIO', value: 'ppio' },
+  { label: 'Atlas Cloud', value: 'atlas' },
   { label: 'MiniMax', value: 'minimax' },
+  { label: 'Dify', value: 'dify' },
+  { label: 'Coze / 扣子', value: 'coze' },
   { label: 'Ollama', value: 'ollama' },
   { label: '自定义 OpenAI', value: 'custom_api' },
   { label: '自定义 Anthropic', value: 'custom_anthropic' },
@@ -16,16 +19,12 @@ export function getCustomProviderConfig(providerCode: unknown) {
     return {
       protocol: 'OpenAI Chat Completions',
       apiHostPlaceholder: 'https://服务商地址/v1',
-      apiKeyReference: 'env:CUSTOM_OPENAI_API_KEY',
-      baseUrlVariable: 'CUSTOM_OPENAI_BASE_URL',
     };
   }
   if (providerCode === 'custom_anthropic') {
     return {
       protocol: 'Anthropic Messages',
       apiHostPlaceholder: 'https://服务商地址/v1',
-      apiKeyReference: 'env:CUSTOM_ANTHROPIC_API_KEY',
-      baseUrlVariable: 'CUSTOM_ANTHROPIC_BASE_URL',
     };
   }
   return null;

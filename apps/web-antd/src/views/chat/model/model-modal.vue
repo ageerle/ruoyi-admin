@@ -9,7 +9,7 @@ import type { RuleObject } from 'ant-design-vue/es/form';
 import type { ModelForm } from '#/api/chat/model/model';
 import type { ProviderVO } from '#/api/chat/provider/model';
 
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, ref, shallowRef, watch } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
 import { DictEnum } from '@vben/constants';
@@ -37,6 +37,7 @@ import { getCustomProviderConfig } from '../provider/options';
 const emit = defineEmits<{ reload: [] }>();
 
 const isUpdate = ref(false);
+const apiKeyVisible = shallowRef(false);
 // 编辑加载数据时的标志，用于跳过watch避免apiHost被误清空
 const isLoading = ref(false);
 const providers = ref<ProviderVO[]>([]);
@@ -213,6 +214,7 @@ const [BasicModal, modalApi] = useVbenModal({
     }
     modalApi.modalLoading(true);
     isLoading.value = true;
+    apiKeyVisible.value = false;
     try {
       await loadProviders();
       const { id } = modalApi.getData() as { id?: number | string };
@@ -238,9 +240,6 @@ async function handleConfirm() {
     await validate();
     // 可能会做数据处理 使用cloneDeep深拷贝
     const data = cloneDeep(formData.value);
-    if (isUpdate.value && data.apiKey === '') {
-      data.apiKey = undefined;
-    }
     await (isUpdate.value ? modelUpdate(data) : modelAdd(data));
     emit('reload');
     await handleCancel();
@@ -416,11 +415,11 @@ function isValidCSSColor(color: string): boolean {
           <FormItem
             label="密钥"
             v-bind="validateInfos.apiKey"
-            :extra="isUpdate ? '填写新 API Key 可更新密钥，留空保留原密钥。' : '直接填写服务商提供的 API Key。无需鉴权的本地模型可留空。'"
           >
             <InputPassword
+              v-model:visible="apiKeyVisible"
               v-model:value="formData.apiKey"
-              :placeholder="isUpdate ? '留空保留原密钥' : '请输入 API Key'"
+              placeholder="请输入 API Key"
               autocomplete="new-password"
             />
           </FormItem>

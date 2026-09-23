@@ -146,7 +146,7 @@ export const drawerSchema: FormSchemaGetter = () => [
     },
     fieldName: 'configJson',
     formItemClass: 'col-span-2',
-    help: '配置信息只写不回显；编辑时留空会保留原配置。示例：{"command": "npx", "args": ["-y", "@modelcontextprotocol/server-everything"]}',
+    help: '配置信息只写不回显，编辑时留空会保留原配置；更新 Key 时需连同 baseUrl 填写完整 JSON。远程示例：{"baseUrl":"https://example.com/mcp","bearerKey":"YOUR_KEY"}；无需鉴权可省略 bearerKey。本地示例：{"command":"npx","args":["-y","@modelcontextprotocol/server-everything"]}。配置在数据库中未加密。',
     label: '配置信息',
   },
 ];

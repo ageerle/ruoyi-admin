@@ -157,10 +157,10 @@ export const drawerSchema: FormSchemaGetter = () => [
     component: 'ApiSelect',
     componentProps: {
       api: agentSkillOptions,
-      labelField: 'description',
+      labelField: 'name',
       valueField: 'name',
       mode: 'multiple',
-      placeholder: '请选择关联的磁盘技能',
+      placeholder: '请选择已启用的技能',
     },
     fieldName: 'skillNames',
     formItemClass: 'col-span-2',

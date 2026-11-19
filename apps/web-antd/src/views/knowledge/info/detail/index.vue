@@ -1,60 +1,159 @@
-<template>
-  <Page title="知识库详情" class="bg-surface">
-    <template #extra>
-      <Button @click="handleBack">返回</Button>
-    </template>
-    
-    <div class="p-4">
-      <Tabs v-model:activeKey="activeKey" class="w-full bg-white px-4 pt-2 pb-4 rounded shadow-sm">
-        <TabPane key="file" tab="文件管理" v-if="!isNew">
-          <FileManagement :knowledge-id="knowledgeId" />
-        </TabPane>
-        <TabPane key="test" tab="检索测试" v-if="!isNew">
-          <RetrievalTest :knowledge-id="knowledgeId" @config-updated="handleConfigUpdated" />
-        </TabPane>
-        <TabPane key="config" tab="知识库配置">
-          <KnowledgeConfig 
-            :knowledge-id="isNew ? undefined : knowledgeId" 
-            :refresh-trigger="refreshTrigger"
-            @saved="handleConfigSaved" 
-          />
-        </TabPane>
-      </Tabs>
-    </div>
-  </Page>
-</template>
-
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, shallowRef, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Page } from '@vben/common-ui';
-import { Tabs, TabPane, Button } from 'ant-design-vue';
 
+import { useAccess } from '@vben/access';
+import { Page } from '@vben/common-ui';
+
+import { Button, TabPane, Tabs } from 'ant-design-vue';
+
+import AttachmentFragments from './components/AttachmentFragments.vue';
 import FileManagement from './components/FileManagement.vue';
-import RetrievalTest from './components/RetrievalTest.vue';
 import KnowledgeConfig from './components/KnowledgeConfig.vue';
+import RetrievalTest from './components/RetrievalTest.vue';
+import { asKnowledgeId, knowledgeListPath } from './resources';
 
 const route = useRoute();
 const router = useRouter();
+const { hasAccessByCodes } = useAccess();
 
-const knowledgeIdStr = route.params.id as string;
-const isNew = knowledgeIdStr === 'new';
-const knowledgeId = isNew ? undefined : knowledgeIdStr;
+const knowledgeId = computed(() => asKnowledgeId(route.params.id));
+const isNew = computed(() => route.params.id === 'new');
+const canViewAttachments = computed(() =>
+  hasAccessByCodes(['system:attach:list']),
+);
+const canViewAttachmentFragments = computed(
+  () =>
+    hasAccessByCodes(['system:attach:query']) &&
+    hasAccessByCodes(['system:fragment:list']),
+);
+const activeKey = computed(() => {
+  if (isNew.value) return 'config';
+  const { tab } = route.query;
+  if (tab === 'config' || tab === 'test') return tab;
+  if ((tab === 'attach' || tab === 'fragment') && canViewAttachments.value) {
+    return 'attach';
+  }
+  return 'config';
+});
+const attachmentId = computed(() => asKnowledgeId(route.query.attachmentId));
+const viewingFragments = computed(
+  () =>
+    activeKey.value === 'attach' &&
+    canViewAttachmentFragments.value &&
+    route.query.attachmentId !== undefined,
+);
+const refreshTrigger = shallowRef(0);
+const testRefreshTrigger = shallowRef(0);
 
-const activeKey = ref(isNew ? 'config' : 'file');
-const refreshTrigger = ref(0);
+watch(
+  () => route.params.id,
+  () => {
+    refreshTrigger.value = 0;
+    testRefreshTrigger.value = 0;
+    if (!knowledgeId.value && !isNew.value) {
+      void router.replace(knowledgeListPath);
+    }
+  },
+  { immediate: true },
+);
+
+watch(
+  () => [route.name, route.query.tab] as const,
+  ([name, tab]) => {
+    if (name === 'KnowledgeInfoDetail' && tab === 'fragment') {
+      void router.replace({ query: { ...route.query, tab: 'attach' } });
+    }
+  },
+  { immediate: true },
+);
+
+function selectTab(tab: number | string) {
+  const query = { ...route.query };
+  delete query.attachmentId;
+  void router.push({ query: { ...query, tab: String(tab) } });
+}
+
+function openAttachment(id: number | string) {
+  void router.push({
+    query: { ...route.query, attachmentId: String(id), tab: 'attach' },
+  });
+}
+
+function closeAttachment() {
+  const query = { ...route.query };
+  delete query.attachmentId;
+  void router.push({ query: { ...query, tab: 'attach' } });
+}
 
 function handleConfigUpdated() {
   refreshTrigger.value += 1;
 }
 
 function handleBack() {
-  router.back();
+  void router.push(knowledgeListPath);
 }
 
-function handleConfigSaved(newId: string | number) {
-  if (isNew) {
-    router.replace(`/knowledge/info/detail/${newId}`);
+function handleConfigSaved(newId: number | string) {
+  if (isNew.value) {
+    void router.replace({
+      name: 'KnowledgeInfoDetail',
+      params: { id: String(newId) },
+    });
+  } else {
+    testRefreshTrigger.value += 1;
   }
 }
 </script>
+
+<template>
+  <Page title="知识库详情" class="bg-surface">
+    <template #extra>
+      <Button @click="handleBack">返回知识库</Button>
+    </template>
+
+    <div class="p-4">
+      <Tabs
+        v-if="knowledgeId || isNew"
+        :active-key="activeKey"
+        class="w-full rounded bg-white px-4 pb-4 pt-2 shadow-sm"
+        @change="selectTab"
+      >
+        <TabPane key="config" tab="知识库配置">
+          <KnowledgeConfig
+            :key="knowledgeId ?? 'new'"
+            :knowledge-id="knowledgeId"
+            :refresh-trigger="refreshTrigger"
+            @saved="handleConfigSaved"
+          />
+        </TabPane>
+        <TabPane v-if="knowledgeId" key="test" tab="检索测试">
+          <RetrievalTest
+            :key="knowledgeId"
+            :knowledge-id="knowledgeId"
+            :refresh-trigger="testRefreshTrigger"
+            @config-updated="handleConfigUpdated"
+          />
+        </TabPane>
+        <TabPane
+          v-if="knowledgeId && canViewAttachments"
+          key="attach"
+          tab="知识附件"
+        >
+          <FileManagement
+            v-show="!viewingFragments"
+            :key="knowledgeId"
+            :knowledge-id="knowledgeId"
+            @view-fragments="openAttachment"
+          />
+          <AttachmentFragments
+            v-if="viewingFragments"
+            :attachment-id="attachmentId"
+            :knowledge-id="knowledgeId"
+            @back="closeAttachment"
+          />
+        </TabPane>
+      </Tabs>
+    </div>
+  </Page>
+</template>

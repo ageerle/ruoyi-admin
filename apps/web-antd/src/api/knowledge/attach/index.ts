@@ -29,8 +29,11 @@ export function attachExport(params?: AttachQuery) {
  * @param id id
  * @returns 知识库附件详情
  */
-export function attachInfo(id: ID) {
-  return requestClient.get<AttachVO>(`/system/attach/${id}`);
+export function attachInfo(
+  id: ID,
+  options?: { errorMessageMode?: 'none'; signal?: AbortSignal },
+) {
+  return requestClient.get<AttachVO>(`/system/attach/${id}`, options);
 }
 
 /**
@@ -40,15 +43,6 @@ export function attachInfo(id: ID) {
  */
 export function attachAdd(data: AttachForm) {
   return requestClient.postWithMsg<void>('/system/attach', data);
-}
-
-/**
- * 更新知识库附件
- * @param data
- * @returns void
- */
-export function attachUpdate(data: AttachForm) {
-  return requestClient.putWithMsg<void>('/system/attach', data);
 }
 
 /**

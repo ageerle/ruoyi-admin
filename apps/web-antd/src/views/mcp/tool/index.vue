@@ -122,7 +122,7 @@ const { hasAccessByCodes } = useAccess();
 
 <template>
   <Page :auto-content-height="true">
-    <BasicTable table-title="MCP工具列表">
+    <BasicTable table-title="MCP 工具">
       <template #toolbar-tools>
         <Space>
           <a-button

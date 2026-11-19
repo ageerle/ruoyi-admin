@@ -4,7 +4,8 @@ import type { VbenFormProps } from '@vben/common-ui';
 import type { VxeGridProps } from '#/adapter/vxe-table';
 import type { InfoForm } from '#/api/knowledge/info/model';
 
-import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
 import { Page } from '@vben/common-ui';
 import { getVxePopupContainer } from '@vben/utils';
 
@@ -17,7 +18,6 @@ import { commonDownloadExcel } from '#/utils/file/download';
 
 import KnowledgeAddModal from './components/KnowledgeAddModal.vue';
 import { columns, querySchema } from './data';
-import { useRouter } from 'vue-router';
 
 const formOptions: VbenFormProps = {
   commonConfig: {
@@ -89,7 +89,19 @@ function handleAdd() {
 }
 
 function handleDetail(row: Required<InfoForm>) {
-  router.push(`/knowledge/info/detail/${row.id}`);
+  void router.push({
+    name: 'KnowledgeInfoDetail',
+    params: { id: String(row.id) },
+    query: { tab: 'config' },
+  });
+}
+
+function handleResources(row: Required<InfoForm>) {
+  void router.push({
+    name: 'KnowledgeInfoDetail',
+    params: { id: String(row.id) },
+    query: { tab: 'attach' },
+  });
 }
 
 async function handleDelete(row: Required<InfoForm>) {
@@ -153,6 +165,12 @@ function handleDownloadExcel() {
             @click.stop="handleDetail(row)"
           >
             详情
+          </ghost-button>
+          <ghost-button
+            v-access:code="['system:attach:list']"
+            @click.stop="handleResources(row)"
+          >
+            知识附件
           </ghost-button>
           <Popconfirm
             :get-popup-container="getVxePopupContainer"

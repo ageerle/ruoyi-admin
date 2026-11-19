@@ -39,7 +39,8 @@ export const querySchema: FormSchemaGetter = () => [
       allowClear: true,
       options: [
         { label: '全部', value: '' },
-        { label: 'RAG 对话', value: 'RAG_CHAT' },
+        { label: 'API 调用', value: 'API' },
+        { label: '定时任务', value: 'SCHEDULED' },
       ],
       placeholder: '全部',
     },

@@ -2,7 +2,7 @@
 import type { RuleObject } from 'ant-design-vue/es/form';
 import type { InfoForm } from '#/api/knowledge/info/model';
 
-import { ref, watch, h } from 'vue';
+import { ref, shallowRef, watch, h } from 'vue';
 import { $t } from '@vben/locales';
 import { cloneDeep } from '@vben/utils';
 
@@ -38,6 +38,7 @@ const props = defineProps<{
 const emit = defineEmits<{ saved: [id: string | number] }>();
 
 const loading = ref(false);
+const saving = shallowRef(false);
 const isUpdate = ref(false);
 
 const defaultValues: Partial<InfoForm> = {
@@ -53,8 +54,7 @@ const defaultValues: Partial<InfoForm> = {
   embeddingModel: undefined,
   enableRerank: 0,
   rerankModel: undefined,
-  enableHybrid: 0,
-  hybridAlpha: 0.5,
+  rerankScoreThreshold: 0,
   similarityThreshold: 0.5,
   remark: undefined,
 };
@@ -135,7 +135,10 @@ async function loadData() {
     if (isUpdate.value && props.knowledgeId) {
       const record = await infoInfo(props.knowledgeId);
       const filterRecord = pick(record, Object.keys(defaultValues));
-      formData.value = filterRecord;
+      formData.value = {
+        ...filterRecord,
+        rerankScoreThreshold: filterRecord.rerankScoreThreshold ?? 0,
+      };
       loadedSplitConfig.value = splitConfigKey(filterRecord);
     } else {
       const defaultEmbeddingModel = embeddingModelOptions.value.length > 0
@@ -167,15 +170,16 @@ watch(() => props.refreshTrigger, () => {
 });
 
 async function handleSubmit() {
+  if (loading.value || saving.value) return;
+  saving.value = true;
   try {
-    loading.value = true;
     await validate();
     const data = cloneDeep(formData.value);
+    data.rerankScoreThreshold ??= 0;
     
     if (isUpdate.value) {
       const splitChanged = loadedSplitConfig.value !== splitConfigKey(data);
       await infoUpdate(data);
-      message.success('更新成功');
       loadedSplitConfig.value = splitConfigKey(data);
       if (splitChanged) {
         message.warning('分片配置已变更，现有文档不会自动重建，请在文档管理中点击“全部重新解析”。', 8);
@@ -183,25 +187,18 @@ async function handleSubmit() {
       emit('saved', data.id!);
     } else {
       const res = await infoAdd(data);
-      message.success('新增成功');
       const newId = (res as any)?.id || (res as any)?.data?.id || new Date().getTime();
       emit('saved', newId);
     }
   } catch (error) {
     console.error(error);
   } finally {
-    loading.value = false;
+    saving.value = false;
   }
 }
 
 // 预设刻度样式
 const renderMark = (label: string) => h('span', { style: { fontSize: '10px', opacity: 0.7 } }, label);
-
-const alphaMarks = {
-  0.3: renderMark('偏向量'),
-  0.5: renderMark('平衡'),
-  0.7: renderMark('偏全文')
-};
 
 const limitMarks = {
   3: renderMark('精简'),
@@ -306,52 +303,12 @@ const thresholdMarks = {
         />
       </FormItem>
 
-      <FormItem>
-        <template #label>
-          <div class="flex items-center gap-1">
-            <span>混合检索</span>
-            <Tooltip placement="top">
-              <template #title>
-                系统采用 RRF (Reciprocal Rank Fusion) 算法合并检索结果。该算法通过综合文本块在向量搜索和全文搜索中的“排名顺序”计算融合得分，能够给予两路同时命中的内容更高权重，显著提升搜索精准度。
-              </template>
-              <QuestionCircleOutlined class="text-gray-400 text-xs cursor-help" />
-            </Tooltip>
-          </div>
-        </template>
-        <Switch 
-          v-model:checked="formData.enableHybrid" 
-          :un-checked-value="0" 
-          :checked-value="1" 
-        />
-        <span class="ml-2 text-gray-400 text-xs">融合向量搜素与关键词搜索，提升非语义匹配场景的精度</span>
-      </FormItem>
- 
-      <FormItem v-if="formData.enableHybrid" label="检索权重 (α)">
-        <div class="flex flex-col w-full pr-4">
-          <div class="flex justify-between items-center mb-1">
-            <div class="flex items-center gap-2">
-              <span class="italic text-gray-500 text-xs text-opacity-70">vector</span>
-              <span class="bg-gray-100 dark:bg-zinc-800 text-primary px-1.5 py-0.5 rounded text-[10px] font-mono border border-gray-200 dark:border-gray-700 leading-none">
-                {{ (1 - (formData.hybridAlpha || 0.5)).toFixed(2) }}
-              </span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="italic text-gray-500 text-xs text-opacity-70">full-text</span>
-              <span class="bg-gray-100 dark:bg-zinc-800 text-primary px-1.5 py-0.5 rounded text-[10px] font-mono border border-gray-200 dark:border-gray-700 leading-none">
-                {{ (formData.hybridAlpha || 0.5).toFixed(2) }}
-              </span>
-            </div>
-          </div>
-          <div class="flex items-center gap-4 pb-6">
-            <Slider 
-              v-model:value="formData.hybridAlpha" 
-              :min="0" :max="1" :step="0.01" 
-              :marks="alphaMarks"
-              class="flex-1"
-            />
-            <InputNumber v-model:value="formData.hybridAlpha" :min="0" :max="1" :step="0.01" size="small" class="text-xs w-16" />
-          </div>
-        </div>
+      <FormItem
+        v-if="formData.enableRerank"
+        label="重排分数阈值"
+        extra="重排后，只保留分数达到该值的片段。"
+      >
+        <InputNumber v-model:value="formData.rerankScoreThreshold" :min="0" :max="1" :step="0.01" />
       </FormItem>
 
       <FormItem v-bind="validateInfos.retrieveLimit">
@@ -380,10 +337,10 @@ const thresholdMarks = {
       <FormItem v-bind="validateInfos.similarityThreshold">
         <template #label>
           <div class="flex items-center gap-1">
-            <span>相似度阈值</span>
+            <span>向量相似度阈值</span>
             <Tooltip placement="top">
               <template #title>
-                设置检索结果的最低相似度过滤分值。只有得分超过该阈值的文本块才会被返回。阈值越高，结果越精准但召回数量可能减少。推荐设置在 0.4-0.6 之间。
+                片段的向量相似度达到该值后，才会进入候选结果。
               </template>
               <QuestionCircleOutlined class="text-gray-400 text-xs cursor-help" />
             </Tooltip>
@@ -409,7 +366,7 @@ const thresholdMarks = {
       </FormItem>
 
       <FormItem :wrapper-col="{ offset: 4, span: 18 }">
-        <Button type="primary" :loading="loading" @click="handleSubmit">
+        <Button type="primary" :loading="loading || saving" @click="handleSubmit">
           {{ isUpdate ? '保存更新' : '确认新增' }}
         </Button>
       </FormItem>

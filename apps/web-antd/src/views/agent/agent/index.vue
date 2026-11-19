@@ -103,7 +103,7 @@ function handleDownloadExcel() {
 
 <template>
   <Page :auto-content-height="true">
-    <BasicTable table-title="智能体列表">
+    <BasicTable table-title="智能体管理">
       <template #toolbar-tools>
         <Space>
           <a-button

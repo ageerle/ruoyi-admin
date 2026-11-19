@@ -5,7 +5,7 @@ export const querySchema: FormSchemaGetter = () => [
   {
     component: 'Input',
     fieldName: 'content',
-    label: '文档内容',
+    label: '片段内容',
   },
 ];
 
@@ -17,11 +17,12 @@ export const querySchema: FormSchemaGetter = () => [
 export const columns: VxeGridProps['columns'] = [
   { type: 'checkbox', width: 60 },
   {
-    title: '片段索引下标',
+    title: '片段序号',
     field: 'idx',
+    width: 96,
   },
   {
-    title: '文档内容',
+    title: '片段内容',
     field: 'content',
   },
   {

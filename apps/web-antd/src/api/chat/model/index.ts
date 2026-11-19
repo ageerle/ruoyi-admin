@@ -1,9 +1,31 @@
-import type { ModelForm, ModelQuery, ModelVO } from './model';
+import type {
+  ModelForm,
+  ModelQuery,
+  ModelVO,
+  VisionDefaultSettings,
+} from './model';
 
 import type { ID, IDS, PageResult } from '#/api/common';
 
 import { commonExport } from '#/api/helper';
 import { requestClient } from '#/api/request';
+
+const visionDefaultUrl = '/system/model/visionDefault';
+
+export function getVisionDefault(signal?: AbortSignal) {
+  return requestClient.get<VisionDefaultSettings>(visionDefaultUrl, {
+    errorMessageMode: 'none',
+    signal,
+  });
+}
+
+export function updateVisionDefault(modelName: string) {
+  return requestClient.putWithMsg<void>(
+    visionDefaultUrl,
+    { modelName },
+    { errorMessageMode: 'none' },
+  );
+}
 
 /**
  * 查询模型管理列表

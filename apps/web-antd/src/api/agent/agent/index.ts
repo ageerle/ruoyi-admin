@@ -66,7 +66,7 @@ export function agentEnabledOptions() {
 }
 
 /**
- * 磁盘 Skills 选项（表单勾选用）
+ * 已启用的技能选项
  */
 export function agentSkillOptions() {
   return requestClient.get<SkillOption[]>(Api.skillOptions);

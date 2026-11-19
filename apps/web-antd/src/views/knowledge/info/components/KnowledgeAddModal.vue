@@ -17,7 +17,6 @@ import {
   Switch,
   Slider,
   InputNumber,
-  message,
   Tooltip,
   Tag
 } from 'ant-design-vue';
@@ -44,8 +43,8 @@ const defaultValues: Partial<InfoForm> = {
   embeddingModel: undefined,
   enableRerank: 0,
   rerankModel: undefined,
-  enableHybrid: 0,
-  hybridAlpha: 0.5,
+  rerankScoreThreshold: 0,
+  similarityThreshold: 0.5,
 };
 
 const formData = ref<Partial<InfoForm>>({ ...defaultValues });
@@ -126,7 +125,6 @@ async function handleConfirm() {
     await validate();
     const data = cloneDeep(formData.value) as InfoForm;
     await infoAdd(data);
-    message.success('新增成功');
     emit('reload');
     modalApi.close();
   } catch (error) {
@@ -142,12 +140,6 @@ function handleClosed() {
 }
 // 预设刻度样式
 const renderMark = (label: string) => h('span', { style: { fontSize: '10px', opacity: 0.7 } }, label);
-
-const alphaMarks = {
-  0.3: renderMark('偏向量'),
-  0.5: renderMark('平衡'),
-  0.7: renderMark('偏全文')
-};
 
 const limitMarks = {
   3: renderMark('精简'),
@@ -214,51 +206,16 @@ const limitMarks = {
         />
       </FormItem>
 
-      <FormItem>
-        <template #label>
-          <div class="flex items-center gap-1">
-            <span>混合检索</span>
-            <Tooltip placement="top">
-              <template #title>
-                系统采用 RRF (Reciprocal Rank Fusion) 算法合并检索结果。该算法通过综合文本块在向量搜索和全文搜索中的“排名顺序”计算融合得分，能够给予两路同时命中的内容更高权重，显著提升搜索精准度。
-              </template>
-              <QuestionCircleOutlined class="text-gray-400 text-xs cursor-help" />
-            </Tooltip>
-          </div>
-        </template>
-        <Switch 
-          v-model:checked="formData.enableHybrid" 
-          :un-checked-value="0" 
-          :checked-value="1" 
-        />
+      <FormItem label="向量相似度阈值" extra="片段的向量相似度达到该值后，才会进入候选结果。">
+        <InputNumber v-model:value="formData.similarityThreshold" :min="0" :max="1" :step="0.01" />
       </FormItem>
- 
-      <FormItem v-if="formData.enableHybrid" label="检索权重 (α)">
-        <div class="flex flex-col w-full">
-          <div class="flex justify-between items-center mb-1 pr-4">
-            <div class="flex items-center gap-2">
-              <span class="italic text-gray-500 text-xs">vector</span>
-              <span class="bg-gray-100 dark:bg-zinc-800 text-primary px-1.5 py-0.5 rounded text-[10px] font-mono border border-gray-200 dark:border-gray-700 leading-none">
-                {{ (1 - (formData.hybridAlpha || 0.5)).toFixed(2) }}
-              </span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="italic text-gray-500 text-xs">full-text</span>
-              <span class="bg-gray-100 dark:bg-zinc-800 text-primary px-1.5 py-0.5 rounded text-[10px] font-mono border border-gray-200 dark:border-gray-700 leading-none">
-                {{ (formData.hybridAlpha || 0.5).toFixed(2) }}
-              </span>
-            </div>
-          </div>
-          <div class="flex items-center gap-4 pb-6">
-            <Slider 
-              v-model:value="formData.hybridAlpha" 
-              :min="0" :max="1" :step="0.01" 
-              :marks="alphaMarks"
-              class="flex-1"
-            />
-            <InputNumber v-model:value="formData.hybridAlpha" :min="0" :max="1" :step="0.01" size="small" class="text-xs w-16" />
-          </div>
-        </div>
+
+      <FormItem
+        v-if="formData.enableRerank"
+        label="重排分数阈值"
+        extra="重排后，只保留分数达到该值的片段。"
+      >
+        <InputNumber v-model:value="formData.rerankScoreThreshold" :min="0" :max="1" :step="0.01" />
       </FormItem>
 
       <FormItem label="检索条数">

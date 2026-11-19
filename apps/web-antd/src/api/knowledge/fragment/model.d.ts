@@ -1,6 +1,7 @@
 import type { PageQuery, BaseEntity } from '#/api/common';
 
 export interface FragmentVO {
+  knowledgeId: string | number;
   /**
    * 
    */
@@ -34,6 +35,7 @@ export interface FragmentVO {
 }
 
 export interface FragmentForm extends BaseEntity {
+  knowledgeId?: string | number;
   /**
    * 
    */
@@ -67,6 +69,7 @@ export interface FragmentForm extends BaseEntity {
 }
 
 export interface FragmentQuery extends PageQuery {
+  knowledgeId?: string | number;
   /**
    * 附件ID
    */

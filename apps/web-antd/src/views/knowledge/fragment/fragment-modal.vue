@@ -1,21 +1,14 @@
-<!--
-使用 Ant Design Vue 原生 Form 组件生成表单
-详细用法参考: https://antdv.com/components/form-cn
-注意: 如果 VSCode 配置了自动移除未使用的导入，可能会误删某些组件导入
--->
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form';
 
+import type { ID } from '#/api/common';
 import type { FragmentForm } from '#/api/knowledge/fragment/model';
 
-import { computed, ref } from 'vue';
+import { computed, ref, shallowRef } from 'vue';
 
 import { useVbenModal } from '@vben/common-ui';
-import { $t } from '@vben/locales';
-import { cloneDeep } from '@vben/utils';
 
-import { Form, FormItem, Input, Textarea, InputNumber } from 'ant-design-vue';
-import { pick } from 'lodash-es';
+import { Form, FormItem, InputNumber, Textarea } from 'ant-design-vue';
 
 import {
   fragmentAdd,
@@ -24,125 +17,123 @@ import {
 } from '#/api/knowledge/fragment';
 import { Tinymce } from '#/components/tinymce';
 
+interface FragmentScope {
+  attachmentName: string;
+  docId: string;
+  id?: ID;
+  knowledgeId: string;
+}
+
 const emit = defineEmits<{ reload: [] }>();
+const formData = ref<FragmentForm>({});
+const scope = shallowRef<FragmentScope>();
+const formReady = shallowRef(false);
+const formError = shallowRef('');
+let revision = 0;
 
-const isUpdate = ref(false);
-const title = computed(() => {
-  return isUpdate.value ? $t('pages.common.edit') : $t('pages.common.add');
-});
-
-/**
- * 定义默认值 用于reset
- */
-const defaultValues: Partial<FragmentForm> = {
-  id: undefined,
-  attachId: undefined,
-  idx: undefined,
-  content: undefined,
-  remark: undefined,
+const rules: Partial<Record<keyof FragmentForm, RuleObject[]>> = {
+  idx: [{ required: true, message: '请填写片段序号' }],
+  content: [{ required: true, message: '请填写片段内容' }],
 };
-
-/**
- * 表单数据ref
- */
-const formData = ref(defaultValues);
-
-type AntdFormRules<T> = Partial<Record<keyof T, RuleObject[]>> & {
-  [key: string]: RuleObject[];
-};
-/**
- * 表单校验规则
- */
-const formRules = ref<AntdFormRules<FragmentForm>>({
-  attachId: [{ required: true, message: '附件ID不能为空' }],
-  idx: [{ required: true, message: '片段索引下标不能为空' }],
-  content: [{ required: true, message: '文档内容不能为空' }],
-});
-
-/**
- * useForm解构出表单方法
- */
-const { validate, validateInfos, resetFields } = Form.useForm(
+const { validate, validateInfos, clearValidate } = Form.useForm(
   formData,
-  formRules,
+  rules,
+);
+const title = computed(() =>
+  scope.value?.id === undefined ? '新增知识片段' : '编辑知识片段',
 );
 
 const [BasicModal, modalApi] = useVbenModal({
   class: 'w-[550px]',
-  fullscreenButton: false,
   closeOnClickModal: false,
-  onClosed: handleCancel,
+  fullscreenButton: false,
   onConfirm: handleConfirm,
-  onOpenChange: async (isOpen) => {
-    if (!isOpen) {
-      return null;
+  async onOpenChange(open) {
+    const currentRevision = ++revision;
+    if (!open) {
+      scope.value = undefined;
+      modalApi.modalLoading(false);
+      return;
     }
+
+    const context = modalApi.getData<FragmentScope>();
+    const { docId, id, knowledgeId } = context;
+    scope.value = context;
+    formData.value = {};
+    formReady.value = false;
+    formError.value = '';
+    clearValidate();
+    if (!docId || !knowledgeId) {
+      formError.value = '请先选择附件。';
+      return;
+    }
+    if (id === undefined) {
+      formReady.value = true;
+      return;
+    }
+
     modalApi.modalLoading(true);
-
-    const { id } = modalApi.getData() as { id?: number | string };
-    isUpdate.value = !!id;
-
-    if (isUpdate.value && id) {
+    try {
       const record = await fragmentInfo(id);
-      // 只赋值存在的字段
-      const filterRecord = pick(record, Object.keys(defaultValues));
-      formData.value = filterRecord;
+      if (currentRevision !== revision) return;
+      if (
+        String(record?.knowledgeId) !== knowledgeId ||
+        record?.docId !== docId
+      ) {
+        formError.value = '当前附件中找不到该片段。';
+        return;
+      }
+      const { content, idx, remark } = record;
+      formData.value = { content, idx, remark };
+      formReady.value = true;
+    } catch {
+      if (currentRevision === revision) {
+        formError.value = '片段加载失败，请关闭后重试。';
+      }
+    } finally {
+      if (currentRevision === revision) modalApi.modalLoading(false);
     }
-
-    modalApi.modalLoading(false);
   },
 });
 
 async function handleConfirm() {
+  const context = scope.value;
+  if (!formReady.value || !context) return;
   try {
-    modalApi.modalLoading(true);
+    modalApi.lock(true);
     await validate();
-    // 可能会做数据处理 使用cloneDeep深拷贝
-    const data = cloneDeep(formData.value);
-    await (isUpdate.value ? fragmentUpdate(data) : fragmentAdd(data));
+    const { docId, id, knowledgeId } = context;
+    const data: FragmentForm = { ...formData.value, docId, id, knowledgeId };
+    if (id === undefined) {
+      await fragmentAdd(data);
+    } else {
+      await fragmentUpdate(data);
+    }
     emit('reload');
-    await handleCancel();
-  } catch (error) {
-    console.error(error);
+    await modalApi.close();
+  } catch {
+    // 字段校验和请求错误由表单及请求客户端显示。
   } finally {
-    modalApi.modalLoading(false);
+    modalApi.lock(false);
   }
-}
-
-async function handleCancel() {
-  modalApi.close();
-  formData.value = cloneDeep(defaultValues);
-  resetFields();
 }
 </script>
 
 <template>
-  <BasicModal :title="title">
-    <Form :label-col="{ span: 4 }">
-      <FormItem label="附件ID" v-bind="validateInfos.attachId">
-        <Input
-          v-model:value="formData.attachId"
-          type="number"
-          :placeholder="$t('ui.formRules.required')"
-        />
+  <BasicModal :title="title" :confirm-disabled="!formReady">
+    <p v-if="formError" role="status">{{ formError }}</p>
+    <Form v-else layout="vertical">
+      <FormItem label="来源附件">
+        <span class="break-all">{{ scope?.attachmentName }}</span>
       </FormItem>
-      <FormItem label="片段索引下标" v-bind="validateInfos.idx">
-        <InputNumber
-          v-model:value="formData.idx"
-          style="width: 100%"
-          :placeholder="$t('ui.formRules.required')"
-          :min="0"
-        />
+      <FormItem label="片段序号" v-bind="validateInfos.idx">
+        <InputNumber v-model:value="formData.idx" :min="0" class="w-full" />
       </FormItem>
-      <FormItem label="文档内容" v-bind="validateInfos.content">
-        <Tinymce :options="{ readonly: false }" v-model="formData.content" />
+      <FormItem label="片段内容" v-bind="validateInfos.content">
+        <Tinymce v-model="formData.content" :options="{ readonly: false }" />
       </FormItem>
       <FormItem label="备注" v-bind="validateInfos.remark">
-        <Textarea
-          v-model:value="formData.remark"
-          :placeholder="$t('ui.formRules.required')"
-          :rows="4"
-        />
+        <Textarea v-model:value="formData.remark" :rows="4" />
       </FormItem>
     </Form>
   </BasicModal>

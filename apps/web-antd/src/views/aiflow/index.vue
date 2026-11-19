@@ -154,7 +154,7 @@ function handleMultiDelete() {
 
 <template>
   <Page :auto-content-height="true">
-    <BasicTable table-title="工作流列表">
+    <BasicTable table-title="流程编排">
       <template #toolbar-tools>
         <Space>
           <Button

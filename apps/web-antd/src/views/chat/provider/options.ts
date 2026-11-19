@@ -1,9 +1,16 @@
+export const arkProvider = {
+  apiHost: 'https://ark.cn-beijing.volces.com/api/plan/v3',
+  label: '火山方舟',
+  value: 'ark',
+} as const;
+
 export const providerOptions = [
   { label: 'OpenAI', value: 'openai' },
   { label: '深度求索', value: 'deepseek' },
   { label: '智谱AI', value: 'zhipu' },
   { label: '小米MiMo', value: 'xiaomi' },
   { label: '阿里云百炼', value: 'qianwen' },
+  arkProvider,
   { label: 'PPIO', value: 'ppio' },
   { label: 'Atlas Cloud', value: 'atlas' },
   { label: 'MiniMax', value: 'minimax' },

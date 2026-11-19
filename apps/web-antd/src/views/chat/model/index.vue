@@ -25,6 +25,7 @@ import { commonDownloadExcel } from '#/utils/file/download';
 import { getDictOptions } from '#/utils/dict';
 
 import modelModal from './model-modal.vue';
+import visionDefaultModal from './vision-default-modal.vue';
 import { columns, querySchema } from './data';
 
 const formOptions: VbenFormProps = {
@@ -90,6 +91,10 @@ const [ModelModal, modalApi] = useVbenModal({
   connectedComponent: modelModal,
 });
 
+const [VisionDefaultModal, visionDefaultModalApi] = useVbenModal({
+  connectedComponent: visionDefaultModal,
+});
+
 function handleAdd() {
   modalApi.setData({});
   modalApi.open();
@@ -131,6 +136,12 @@ function handleDownloadExcel() {
     <BasicTable table-title="模型管理列表">
       <template #toolbar-tools>
         <Space>
+          <a-button
+            v-access:code="['system:model:list']"
+            @click="visionDefaultModalApi.open()"
+          >
+            默认视觉模型
+          </a-button>
           <a-button
             v-access:code="['system:model:export']"
             @click="handleDownloadExcel"
@@ -187,5 +198,6 @@ function handleDownloadExcel() {
       </template>
     </BasicTable>
     <ModelModal @reload="tableApi.query()" />
+    <VisionDefaultModal />
   </Page>
 </template>

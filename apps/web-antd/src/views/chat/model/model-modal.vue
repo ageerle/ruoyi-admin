@@ -22,8 +22,10 @@ import {
   FormItem,
   Input,
   InputPassword,
+  InputNumber,
   Row,
   Select,
+  Switch,
   Tag,
   Textarea,
 } from 'ant-design-vue';
@@ -98,10 +100,12 @@ async function loadProviders() {
 const defaultValues: Partial<ModelForm> = {
   id: undefined,
   category: undefined,
+  supportsVision: false,
   modelName: undefined,
   providerCode: undefined,
   modelDescribe: undefined,
   modelShow: undefined,
+  sortOrder: 100,
   modelDimension: undefined,
   apiHost: undefined,
   apiKey: undefined,
@@ -112,6 +116,7 @@ const defaultValues: Partial<ModelForm> = {
  * 表单数据ref
  */
 const formData = ref(cloneDeep(defaultValues));
+const showVisionOption = computed(() => formData.value.category === 'chat');
 const customProviderConfig = computed(() => getCustomProviderConfig(formData.value.providerCode));
 const providerUnavailable = computed(
   () => !!formData.value.providerCode && !providersMap.value.has(formData.value.providerCode),
@@ -125,6 +130,12 @@ const showApiHost = computed(() => {
     category === 'image' ||
     category === 'video'
   );
+});
+
+watch(showVisionOption, (show) => {
+  if (!show) {
+    formData.value.supportsVision = false;
+  }
 });
 
 /**
@@ -222,7 +233,11 @@ const [BasicModal, modalApi] = useVbenModal({
       if (isUpdate.value && id) {
         const record = await modelInfo(id);
         // 只赋值存在的字段，保留已有模型的地址。
-        formData.value = pick(record, Object.keys(defaultValues));
+        formData.value = {
+          ...pick(record, Object.keys(defaultValues)),
+          supportsVision:
+            record.category === 'chat' && record.supportsVision === true,
+        };
       }
       await nextTick();
     } catch (error) {
@@ -240,6 +255,8 @@ async function handleConfirm() {
     await validate();
     // 可能会做数据处理 使用cloneDeep深拷贝
     const data = cloneDeep(formData.value);
+    data.supportsVision =
+      showVisionOption.value && data.supportsVision === true;
     await (isUpdate.value ? modelUpdate(data) : modelAdd(data));
     emit('reload');
     await handleCancel();
@@ -326,6 +343,10 @@ function isValidCSSColor(color: string): boolean {
     <Form :label-col="{ span: 24 }" :wrapper-col="{ span: 24 }">
       <Row :gutter="16">
         <Col :span="12">
+          <FormItem label="默认优先级" name="sortOrder">
+            <InputNumber v-model:value="formData.sortOrder" :min="0" :precision="0" />
+            <span class="ml-2 text-xs text-gray-500">同厂商、同分类按升序选用，数值越小越优先</span>
+          </FormItem>
           <FormItem
             label="供应商"
             v-bind="validateInfos.providerCode"
@@ -388,6 +409,18 @@ function isValidCSSColor(color: string): boolean {
       </Row>
 
       <Row :gutter="16">
+        <Col v-if="showVisionOption" :span="12">
+          <FormItem
+            label="支持识图"
+            html-for="model-supports-vision"
+            extra="开启后，聊天时会把原图发给模型。"
+          >
+            <Switch
+              id="model-supports-vision"
+              v-model:checked="formData.supportsVision"
+            />
+          </FormItem>
+        </Col>
         <Col v-if="formData.category === 'vector'" :span="12">
           <FormItem label="模型维度" v-bind="validateInfos.modelDimension">
             <Input

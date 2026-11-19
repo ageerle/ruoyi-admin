@@ -34,6 +34,7 @@ export const columns: VxeGridProps['columns'] = [
     slots: { default: 'category' },
   },
 
+  { title: '默认优先级', field: 'sortOrder', width: 110 },
   {
     field: 'action',
     fixed: 'right',

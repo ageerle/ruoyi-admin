@@ -1,4 +1,4 @@
-import type { InfoVO, InfoForm, InfoQuery } from './model';
+import type { InfoForm, InfoQuery, InfoVO, KnowledgeRetrievalRequest } from './model';
 
 import type { ID, IDS } from '#/api/common';
 import type { PageResult } from '#/api/common';
@@ -29,8 +29,11 @@ export function infoExport(params?: InfoQuery) {
  * @param id id
  * @returns 知识库详情
  */
-export function infoInfo(id: ID) {
-  return requestClient.get<InfoVO>(`/system/info/${id}`);
+export function infoInfo(
+  id: ID,
+  options?: { errorMessageMode?: 'none'; signal?: AbortSignal },
+) {
+  return requestClient.get<InfoVO>(`/system/info/${id}`, options);
 }
 
 /**
@@ -65,6 +68,6 @@ export function infoRemove(id: ID | IDS) {
  * @param data
  * @returns 检索结果
  */
-export function knowledgeRetrieval(data: any) {
+export function knowledgeRetrieval(data: KnowledgeRetrievalRequest) {
   return requestClient.post<any[]>('/system/fragment/retrieval', data);
 }

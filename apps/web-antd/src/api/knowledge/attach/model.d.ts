@@ -1,6 +1,7 @@
 import type { PageQuery, BaseEntity } from '#/api/common';
 
 export interface AttachVO {
+  docId?: string;
   /**
    * 
    */

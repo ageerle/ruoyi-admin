@@ -41,6 +41,9 @@ export interface InfoVO {
    */
   retrieveLimit: number;
 
+  /** 向量相似度阈值（0–1） */
+  similarityThreshold?: number;
+
   /**
    * 文本块大小
    */
@@ -77,19 +80,20 @@ export interface InfoVO {
   rerankScoreThreshold: number;
 
   /**
-   * 是否启用混合检索（0 否 1 是）
-   */
-  enableHybrid: number;
-
-  /**
-   * 混合检索权重比例 (0.0-1.0)
-   */
-  hybridAlpha: number;
-
-  /**
    * 备注
    */
   remark: string;
+}
+
+export interface KnowledgeRetrievalRequest {
+  knowledgeId: string | number;
+  query: string;
+  topK?: number;
+  /** 向量相似度阈值 */
+  threshold?: number;
+  rerankScoreThreshold?: number;
+  enableRerank?: boolean;
+  rerankModel?: string;
 }
 
 export interface InfoForm extends BaseEntity {
@@ -133,6 +137,9 @@ export interface InfoForm extends BaseEntity {
    */
   retrieveLimit?: number;
 
+  /** 向量相似度阈值（0–1） */
+  similarityThreshold?: number;
+
   /**
    * 文本块大小
    */
@@ -167,16 +174,6 @@ export interface InfoForm extends BaseEntity {
    * 重排序分数阈值（0-1）
    */
   rerankScoreThreshold?: number;
-
-  /**
-   * 是否启用混合检索（0 否 1 是）
-   */
-  enableHybrid?: number;
-
-  /**
-   * 混合检索权重比例 (0.0-1.0)
-   */
-  hybridAlpha?: number;
 
   /**
    * 备注

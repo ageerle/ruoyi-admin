@@ -19,7 +19,12 @@ import { providerAdd, providerInfo, providerUpdate } from '#/api/chat/provider';
 import { ossInfo } from '#/api/system/oss';
 import type { ProviderForm } from '#/api/chat/provider/model';
 
-import { getCustomProviderConfig, providerOptions, providerStatusOptions } from './options';
+import {
+  arkProvider,
+  getCustomProviderConfig,
+  providerOptions,
+  providerStatusOptions,
+} from './options';
 
 const emit = defineEmits<{ reload: [] }>();
 
@@ -111,6 +116,9 @@ async function handleConfirm() {
     await validate();
     // 可能会做数据处理 使用cloneDeep深拷贝
     const data = cloneDeep(formData.value);
+    if (data.providerCode === arkProvider.value && !data.apiHost?.trim()) {
+      data.apiHost = arkProvider.apiHost;
+    }
 
     // 如果providerIcon是ossId，需要转换为URL
     if (data.providerIcon && typeof data.providerIcon === 'string') {
@@ -179,7 +187,10 @@ async function handleCancel() {
         />
       </FormItem>
       <FormItem label="API地址" v-bind="validateInfos.apiHost">
-        <Input v-model:value="formData.apiHost" :placeholder="$t('ui.formRules.required')" />
+        <Input
+          v-model:value="formData.apiHost"
+          :placeholder="formData.providerCode === arkProvider.value ? arkProvider.apiHost : $t('ui.formRules.required')"
+        />
       </FormItem>
       <FormItem label="排序" v-bind="validateInfos.sortOrder">
         <InputNumber v-model:value="formData.sortOrder" :min="0" :precision="0" />

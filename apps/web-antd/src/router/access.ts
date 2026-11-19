@@ -53,6 +53,12 @@ const routeMetaMapping: Record<string, Omit<RouteMeta, 'title'>> = {
   },
 };
 
+const routeAliases: Partial<Record<string, string>> = {
+  '/knowledge/attach': '/chat/attach',
+  '/knowledge/fragment': '/chat/fragment',
+  '/knowledge/info': '/chat/info',
+};
+
 /**
  * 后台路由转vben路由
  * @param menuList 后台菜单
@@ -129,6 +135,11 @@ function backMenuToVbenMenu(
       name: menu.name,
       path: menu.path,
     };
+
+    const alias = routeAliases[vbenRoute.path];
+    if (alias) {
+      vbenRoute.alias = alias;
+    }
 
     // 处理meta映射
     if (Object.keys(routeMetaMapping).includes(vbenRoute.path)) {

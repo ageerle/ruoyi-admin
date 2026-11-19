@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
+import type { AttachVO } from '#/api/knowledge/attach/model';
+import { useAccess } from '@vben/access';
 import {
   Button,
+  Dropdown,
+  Menu,
+  MenuItem,
   Upload,
   Table,
   Space,
@@ -15,31 +20,51 @@ import {
   Spin,
   Badge,
   Switch,
-  Typography,
-  TypographyParagraph,
-  Drawer,
 } from 'ant-design-vue';
-import { InboxOutlined, CopyOutlined } from '@ant-design/icons-vue';
+import { InboxOutlined } from '@ant-design/icons-vue';
 import { useAppConfig } from '@vben/hooks';
 import { useAccessStore } from '@vben/stores';
-import { attachList, attachRemove, attachParse, attachReparseKnowledge } from '#/api/knowledge/attach';
-import { fragmentList } from '#/api/knowledge/fragment';
+import { attachExport, attachList, attachRemove, attachParse, attachReparseKnowledge } from '#/api/knowledge/attach';
 import { ossInfo, checkLoginBeforeDownload } from '#/api/system/oss';
-import { downloadByUrl } from '#/utils/file/download';
+import { commonDownloadExcel, downloadByUrl } from '#/utils/file/download';
 import { stringify } from '@vben/request';
 import { requestClient } from '#/api/request';
 
 const props = defineProps<{
   knowledgeId?: string | number;
 }>();
+const emit = defineEmits<{ viewFragments: [id: number | string] }>();
 
 const { apiURL, clientId } = useAppConfig(
   import.meta.env,
   import.meta.env.PROD,
 );
 const accessStore = useAccessStore();
+const { hasAccessByCodes } = useAccess();
+const canViewFragments = computed(
+  () =>
+    hasAccessByCodes(['system:attach:query']) &&
+    hasAccessByCodes(['system:fragment:list']),
+);
+const canParseAttachment = computed(() =>
+  hasAccessByCodes(['system:attach:edit']),
+);
+const canViewFile = computed(() => hasAccessByCodes(['system:oss:query']));
+const canDownloadFile = computed(() => hasAccessByCodes(['system:oss:download']));
+const canDeleteAttachment = computed(() => hasAccessByCodes(['system:attach:remove']));
 
-const attachmentData = ref([]);
+function hasMaintenanceActions(record: AttachVO) {
+  return (canParseAttachment.value && record.status !== 1) ||
+    (canViewFile.value && !!record.ossId) ||
+    canDeleteAttachment.value;
+}
+
+function exportAttachments() {
+  if (!props.knowledgeId) return;
+  commonDownloadExcel(attachExport, '知识库附件数据', { knowledgeId: props.knowledgeId });
+}
+
+const attachmentData = ref<AttachVO[]>([]);
 const uploadUrl = `${apiURL}/system/attach/upload`;
 const loading = ref(false);
 const uploading = ref(false);
@@ -61,7 +86,7 @@ const columns = [
   { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
   { title: '上传时间', dataIndex: 'createTime', key: 'createTime', width: 180 },
   { title: '分块数', dataIndex: 'fragmentCount', key: 'fragmentCount', width: 80 },
-  { title: '操作', key: 'action', width: 280 },
+  { title: '操作', key: 'action', width: 158 },
 ];
 
 const statusMap = {
@@ -71,39 +96,12 @@ const statusMap = {
   3: { text: '解析失败', status: 'error' },
 };
 
-const fragmentVisible = ref(false);
-const fragmentLoading = ref(false);
-const fragmentData = ref([]);
-const fragmentColumns = [
-  { title: '序号', dataIndex: 'idx', key: 'idx', width: 80 },
-  { title: '片段内容', dataIndex: 'content', key: 'content' },
-];
-
 const fileDetailVisible = ref(false);
 const fileDetailLoading = ref(false);
 const fileDetailData = ref<any>(null);
 
 const uploadModalVisible = ref(false);
 const fileList = ref<any[]>([]);
-
-const fragmentDetailVisible = ref(false);
-const currentFragment = ref<any>(null);
-const currentSourceName = ref('');
-
-function handleViewFragmentDetail(record: any, sourceName?: string) {
-  currentFragment.value = record;
-  currentSourceName.value = sourceName || '';
-  fragmentDetailVisible.value = true;
-}
-
-async function handleCopy(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    message.success('已复制到剪贴板');
-  } catch (err) {
-    message.error('复制失败');
-  }
-}
 
 function handleOpenUpload() {
   fileList.value = [];
@@ -118,7 +116,9 @@ async function loadAttachments() {
       knowledgeId: props.knowledgeId,
       pageSize: 100,
     });
-    attachmentData.value = res.rows || [];
+    attachmentData.value = (res.rows || []).filter(
+      (row) => String(row.knowledgeId) === String(props.knowledgeId),
+    );
   } finally {
     loading.value = false;
   }
@@ -173,16 +173,21 @@ async function handleManualUpload() {
   }
 }
 
-async function handleDeleteAttachment(record: any) {
-  try {
-    await attachRemove(record.id);
-    await loadAttachments();
-  } catch (error) {
-    message.error('删除失败');
-  }
+function confirmDeleteAttachment(record: AttachVO) {
+  Modal.confirm({
+    title: '删除附件？',
+    content: `「${record.name}」及其知识片段将被删除。`,
+    okText: '删除',
+    okType: 'danger',
+    cancelText: '取消',
+    async onOk() {
+      await attachRemove(record.id);
+      await loadAttachments();
+    },
+  });
 }
 
-async function handleParse(record: any) {
+async function handleParse(record: AttachVO) {
   try {
     loading.value = true;
     await attachParse(record.id);
@@ -209,26 +214,7 @@ async function handleReparseAll() {
   }
 }
 
-async function handleFragment(record: any) {
-  fragmentLoading.value = true;
-  fragmentVisible.value = true;
-  try {
-    const res = await fragmentList({ docId: record.docId, pageSize: 100 });
-    // 初始化展开状态
-    fragmentData.value = (res.rows || []).map((item: any) => ({ ...item, _expanded: false }));
-  } catch (error) {
-    message.error('加载片段失败');
-  } finally {
-    fragmentLoading.value = false;
-  }
-}
-
-function closeFragment() {
-  fragmentVisible.value = false;
-  fragmentData.value = [];
-}
-
-async function handleViewFile(record: any) {
+async function handleViewFile(record: AttachVO) {
   if (!record.ossId) return message.error('文件信息缺失');
   fileDetailLoading.value = true;
   fileDetailVisible.value = true;
@@ -261,11 +247,12 @@ function isImageFile(fileSuffix: string) {
     <!-- 顶部操作栏 -->
     <div class="mb-4 flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <Button type="primary" @click="handleOpenUpload">
+        <Button type="primary" v-access:code="['system:attach:add']" @click="handleOpenUpload">
           <template #icon><InboxOutlined /></template>
           上传文档
         </Button>
         <Popconfirm
+          v-access:code="['system:attach:edit']"
           title="将按当前分片配置重新解析所有文档，是否继续？"
           @confirm="handleReparseAll"
         >
@@ -273,6 +260,9 @@ function isImageFile(fileSuffix: string) {
         </Popconfirm>
       </div>
       <div class="flex items-center gap-2">
+        <Button v-access:code="['system:attach:export']" @click="exportAttachments">
+          导出
+        </Button>
         <Tooltip title="刷新列表以获取最新解析状态">
           <Button @click="loadAttachments">
             刷新
@@ -307,27 +297,48 @@ function isImageFile(fileSuffix: string) {
             {{ record.createTime ? new Date(record.createTime).toLocaleString('zh-CN', { hour12: false }) : '-' }}
           </template>
           <template v-else-if="column.key === 'action'">
-            <Space>
-              <Button 
-                v-if="record.status !== 1"
-                type="link" 
-                size="small" 
-                @click="handleParse(record)"
+            <Space :size="4">
+              <Button
+                v-if="canViewFragments && record.status === 2 && record.docId"
+                type="link"
+                size="small"
+                @click="emit('viewFragments', record.id)"
               >
-                {{ record.status === 2 ? '重新解析' : '解析' }}
+                查看片段
               </Button>
-              <Button 
-                v-if="record.status === 2"
-                type="link" 
-                size="small" 
-                @click="handleFragment(record)"
+              <Dropdown
+                v-if="hasMaintenanceActions(record)"
+                placement="bottomRight"
+                :trigger="['click']"
               >
-                知识片段
-              </Button>
-              <Button type="link" size="small" @click="handleViewFile(record)">查看源文件</Button>
-              <Popconfirm title="确定要删除这个文件吗？" @confirm="handleDeleteAttachment(record)">
-                <Button type="link" danger size="small">删除</Button>
-              </Popconfirm>
+                <Button type="text" size="small">更多</Button>
+                <template #overlay>
+                  <Menu>
+                    <MenuItem
+                      v-if="canParseAttachment && record.status !== 1"
+                      key="parse"
+                      @click="handleParse(record)"
+                    >
+                      {{ record.status === 2 ? '重新解析' : '解析' }}
+                    </MenuItem>
+                    <MenuItem
+                      v-if="canViewFile && record.ossId"
+                      key="original"
+                      @click="handleViewFile(record)"
+                    >
+                      查看源文件
+                    </MenuItem>
+                    <MenuItem
+                      v-if="canDeleteAttachment"
+                      key="delete"
+                      danger
+                      @click="confirmDeleteAttachment(record)"
+                    >
+                      删除
+                    </MenuItem>
+                  </Menu>
+                </template>
+              </Dropdown>
             </Space>
           </template>
         </template>
@@ -375,26 +386,6 @@ function isImageFile(fileSuffix: string) {
       </div>
     </Modal>
 
-  <Modal v-model:open="fragmentVisible" title="知识分片列表" :width="1000" :footer="null" :destroyOnClose="true">
-    <Table :columns="fragmentColumns" :data-source="fragmentData" :loading="fragmentLoading" :pagination="{ pageSize: 10 }" size="middle" bordered row-key="id">
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'idx'">
-          {{ Number(record.idx) + 1 }}
-        </template>
-        <template v-else-if="column.key === 'content'">
-          <div 
-            class="cursor-pointer hover:text-blue-600 transition-colors"
-            @click="handleViewFragmentDetail(record)"
-          >
-            <div class="line-clamp-3" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6;">
-              {{ record.content }}
-            </div>
-          </div>
-        </template>
-      </template>
-    </Table>
-  </Modal>
-
     <Modal v-model:open="fileDetailVisible" title="文件详情" :width="600" :footer="null">
       <div v-if="fileDetailLoading" class="flex justify-center p-4"><Spin /></div>
       <div v-else-if="fileDetailData">
@@ -410,56 +401,21 @@ function isImageFile(fileSuffix: string) {
           <Image :src="fileDetailData.url" :preview="true" style="max-height: 200px" />
         </div>
         <div v-else class="mt-4 text-center">
-          <a :href="fileDetailData.url" target="_blank">{{ fileDetailData.url }}</a>
+          <a :href="fileDetailData.url" target="_blank" rel="noopener noreferrer">{{ fileDetailData.url }}</a>
         </div>
 
         <div class="flex justify-center gap-4 mt-6">
           <Button @click="closeFileDetail">关闭</Button>
-          <Button type="primary" @click="handleDownloadFile(fileDetailData.ossId, fileDetailData.originalName)">下载</Button>
+          <Button
+            v-if="canDownloadFile"
+            type="primary"
+            @click="handleDownloadFile(fileDetailData.ossId, fileDetailData.originalName)"
+          >
+            下载
+          </Button>
         </div>
       </div>
     </Modal>
     
-    <!-- 详情抽屉 -->
-    <Drawer
-      v-model:open="fragmentDetailVisible"
-      title="知识片段详情"
-      placement="right"
-      :width="600"
-    >
-      <div v-if="currentFragment" class="flex flex-col h-full">
-        <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-100 relative group">
-          <div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
-             <Button type="link" size="small" @click="handleCopy(currentFragment.content)">
-               <template #icon><CopyOutlined /></template>
-               复制
-             </Button>
-          </div>
-          <div style="white-space: pre-wrap; font-size: 15px; line-height: 1.8; color: #333;">
-            {{ currentFragment.content }}
-          </div>
-        </div>
-
-        <Descriptions title="元数据信息" :column="1" size="small" bordered>
-          <DescriptionsItem label="片段 ID">{{ currentFragment.id }}</DescriptionsItem>
-          <DescriptionsItem label="所属文档 ID">{{ currentFragment.docId }}</DescriptionsItem>
-          <DescriptionsItem label="字符数量">{{ currentFragment.content?.length || 0 }} 字</DescriptionsItem>
-          <DescriptionsItem v-if="currentSourceName" label="来源文件">{{ currentSourceName }}</DescriptionsItem>
-        </Descriptions>
-        
-        <div class="mt-auto pt-6 flex justify-end">
-          <Button @click="fragmentDetailVisible = false">关闭</Button>
-        </div>
-      </div>
-    </Drawer>
   </div>
 </template>
-
-<style scoped>
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>

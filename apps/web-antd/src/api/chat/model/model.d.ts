@@ -1,5 +1,14 @@
 import type { BaseEntity, PageQuery } from '#/api/common';
 
+export interface VisionDefaultSettings {
+  modelName: null | string;
+  options: {
+    modelDescribe?: null | string;
+    modelName: string;
+    providerCode: string;
+  }[];
+}
+
 export interface ModelVO {
   /**
    * 主键
@@ -10,6 +19,8 @@ export interface ModelVO {
    * 模型分类
    */
   category: string;
+
+  supportsVision?: boolean;
 
   /**
    * 模型名称
@@ -30,6 +41,7 @@ export interface ModelVO {
    * 是否显示
    */
   modelShow: string;
+  sortOrder: number;
 
   /**
    * 模型维度
@@ -63,6 +75,8 @@ export interface ModelForm extends BaseEntity {
    */
   category?: string;
 
+  supportsVision?: boolean;
+
   /**
    * 模型名称
    */
@@ -82,6 +96,7 @@ export interface ModelForm extends BaseEntity {
    * 是否显示
    */
   modelShow?: string;
+  sortOrder?: number;
 
   /**
    * 模型维度

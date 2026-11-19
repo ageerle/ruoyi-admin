@@ -23,7 +23,6 @@ function ensureDefaults() {
   if (cfg.top_n === undefined) cfg.top_n = 3
   if (cfg.is_strict === undefined) cfg.is_strict = true
   if (cfg.default_response === undefined) cfg.default_response = ''
-  if (cfg.retrieval_mode === undefined) cfg.retrieval_mode = 'vector'
 }
 
 // 当 wfNode 切换时重新初始化默认值
@@ -64,12 +63,6 @@ watch(() => nodeConfig.value.knowledge_base_uuid, (val) => {
   const hit = kbOptions.value.find(opt => opt.value === String(val))
   nodeConfig.value.knowledge_base_name = hit ? hit.label : ''
 })
-
-// 检索模式选项（含继承选项）
-const retrievalModeOptions = [
-  { label: '向量检索', value: 'vector' },
-  { label: '混合检索', value: 'hybrid' },
-]
 </script>
 
 <template>
@@ -99,19 +92,6 @@ const retrievalModeOptions = [
           </div>
         </template>
       </Select>
-    </div>
-
-    <!-- 检索模式 -->
-    <div class="mt-3">
-      <div class="text-sm mb-1">检索模式</div>
-      <Select
-        v-model:value="nodeConfig.retrieval_mode"
-        :options="retrievalModeOptions"
-        class="w-full"
-      />
-      <div class="text-xs text-gray-400 mt-1">
-        节点选择的模式将覆盖知识库自身的混合检索配置
-      </div>
     </div>
 
     <!-- 相似度阈值 -->
